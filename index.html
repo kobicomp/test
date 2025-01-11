@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>אסיפת הורים כיתה א</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .date-selector {
+            margin-bottom: 20px;
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .time-slot {
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .time-slot:hover:not(.booked):not(.pending) {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .time-slot.booked {
+            background-color: var(--danger-color);
+            cursor: not-allowed;
+        }
+
+        .time-slot.pending {
+            background-color: var(--warning-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .submit-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .cancel-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+
+<meta name="NetsparkQuiltingResult" total-length="12355" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112" />
+</head>
+<body>
+    <div class="container">
+        <h1>אסיפת הורים כיתה א</h1>
+        
+        <div class="date-selector">
+            <div class="form-group">
+                <label for="date-select">בחר תאריך:</label>
+                <select id="date-select" onchange="scheduler.loadTimes()">
+                    <option value="">בחר תאריך</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="time-grid" id="time-slots"></div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="booking-modal">
+        <h2>הזמנת תור</h2>
+        <form id="booking-form">
+            <div class="form-group">
+                <label for="name">שם מלא:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">טלפון:</label>
+                <input type="tel" id="phone" required>
+            </div>
+            <input type="hidden" id="selected-date">
+            <input type="hidden" id="selected-time">
+            <div id="status-message" class="status"></div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="cancel-btn" onclick="scheduler.closeModal()">ביטול</button>
+                <button type="submit" class="submit-btn">אישור</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const CONFIG = {
+            FORM_URL: "https://docs.google.com/forms/d/e/1FAIpQLSfaCO4V343FO1pT8eV_Cd3Qd_qyxuwEId7jHgDj1C1Fjf9X2A/viewform?usp=preview",
+            SHEETS_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTFHOCFxTbFBcGY9y3_AZnuo4klHVrDww-7VkowX4r7XBW7Q9o9te-DKQIZS4L8YBazvXdVEyQF2NAx/pub?output=csv",
+            NAME_ENTRY: "795013979",
+            TIME_ENTRY: "1634119070",
+            DATES: [{"date":"2025-01-14","times":["16:00","16:15","16:30","16:45","17:00","17:15","17:30","17:45","18:00","18:15","18:30","18:45","19:00","19:15","19:30","19:45"]}]
+        };
+
+        const scheduler = {
+            selectedDate: null,
+            bookedSlots: new Map(),
+            pendingSlots: new Map(),
+
+            initialize() {
+                this.loadDates();
+                this.setupFormHandler();
+                setInterval(() => this.loadBookings(), 30000);
+            },
+
+            loadDates() {
+                const select = document.getElementById('date-select');
+                select.innerHTML = '<option value="">בחר תאריך</option>';
+                
+                CONFIG.DATES.forEach(dateConfig => {
+                    const option = document.createElement('option');
+                    option.value = dateConfig.date;
+                    option.textContent = new Date(dateConfig.date).toLocaleDateString('he-IL', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    });
+                    select.appendChild(option);
+                });
+            },
+
+            async loadBookings() {
+                if (!this.selectedDate) return;
+
+                try {
+                    const response = await fetch(CONFIG.SHEETS_URL + '?t=' + Date.now(), {
+                        cache: 'no-store'
+                    });
+                    const data = await response.text();
+                    this.parseBookings(data);
+                    this.renderTimeSlots();
+                } catch (error) {
+                    console.error('Error loading bookings:', error);
+                }
+            },
+
+            parseBookings(csvData) {
+                this.bookedSlots.clear();
+                const lines = csvData.split('\n');
+                if (lines.length > 1) {
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    const dateTimeIndex = headers.indexOf('תאריך ושעה');
+                    const nameIndex = headers.indexOf('שם מלא');
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const columns = lines[i].split(',').map(col => col.trim());
+                        if (columns.length >= Math.max(dateTimeIndex, nameIndex) + 1) {
+                            const [date, time] = columns[dateTimeIndex].split(' ');
+                            if (date === this.selectedDate) {
+                                this.bookedSlots.set(time, columns[nameIndex]);
+                            }
+                        }
+                    }
+                }
+            },
+
+            loadTimes() {
+                this.selectedDate = document.getElementById('date-select').value;
+                if (!this.selectedDate) {
+                    document.getElementById('time-slots').innerHTML = '';
+                    return;
+                }
+                
+                this.loadBookings();
+            },
+
+            renderTimeSlots() {
+                const container = document.getElementById('time-slots');
+                container.innerHTML = '';
+
+                if (!this.selectedDate) return;
+
+                const dateConfig = CONFIG.DATES.find(d => d.date === this.selectedDate);
+                if (!dateConfig) return;
+
+                dateConfig.times.forEach(time => {
+                    const slot = document.createElement('div');
+                    slot.className = 'time-slot';
+                    slot.textContent = time;
+
+                    if (this.bookedSlots.has(time)) {
+                        slot.className += ' booked';
+                        slot.title = `תפוס - ${this.bookedSlots.get(time)}`;
+                    } else if (this.pendingSlots.has(time)) {
+                        slot.className += ' pending';
+                        slot.title = 'ממתין לאישור';
+                    } else {
+                        slot.onclick = () => this.openModal(time);
+                    }
+
+                    container.appendChild(slot);
+                });
+            },
+
+            openModal(time) {
+                document.getElementById('selected-date').value = this.selectedDate;
+                document.getElementById('selected-time').value = time;
+                document.getElementById('booking-form').reset();
+                document.getElementById('status-message').style.display = 'none';
+                document.getElementById('overlay').style.display = 'block';
+                document.getElementById('booking-modal').style.display = 'block';
+            },
+
+            closeModal() {
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('booking-modal').style.display = 'none';
+            },
+
+            setupFormHandler() {
+                document.getElementById('booking-form').onsubmit = async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('name').value;
+                    const phone = document.getElementById('phone').value;
+                    const date = document.getElementById('selected-date').value;
+                    const time = document.getElementById('selected-time').value;
+
+                    if (this.bookedSlots.has(time) || this.pendingSlots.has(time)) {
+                        this.showStatus('התור כבר נתפס', 'error');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append(CONFIG.NAME_ENTRY, name);
+                    formData.append(CONFIG.TIME_ENTRY, `${date} ${time}`);
+
+                    try {
+                        this.pendingSlots.set(time, name);
+                        this.renderTimeSlots();
+
+                        await fetch(CONFIG.FORM_URL, {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'no-cors'
+                        });
+
+                        setTimeout(() => {
+                            this.pendingSlots.delete(time);
+                            this.loadBookings();
+                        }, 300000);
+
+                        this.closeModal();
+                        this.showStatus('התור נקבע בהצלחה!', 'success');
+                    } catch (error) {
+                        console.error('Error:', error);
+                        this.pendingSlots.delete(time);
+                        this.renderTimeSlots();
+                        this.showStatus('אירעה שגיאה בקביעת התור', 'error');
+                    }
+                };
+            },
+
+            showStatus(message, type) {
+                const status = document.getElementById('status-message');
+                status.textContent = message;
+                status.className = `status ${type}`;
+                status.style.display = 'block';
+            }
+        };
+
+        scheduler.initialize();
+    </script>
+</body>
+</html>
