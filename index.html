@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
@@ -5,10 +6,10 @@
     <title>מערכת הזמנת תורים</title>
     <style>
         :root {
-            --available-color: #10B981;
-            --booked-color: #EF4444;
-            --pending-color: #F59E0B;
-            --primary-color: #2196F3;
+            --available-color: #06e59a;
+            --booked-color: #df0c0c;
+            --pending-color: #d58907;
+            --primary-color: #dbf320;
         }
 
         body {
@@ -24,6 +25,11 @@
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
         .controls {
@@ -170,9 +176,16 @@
             color: #059669;
         }
     </style>
+
+<meta name="NetsparkQuiltingResult" total-length="14207" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
 </head>
 <body>
     <div class="container">
+        <div class="header">
+            <h1>אסיפת הורים</h1>
+            <p></p>
+        </div>
+        
         <div class="controls">
             <button onclick="scheduler.previousDay()">◀ יום קודם</button>
             <span id="current-date"></span>
@@ -195,7 +208,6 @@
                 <input type="tel" id="phone" required>
             </div>
             <input type="hidden" id="selected-time">
-            <input type="hidden" id="selected-date">
             <div id="status-message" class="status"></div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" onclick="scheduler.closeModal()">ביטול</button>
@@ -205,24 +217,14 @@
     </div>
 
     <script>
-        // הגדרות המערכת
         const CONFIG = {
-            // קישורים ושדות
-            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfaCO4V343FO1pT8eV_Cd3Qd_qyxuwEId7jHgDj1C1Fjf9X2A/formResponse',
+            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSc0lbXF8zZi8ZMlIj7_GyhQcc3ZktSUe-QnFNn1s_VegImVFg/formResponse',
             SHEETS_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFHOCFxTbFBcGY9y3_AZnuo4klHVrDww-7VkowX4r7XBW7Q9o9te-DKQIZS4L8YBazvXdVEyQF2NAx/pub?output=csv',
             NAME_ENTRY: 'entry.795013979',
             TIME_ENTRY: 'entry.1634119070',
-
-            // הגדרות זמנים
-            START_TIME: 16,
+            START_TIME: 8,
             END_TIME: 20,
-            TIME_INTERVAL: 15, // דקות
-
-            // זמנים מערכתיים
-            REFRESH_INTERVAL: 30000, // 30 שניות
-            PENDING_TIMEOUT: 300000, // 5 דקות
-
-            // הודעות
+            TIME_INTERVAL: 15,
             SUCCESS_MESSAGE: 'התור נקבע בהצלחה!',
             ERROR_MESSAGE: 'אירעה שגיאה בשליחת הטופס',
             BUSY_MESSAGE: 'התור כבר תפוס'
@@ -237,12 +239,8 @@
             initialize() {
                 this.loadBookings();
                 this.setupFormHandler();
-
-                // רענון אוטומטי
-                setInterval(() => this.loadBookings(), CONFIG.REFRESH_INTERVAL);
-
-                // ניקוי הזמנות זמניות שפג תוקפן
-                setInterval(() => this.cleanExpiredPending(), CONFIG.REFRESH_INTERVAL);
+                setInterval(() => this.loadBookings(), 30000);
+                setInterval(() => this.cleanExpiredPending(), 30000);
             },
 
             async loadBookings() {
@@ -267,15 +265,14 @@
                 if (lines.length > 1) {
                     const headers = lines[0].split(',').map(h => h.trim());
                     const nameIndex = headers.indexOf('שם המזמין');
-                    const dateIndex = headers.indexOf('תאריך');
                     const timeIndex = headers.indexOf('שעה');
-
+                    
                     for (let i = 1; i < lines.length; i++) {
                         const columns = lines[i].split(',').map(col => col.trim());
-                        if (columns.length >= Math.max(nameIndex, dateIndex, timeIndex) + 1) {
+                        if (columns.length >= Math.max(nameIndex, timeIndex) + 1) {
                             const name = columns[nameIndex];
-                            const date = columns[dateIndex];
-                            const time = columns[timeIndex];
+                            const timeStr = columns[timeIndex];
+                            const [date, time] = timeStr.split(' ');
                             const key = `${date}_${time}`;
                             this.bookedSlots.set(key, { name });
                         }
@@ -287,10 +284,9 @@
                 const container = document.getElementById('time-slots');
                 container.innerHTML = '';
 
-                const formattedDate = this.currentDate.toLocaleDateString('he-IL');
-                document.getElementById('current-date').textContent = formattedDate;
+                document.getElementById('current-date').textContent = 
+                    this.currentDate.toLocaleDateString('he-IL');
 
-                // יצירת חלונות זמן
                 for (let hour = CONFIG.START_TIME; hour < CONFIG.END_TIME; hour++) {
                     for (let minute = 0; minute < 60; minute += CONFIG.TIME_INTERVAL) {
                         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
@@ -334,7 +330,6 @@
 
             openModal(time) {
                 document.getElementById('selected-time').value = time;
-                document.getElementById('selected-date').value = this.formatDate(this.currentDate);
                 document.getElementById('booking-form').reset();
                 document.getElementById('status-message').textContent = '';
                 document.getElementById('modal-overlay').style.display = 'block';
@@ -351,7 +346,7 @@
                     e.preventDefault();
                     const name = document.getElementById('name').value;
                     const time = document.getElementById('selected-time').value;
-                    const dateStr = document.getElementById('selected-date').value;
+                    const dateStr = this.formatDate(this.currentDate);
                     const key = `${dateStr}_${time}`;
 
                     if (this.bookedSlots.has(key) || this.pendingSlots.has(key)) {
@@ -360,8 +355,9 @@
                     }
 
                     const formData = new FormData();
+                    const dateTimeStr = `${dateStr} ${time}`;
                     formData.append(CONFIG.NAME_ENTRY, name);
-                    formData.append(CONFIG.TIME_ENTRY, `${dateStr} ${time}`);
+                    formData.append(CONFIG.TIME_ENTRY, dateTimeStr);
 
                     try {
                         this.pendingSlots.set(key, { name });
@@ -377,7 +373,7 @@
                             this.pendingSlots.delete(key);
                             this.timeoutIds.delete(key);
                             this.renderTimeSlots();
-                        }, CONFIG.PENDING_TIMEOUT);
+                        }, 300000);
 
                         this.timeoutIds.set(key, timeoutId);
                         this.closeModal();
@@ -393,7 +389,7 @@
             cleanExpiredPending() {
                 const now = Date.now();
                 for (const [key, booking] of this.pendingSlots.entries()) {
-                    if (now - booking.timestamp > CONFIG.PENDING_TIMEOUT) {
+                    if (now - booking.timestamp > 300000) {
                         this.pendingSlots.delete(key);
                         const timeoutId = this.timeoutIds.get(key);
                         if (timeoutId) {
@@ -412,13 +408,11 @@
             previousDay() {
                 this.currentDate.setDate(this.currentDate.getDate() - 1);
                 this.renderTimeSlots();
-                this.loadBookings();
             },
 
             nextDay() {
                 this.currentDate.setDate(this.currentDate.getDate() + 1);
                 this.renderTimeSlots();
-                this.loadBookings();
             }
         };
 
