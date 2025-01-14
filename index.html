@@ -6,10 +6,10 @@
     <title>מערכת הזמנת תורים</title>
     <style>
         :root {
-            --available-color: #06e59a;
-            --booked-color: #df0c0c;
-            --pending-color: #d58907;
-            --primary-color: #dbf320;
+            --available-color: #10b981;
+            --booked-color: #ef4444;
+            --pending-color: #f59e0b;
+            --primary-color: #2196f3;
         }
 
         body {
@@ -177,7 +177,7 @@
         }
     </style>
 
-<meta name="NetsparkQuiltingResult" total-length="14207" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
+<meta name="NetsparkQuiltingResult" total-length="14037" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
 </head>
 <body>
     <div class="container">
@@ -203,10 +203,6 @@
                 <label for="name">שם מלא:</label>
                 <input type="text" id="name" required>
             </div>
-            <div class="form-group">
-                <label for="phone">טלפון:</label>
-                <input type="tel" id="phone" required>
-            </div>
             <input type="hidden" id="selected-time">
             <div id="status-message" class="status"></div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
@@ -218,13 +214,13 @@
 
     <script>
         const CONFIG = {
-            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSc0lbXF8zZi8ZMlIj7_GyhQcc3ZktSUe-QnFNn1s_VegImVFg/formResponse',
+            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfE7dl4CX33VSDIIjcZbeCJv9V6taqZ_-pHAqDwSTbaNSYcWA/viewform?usp=sf_link/formResponse',
             SHEETS_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFHOCFxTbFBcGY9y3_AZnuo4klHVrDww-7VkowX4r7XBW7Q9o9te-DKQIZS4L8YBazvXdVEyQF2NAx/pub?output=csv',
             NAME_ENTRY: 'entry.795013979',
             TIME_ENTRY: 'entry.1634119070',
-            START_TIME: 8,
+            START_TIME: 12,
             END_TIME: 20,
-            TIME_INTERVAL: 15,
+            TIME_INTERVAL: 60,
             SUCCESS_MESSAGE: 'התור נקבע בהצלחה!',
             ERROR_MESSAGE: 'אירעה שגיאה בשליחת הטופס',
             BUSY_MESSAGE: 'התור כבר תפוס'
