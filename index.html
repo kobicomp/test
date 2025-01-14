@@ -2,7 +2,7 @@
 <html dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>מערכת הזמנת תורים</title>
+    <title>אסיפת הורים כיתה א 1</title>
     <style>
         :root {
             --available-color: #10b981;
@@ -31,6 +31,11 @@
             margin-bottom: 30px;
         }
 
+        .header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
         .date-display {
             text-align: center;
             margin-bottom: 20px;
@@ -40,6 +45,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             font-size: 1.2em;
             font-weight: bold;
+            color: #333;
         }
 
         .slot-wrapper {
@@ -166,12 +172,12 @@
         }
     </style>
 
-<meta name="NetsparkQuiltingResult" total-length="13610" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
+<meta name="NetsparkQuiltingResult" total-length="13882" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>הזמנת תורים</h1>
+            <h1>אסיפת הורים כיתה א 1</h1>
         </div>
         
         <div class="date-display" id="date-display"></div>
@@ -188,7 +194,7 @@
                 <input type="text" id="name" required>
             </div>
             <input type="hidden" id="selected-time">
-            <input type="hidden" id="selected-date" value="2025-01-14">
+            <input type="hidden" id="selected-date" value="2025-01-15">
             <div id="status-message" class="status"></div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" onclick="scheduler.closeModal()">ביטול</button>
@@ -203,10 +209,10 @@
             SHEETS_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFHOCFxTbFBcGY9y3_AZnuo4klHVrDww-7VkowX4r7XBW7Q9o9te-DKQIZS4L8YBazvXdVEyQF2NAx/pub?output=csv',
             NAME_ENTRY: 'entry.795013979',
             TIME_ENTRY: 'entry.1634119070',
-            BOOKING_DATE: '2025-01-14',
-            START_TIME: 10,
+            BOOKING_DATE: '2025-01-15',
+            START_TIME: 15,
             END_TIME: 20,
-            TIME_INTERVAL: 40,
+            TIME_INTERVAL: 15,
             SUCCESS_MESSAGE: 'התור נקבע בהצלחה!',
             ERROR_MESSAGE: 'אירעה שגיאה בשליחת הטופס',
             BUSY_MESSAGE: 'התור כבר תפוס'
@@ -333,6 +339,11 @@
                     const name = document.getElementById('name').value;
                     const time = document.getElementById('selected-time').value;
                     const key = `${CONFIG.BOOKING_DATE}_${time}`;
+
+                    if (!name || !time) {
+                        alert('נא למלא את כל השדות');
+                        return;
+                    }
 
                     if (this.bookedSlots.has(key) || this.pendingSlots.has(key)) {
                         alert(CONFIG.BUSY_MESSAGE);
