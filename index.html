@@ -8,7 +8,7 @@
             --available-color: #10b981;
             --booked-color: #ef4444;
             --pending-color: #f59e0b;
-            --primary-color: #3bbb2a;
+            --primary-color: #2196f3;
         }
 
         body {
@@ -31,15 +31,15 @@
             margin-bottom: 30px;
         }
 
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .date-display {
+            text-align: center;
             margin-bottom: 20px;
             padding: 15px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 1.2em;
+            font-weight: bold;
         }
 
         .slot-wrapper {
@@ -164,32 +164,17 @@
             margin-top: 10px;
             text-align: center;
         }
-
-        .error {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
-
-        .success {
-            background-color: #d1fae5;
-            color: #059669;
-        }
     </style>
 
-<meta name="NetsparkQuiltingResult" total-length="16469" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
+<meta name="NetsparkQuiltingResult" total-length="13610" removed="0" rules-found="w3509,w8787,w5434,w2656,w11112,w26799,w6522,w18978" />
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>אסיפת הורים</h1>
-            <p></p>
+            <h1>הזמנת תורים</h1>
         </div>
         
-        <div class="controls">
-            <button onclick="scheduler.previousDay()">◀ יום קודם</button>
-            <span id="current-date"></span>
-            <button onclick="scheduler.nextDay()">יום הבא ▶</button>
-        </div>
+        <div class="date-display" id="date-display"></div>
 
         <div class="grid" id="time-slots"></div>
     </div>
@@ -203,6 +188,7 @@
                 <input type="text" id="name" required>
             </div>
             <input type="hidden" id="selected-time">
+            <input type="hidden" id="selected-date" value="2025-01-14">
             <div id="status-message" class="status"></div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" onclick="scheduler.closeModal()">ביטול</button>
@@ -213,36 +199,39 @@
 
     <script>
         const CONFIG = {
-            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfE7dl4CX33VSDIIjcZbeCJv9V6taqZ_-pHAqDwSTbaNSYcWA/formResponse',
+            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfaCO4V343FO1pT8eV_Cd3Qd_qyxuwEId7jHgDj1C1Fjf9X2A/formResponse',
             SHEETS_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFHOCFxTbFBcGY9y3_AZnuo4klHVrDww-7VkowX4r7XBW7Q9o9te-DKQIZS4L8YBazvXdVEyQF2NAx/pub?output=csv',
             NAME_ENTRY: 'entry.795013979',
             TIME_ENTRY: 'entry.1634119070',
-            START_TIME: 13,
+            BOOKING_DATE: '2025-01-14',
+            START_TIME: 10,
             END_TIME: 20,
-            TIME_INTERVAL: 30,
+            TIME_INTERVAL: 40,
             SUCCESS_MESSAGE: 'התור נקבע בהצלחה!',
             ERROR_MESSAGE: 'אירעה שגיאה בשליחת הטופס',
             BUSY_MESSAGE: 'התור כבר תפוס'
         };
 
-        console.log('התחלת אתחול מערכת עם הגדרות:', CONFIG);
-
         const scheduler = {
-            currentDate: new Date(),
             bookedSlots: new Map(),
             pendingSlots: new Map(),
             timeoutIds: new Map(),
 
             initialize() {
-                console.log('מאתחל את המערכת...');
                 this.loadBookings();
                 this.setupFormHandler();
+                this.displayDate();
                 setInterval(() => this.loadBookings(), 30000);
                 setInterval(() => this.cleanExpiredPending(), 30000);
             },
 
+            displayDate() {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateDisplay = new Date(CONFIG.BOOKING_DATE).toLocaleDateString('he-IL', options);
+                document.getElementById('date-display').textContent = dateDisplay;
+            },
+
             async loadBookings() {
-                console.log('טוען הזמנות קיימות...');
                 try {
                     const response = await fetch(CONFIG.SHEETS_URL + '&t=' + Date.now(), {
                         headers: {
@@ -250,128 +239,45 @@
                             'Pragma': 'no-cache'
                         }
                     });
-                    console.log('תגובת שרת:', response.status);
                     const data = await response.text();
                     this.parseBookings(data);
                     this.renderTimeSlots();
                 } catch (error) {
-                    console.error('שגיאה בטעינת הזמנות:', error);
+                    console.error('Error loading bookings:', error);
                 }
             },
 
             parseBookings(csvData) {
-                console.log('מנתח נתוני CSV...');
                 this.bookedSlots.clear();
                 const lines = csvData.split('\n');
-                console.log(`נמצאו ${lines.length} שורות בקובץ`);
-
                 if (lines.length > 1) {
                     const headers = lines[0].split(',').map(h => h.trim());
                     const nameIndex = headers.indexOf('שם המזמין');
                     const timeIndex = headers.indexOf('שעה');
                     
-                    console.log('מיקומי העמודות:', { nameIndex, timeIndex });
-
                     for (let i = 1; i < lines.length; i++) {
                         const columns = lines[i].split(',').map(col => col.trim());
                         if (columns.length >= Math.max(nameIndex, timeIndex) + 1) {
                             const name = columns[nameIndex];
                             const timeStr = columns[timeIndex];
                             const [date, time] = timeStr.split(' ');
-                            const key = `${date}_${time}`;
-                            this.bookedSlots.set(key, { name });
-                            console.log('נמצאה הזמנה:', { key, name });
+                            if (date === CONFIG.BOOKING_DATE) {
+                                const key = `${date}_${time}`;
+                                this.bookedSlots.set(key, { name });
+                            }
                         }
                     }
                 }
-                console.log(`נטענו ${this.bookedSlots.size} הזמנות בסך הכל`);
-            },
-
-            setupFormHandler() {
-                document.getElementById('booking-form').onsubmit = async (e) => {
-                    e.preventDefault();
-                    console.log('התחלת תהליך הזמנה חדשה');
-
-                    const name = document.getElementById('name').value;
-                    const time = document.getElementById('selected-time').value;
-                    const dateStr = this.formatDate(this.currentDate);
-                    const key = `${dateStr}_${time}`;
-
-                    console.log('פרטי ההזמנה:', { name, time, dateStr, key });
-
-                    if (this.bookedSlots.has(key) || this.pendingSlots.has(key)) {
-                        console.warn('התור כבר תפוס:', key);
-                        alert(CONFIG.BUSY_MESSAGE);
-                        return;
-                    }
-
-                    try {
-                        const dateTimeStr = `${dateStr} ${time}`;
-                        const urlParams = new URLSearchParams();
-                        urlParams.append(CONFIG.NAME_ENTRY, name);
-                        urlParams.append(CONFIG.TIME_ENTRY, dateTimeStr);
-
-                        console.log('שולח נתונים לשרת:', {
-                            url: CONFIG.FORM_URL,
-                            params: Object.fromEntries(urlParams)
-                        });
-
-                        const submitRequest = await fetch(CONFIG.FORM_URL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: urlParams.toString(),
-                            mode: 'no-cors'
-                        });
-
-                        console.log('תגובת שרת להזמנה:', submitRequest);
-
-                        // עדכון ממשק
-                        this.pendingSlots.set(key, { 
-                            name, 
-                            timestamp: Date.now() 
-                        });
-                        
-                        console.log('התור נוסף לרשימת המתנה:', {
-                            key,
-                            pendingSlots: Array.from(this.pendingSlots.entries())
-                        });
-
-                        this.renderTimeSlots();
-                        alert(CONFIG.SUCCESS_MESSAGE);
-                        this.closeModal();
-
-                        const timeoutId = setTimeout(() => {
-                            console.log('מנקה תור שפג תוקפו:', key);
-                            this.pendingSlots.delete(key);
-                            this.timeoutIds.delete(key);
-                            this.renderTimeSlots();
-                        }, 300000);
-
-                        this.timeoutIds.set(key, timeoutId);
-
-                    } catch (error) {
-                        console.error('שגיאה בשליחת ההזמנה:', error);
-                        this.pendingSlots.delete(key);
-                        this.renderTimeSlots();
-                        alert(CONFIG.ERROR_MESSAGE);
-                    }
-                };
             },
 
             renderTimeSlots() {
                 const container = document.getElementById('time-slots');
                 container.innerHTML = '';
 
-                document.getElementById('current-date').textContent = 
-                    this.currentDate.toLocaleDateString('he-IL');
-
                 for (let hour = CONFIG.START_TIME; hour < CONFIG.END_TIME; hour++) {
                     for (let minute = 0; minute < 60; minute += CONFIG.TIME_INTERVAL) {
                         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                        const dateStr = this.formatDate(this.currentDate);
-                        const key = `${dateStr}_${time}`;
+                        const key = `${CONFIG.BOOKING_DATE}_${time}`;
 
                         const slotWrapper = document.createElement('div');
                         slotWrapper.className = 'slot-wrapper';
@@ -421,11 +327,58 @@
                 document.getElementById('booking-modal').style.display = 'none';
             },
 
+            setupFormHandler() {
+                document.getElementById('booking-form').onsubmit = async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('name').value;
+                    const time = document.getElementById('selected-time').value;
+                    const key = `${CONFIG.BOOKING_DATE}_${time}`;
+
+                    if (this.bookedSlots.has(key) || this.pendingSlots.has(key)) {
+                        alert(CONFIG.BUSY_MESSAGE);
+                        return;
+                    }
+
+                    try {
+                        const formData = new FormData();
+                        formData.append(CONFIG.NAME_ENTRY, name);
+                        formData.append(CONFIG.TIME_ENTRY, `${CONFIG.BOOKING_DATE} ${time}`);
+
+                        // עדכון הממשק
+                        this.pendingSlots.set(key, { name });
+                        this.renderTimeSlots();
+
+                        // שליחת הטופס
+                        await fetch(CONFIG.FORM_URL, {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'no-cors'
+                        });
+
+                        const timeoutId = setTimeout(() => {
+                            this.pendingSlots.delete(key);
+                            this.timeoutIds.delete(key);
+                            this.renderTimeSlots();
+                        }, 300000);
+
+                        this.timeoutIds.set(key, timeoutId);
+                        
+                        alert(CONFIG.SUCCESS_MESSAGE);
+                        this.closeModal();
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        this.pendingSlots.delete(key);
+                        this.renderTimeSlots();
+                        alert(CONFIG.ERROR_MESSAGE);
+                    }
+                };
+            },
+
             cleanExpiredPending() {
                 const now = Date.now();
                 for (const [key, booking] of this.pendingSlots.entries()) {
-                   if (now - booking.timestamp > 300000) {
-                        console.log('מוחק תור שפג תוקפו:', key);
+                    if (now - booking.timestamp > 300000) {
                         this.pendingSlots.delete(key);
                         const timeoutId = this.timeoutIds.get(key);
                         if (timeoutId) {
@@ -435,29 +388,9 @@
                     }
                 }
                 this.renderTimeSlots();
-            },
-
-            formatDate(date) {
-                const year = date.getFullYear();
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const day = date.getDate().toString().padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            },
-
-            previousDay() {
-                console.log('מעבר ליום הקודם');
-                this.currentDate.setDate(this.currentDate.getDate() - 1);
-                this.renderTimeSlots();
-            },
-
-            nextDay() {
-                console.log('מעבר ליום הבא');
-                this.currentDate.setDate(this.currentDate.getDate() + 1);
-                this.renderTimeSlots();
             }
         };
 
-        // אתחול המערכת
         scheduler.initialize();
     </script>
 </body>
