@@ -229,13 +229,13 @@
         }
     </style>
 
-<meta name="NetsparkQuiltingResult" total-length="27592" removed="0" rules-found="w3509,w11112,w4829,w4830,w5434,w2656,w11600,w6522,w26799" />
+<meta name="NetsparkQuiltingResult" total-length="27613" removed="0" rules-found="w3509,w11112,w4829,w4830,w5434,w2656,w11600,w6522,w26799" />
 </head>
 <body>
     <div class="container">
         <div class="room-info">
-            <h2>{{ROOM_NAME}}</h2>
-            <p>לח</p>
+            <h2>ספח</h2>
+            <p>אחלה חדר</p>
         </div>
 
         <div class="controls">
@@ -296,14 +296,14 @@
 
     <script>
         const CONFIG = {
-            systemName: "{{ROOM_NAME}}",
-            systemDescription: "{{ROOM_DESCRIPTION}}",
+            systemName: "ספח",
+            systemDescription: "אחלה חדר",
 
             urls: {
                 schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGAfaT0O-12Zm4TTwPmJ0hLE9PXyE0ISsyUM5kRNN63R06-cxI8oZktSXj9IRVQrRcn2rSCy_u8vtQ/pub?output=csv',
                 teachers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUvRHe90lOs14oPNfL3uRqN73uEgmg7L_ON2gXnCD-CuZ_FmTZDRb-rxmmZmeq4frFxh-IMcGLEfy-/pub?output=csv',
                 classes: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1t6xbHD1i8uWUFQb5MmaHbjjyOLhcCdxs26f0nIABkNoGULEia-mfdsS78KlLNeZdtJ31XQEdi70C/pub?output=csv',
-                form: 'https://docs.google.com/forms/d/e/1FAIpQLSemQ9HVXCtuXP5-xfya_uMQHmGxwR3AdA5jXlSWTyR0uwdKSw/viewform'
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSemQ9HVXCtuXP5-xfya_uMQHmGxwR3AdA5jXlSWTyR0uwdKSw/formResponse'
             },
 
             formFields: {
@@ -315,12 +315,30 @@
             },
 
             daysSchedule: {
-    "0": 4,
-    "1": 6,
-    "2": 5,
-    "3": 7,
-    "4": 7,
-    "5": 4
+    "0": {
+        "name": "ראשון",
+        "lessons": 3
+    },
+    "1": {
+        "name": "שני",
+        "lessons": 7
+    },
+    "2": {
+        "name": "שלישי",
+        "lessons": 5
+    },
+    "3": {
+        "name": "רביעי",
+        "lessons": 7
+    },
+    "4": {
+        "name": "חמישי",
+        "lessons": 7
+    },
+    "5": {
+        "name": "שישי",
+        "lessons": 4
+    }
 },
 
             maxWeeklyBookings: 4,
@@ -463,7 +481,7 @@
             },
 
             async loadTeachers() {
-                const response = await fetch(CONFIG.urls.teachers);
+                const response= await fetch(CONFIG.urls.teachers);
                 const csvText = await response.text();
                 this.teachersList = this.parseList(csvText);
                 this.populateSelect('teacher', this.teachersList);
@@ -733,6 +751,7 @@
             }
         };
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             scheduler.loadData(true);
             setInterval(() => scheduler.loadData(), CONFIG.autoRefreshInterval * 1000);
