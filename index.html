@@ -1212,7 +1212,10 @@ td.non-learning-day {
               <a onclick="printContent('all')">הדפס הכל</a>
           </div>
       </div>
-
+      document.body.innerHTML += `
+          <select id="jsonFileSelector" onchange="importSelectedFile()"></select>
+          <button onclick="listGoogleDriveFiles()">טעון קבצים</button>
+      `;
   </div>
     <div id="addSubjectForm">
         <input type="text" id="newSubjectInput" placeholder="שם המקצוע">
@@ -1317,6 +1320,51 @@ function handleFileImport(file) {
     } else {
         showError('פורמט קובץ לא נתמך');
         resetFileInput();
+    }
+}
+async function listGoogleDriveFiles() {
+    const folderUrl = 'https://drive.google.com/drive/folders/1WqKL3HuQh7CPM_EGKPWeqjAArJcExB3O?usp=drive_link';
+    
+    try {
+        const response = await fetch(`https://cors-anywhere.herokuapp.com/${folderUrl}`);
+        const htmlContent = await response.text();
+        
+        // חילוץ שמות קבצים JSON
+        const fileNames = (htmlContent.match(/[\w-]+\.json/g) || [])
+            .filter((value, index, self) => self.indexOf(value) === index);
+        
+        // יצירת תיבה נגללת
+        const select = document.getElementById('jsonFileSelector');
+        select.innerHTML = '<option value="">בחר קובץ</option>';
+        
+        fileNames.forEach(fileName => {
+            const option = document.createElement('option');
+            option.value = fileName;
+            option.textContent = fileName;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching files:', error);
+        showError('לא ניתן לטעון את רשימת הקבצים');
+    }
+}
+
+async function importSelectedFile() {
+    const select = document.getElementById('jsonFileSelector');
+    const fileName = select.value;
+    
+    if (!fileName) return;
+    
+    try {
+        const fileUrl = `https://drive.google.com/uc?export=download&id=1WqKL3HuQh7CPM_EGKPWeqjAArJcExB3O/${fileName}`;
+        const response = await fetch(fileUrl);
+        const jsonContent = await response.json();
+        
+        // ייבוא לקוד הקיים
+        await importFromJSON(new File([JSON.stringify(jsonContent)], fileName, { type: 'application/json' }));
+    } catch (error) {
+        console.error('Error importing file:', error);
+        showError('לא ניתן לייבא את הקובץ');
     }
 }
 function resetFileInput() {
@@ -4055,6 +4103,7 @@ document.addEventListener('click', function(event) {
         document.getElementById('whatsappMenu').style.display = 'none';
     }
 });
+listGoogleDriveFiles();
 </script>
 </body>
 </html>
