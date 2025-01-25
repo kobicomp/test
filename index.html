@@ -1191,8 +1191,7 @@ td.non-learning-day {
       <!-- Import button -->
 <input type="file" id="fileInput" accept=".csv,.json" style="display: none" onchange="handleFileImport(this.files[0])">
 <button onclick="document.getElementById('fileInput').click()">ייבא קובץ</button>
-<button onclick="importFromGitHub('csv')">ייבא CSV מ-GitHub</button>
-<button onclick="importFromGitHub('json')">ייבא JSON מ-GitHub</button>
+
       <!-- הוספת תפריט שיתוף חדש -->
       <div class="dropdown">
           <button onclick="toggleShareMenu()">שתף ⌄</button>
@@ -1212,10 +1211,10 @@ td.non-learning-day {
               <a onclick="printContent('all')">הדפס הכל</a>
           </div>
       </div>
-      document.body.innerHTML += `
-          <select id="jsonFileSelector" onchange="importSelectedFile()"></select>
-          <button onclick="listGoogleDriveFiles()">טעון קבצים</button>
-      `;
+      <div id="googleDriveImport">
+      <select id="jsonFileSelector" onchange="importSelectedFile()"></select>
+      <button onclick="listGoogleDriveFiles()">טעון קבצים</button>
+  </div>
   </div>
     <div id="addSubjectForm">
         <input type="text" id="newSubjectInput" placeholder="שם המקצוע">
@@ -4105,5 +4104,6 @@ document.addEventListener('click', function(event) {
 });
 listGoogleDriveFiles();
 </script>
+
 </body>
 </html>
