@@ -1211,7 +1211,7 @@ td.non-learning-day {
               <a onclick="printContent('all')">הדפס הכל</a>
           </div>
       </div>
-    
+
   </div>
     <div id="addSubjectForm">
         <input type="text" id="newSubjectInput" placeholder="שם המקצוע">
@@ -1305,54 +1305,10 @@ td.non-learning-day {
 <script>
 // === Tab Functions ===
 // עדכון פונקציית switchTab
-async function exportToJSON(type = 'all') {
-    if (!currentSubject) {
-        showError('יש לבחור מקצוע תחילה');
-        return;
-    }
 
-    try {
-        let data = {
-            metadata: {
-                version: '1.0',
-                exportDate: new Date().toISOString(),
-                subjectName: currentSubject.name
-            }
-        };
-
-        if (type === 'planning' || type === 'all') {
-            data.planning = {
-                topics: getTopicsData()
-            };
-        }
-
-        if (type === 'schedule' || type === 'all') {
-            data.schedule = {
-                startDate: document.getElementById('startDate').value,
-                endDate: document.getElementById('endDate').value,
-                lessonsPerDay: currentSubject.lessonsPerDay,
-                lessonChanges: currentSubject.lessonChanges
-            };
-        }
-
-        const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const link = document.createElement('a');
-        const date = new Date().toLocaleDateString('he-IL').replace(/\./g, '-');
-        
-        link.href = URL.createObjectURL(blob);
-        link.download = `${currentSubject.name}_${type}_${date}.json`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-        
-    } catch (error) {
-        console.error('Error exporting JSON:', error);
-        showError('שגיאה בייצוא הקובץ');
-    }
-}
 function handleFileImport(file) {
     if (!file) return;
-    
+
     if (file.name.endsWith('.json')) {
         importFromJSON(file);
     } else if (file.name.endsWith('.csv')) {
@@ -1364,10 +1320,10 @@ function handleFileImport(file) {
 }
 function resetFileInput() {
     const fileInputs = [
-        document.getElementById('fileInput'), 
+        document.getElementById('fileInput'),
         document.getElementById('csvFileInput')
     ];
-    
+
     fileInputs.forEach(input => {
         if (input) input.value = '';
     });
@@ -1377,7 +1333,7 @@ function resetFileInput() {
 function handleExportClick(type) {
     document.getElementById('exportMenu').style.display = 'none';
     const format = prompt('בחר פורמט לייצוא (json/csv):', 'json').toLowerCase();
-    
+
     if (format === 'json') {
         exportToJSON(type);
     } else if (format === 'csv') {
@@ -1417,14 +1373,34 @@ async function exportToJSON(type = 'all') {
         }
 
         const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const link = document.createElement('a');
-        const date = new Date().toLocaleDateString('he-IL').replace(/\./g, '-');
+        const filename = `${currentSubject.name}_${type}_${new Date().toISOString().split('T')[0]}.json`;
 
-        link.href = URL.createObjectURL(blob);
-        link.download = `${currentSubject.name}_${type}_${date}.json`;
-        link.click();
-        URL.revokeObjectURL(link.href);
+        // בדיקה אם GitHub API זמין
+        if (window.github) {
+            try {
+                // שימוש ב-GitHub API לשמירת הקובץ
+                await window.github.createFile({
+                    path: filename,
+                    content: jsonStr,
+                    message: `Export ${currentSubject.name} ${type} data`
+                });
+                showError('הקובץ נשמר בהצלחה ב-GitHub');
+            } catch (githubError) {
+                console.error('GitHub export error:', githubError);
+                fallbackDownload();
+            }
+        } else {
+            fallbackDownload();
+        }
+
+        function fallbackDownload() {
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
 
     } catch (error) {
         console.error('Error exporting JSON:', error);
@@ -3515,10 +3491,10 @@ function parseDate(dateStr) {
 // Add file input reset function
 function resetFileInput() {
     const fileInputs = [
-        document.getElementById('fileInput'), 
+        document.getElementById('fileInput'),
         document.getElementById('csvFileInput')
     ];
-    
+
     fileInputs.forEach(input => {
         if (input) input.value = '';
     });
@@ -3701,10 +3677,10 @@ async function importFromCSV(file) {
 
 function resetFileInput() {
     const fileInputs = [
-        document.getElementById('fileInput'), 
+        document.getElementById('fileInput'),
         document.getElementById('csvFileInput')
     ];
-    
+
     fileInputs.forEach(input => {
         if (input) input.value = '';
     });
@@ -3756,10 +3732,10 @@ function toggleShareMenu() {
 }
 function resetFileInput() {
     const fileInputs = [
-        document.getElementById('fileInput'), 
+        document.getElementById('fileInput'),
         document.getElementById('csvFileInput')
     ];
-    
+
     fileInputs.forEach(input => {
         if (input) input.value = '';
     });
@@ -3911,7 +3887,7 @@ function updateExportMenu() {
 function askExportFormat(type) {
     document.getElementById('exportMenu').style.display = 'none';
     const format = prompt('בחר פורמט לייצוא (json/csv):', 'json').toLowerCase();
-    
+
     if (format === 'json') {
         exportToJSON(type);
     } else if (format === 'csv') {
