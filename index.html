@@ -1397,19 +1397,6 @@ async function importFromJSON(file) {
     }
 }
 
-function handleFileImport(file) {
-    if (!file) return;
-    
-    if (file.name.endsWith('.json')) {
-        importFromJSON(file);
-    } else if (file.name.endsWith('.csv')) {
-        importFromCSV(file);
-    } else {
-        showError('פורמט קובץ לא נתמך');
-        resetFileInput();
-    }
-}
-
 // עדכון לפונקציה הקיימת
 function handleExportClick(type) {
     document.getElementById('exportMenu').style.display = 'none';
@@ -1515,31 +1502,59 @@ async function importFromJSON(file) {
     }
 }
 
-function handleFileImport(file) {
-    if (!file) return;
-
-    if (file.name.endsWith('.json')) {
-        importFromJSON(file);
-    } else if (file.name.endsWith('.csv')) {
-        importFromCSV(file);
-    } else {
-        showError('פורמט קובץ לא נתמך');
-        resetFileInput();
-    }
-}
-
 // עדכון לפונקציה הקיימת
-function handleExportClick(type) {
-    document.getElementById('exportMenu').style.display = 'none';
-    const format = prompt('בחר פורמט לייצוא (json/csv):', 'json').toLowerCase();
+async function importFromJSON(file) {
+   console.log('Starting JSON import');
+   if (!currentSubject) {
+       showError('יש לבחור מקצוע תחילה');
+       resetFileInput();
+       return;
+   }
 
-    if (format === 'json') {
-        exportToJSON(type);
-    } else if (format === 'csv') {
-        exportToCSV(type);
-    } else {
-        showError('פורמט לא נתמך');
-    }
+   try {
+       const reader = new FileReader();
+       reader.onload = async function(event) {
+           try {
+               console.log('File read successfully');
+               const data = JSON.parse(event.target.result);
+               console.log('Parsed JSON:', data);
+               
+               if (!data.metadata || !data.metadata.version) {
+                   throw new Error('פורמט קובץ לא תקין');
+               }
+
+               if (data.planning) {
+                   currentSubject.topics = data.planning.topics;
+               }
+               
+               if (data.schedule) {
+                   currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
+                   currentSubject.lessonChanges = data.schedule.lessonChanges;
+                   document.getElementById('startDate').value = data.schedule.startDate;
+                   document.getElementById('endDate').value = data.schedule.endDate;
+               }
+
+               saveSubjectsToStorage();
+               await loadSubjectData();
+               showError('הקובץ יובא בהצלחה');
+           } catch (parseError) {
+               console.error('Error parsing JSON:', parseError);
+               showError('שגיאה בפענוח הקובץ');
+           }
+       };
+
+       reader.onerror = function() {
+           console.error('Error reading file');
+           showError('שגיאה בקריאת הקובץ');
+       };
+
+       reader.readAsText(file);
+   } catch (error) {
+       console.error('Error importing JSON:', error);
+       showError('שגיאה בייבוא הקובץ');
+   } finally {
+       resetFileInput();
+   }
 }
 function switchTab(event, tabId) {
    document.querySelectorAll('.tab-button').forEach(button => {
