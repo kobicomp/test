@@ -1363,10 +1363,14 @@ function handleFileImport(file) {
     }
 }
 function resetFileInput() {
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-        fileInput.value = '';
-    }
+    const fileInputs = [
+        document.getElementById('fileInput'), 
+        document.getElementById('csvFileInput')
+    ];
+    
+    fileInputs.forEach(input => {
+        if (input) input.value = '';
+    });
 }
 
 // עדכון לפונקציה הקיימת
@@ -3466,8 +3470,14 @@ function parseDate(dateStr) {
 }
 // Add file input reset function
 function resetFileInput() {
-    const fileInput = document.getElementById('csvFileInput');
-    fileInput.value = ''; // Reset the file input
+    const fileInputs = [
+        document.getElementById('fileInput'), 
+        document.getElementById('csvFileInput')
+    ];
+    
+    fileInputs.forEach(input => {
+        if (input) input.value = '';
+    });
 }
 
 async function importFromCSV(file) {
@@ -3646,8 +3656,14 @@ async function importFromCSV(file) {
 }
 
 function resetFileInput() {
-    const fileInput = document.getElementById('csvFileInput');
-    if (fileInput) fileInput.value = '';
+    const fileInputs = [
+        document.getElementById('fileInput'), 
+        document.getElementById('csvFileInput')
+    ];
+    
+    fileInputs.forEach(input => {
+        if (input) input.value = '';
+    });
 }
 
 // Update the file input HTML
@@ -3695,8 +3711,14 @@ function toggleShareMenu() {
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 function resetFileInput() {
-    const fileInput = document.getElementById('csvFileInput');
-    fileInput.value = ''; // Reset the file input
+    const fileInputs = [
+        document.getElementById('fileInput'), 
+        document.getElementById('csvFileInput')
+    ];
+    
+    fileInputs.forEach(input => {
+        if (input) input.value = '';
+    });
 }
 function generateExportData(type = 'all') {
     if (!currentSubject) {
