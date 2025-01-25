@@ -1211,9 +1211,7 @@ td.non-learning-day {
               <a onclick="printContent('all')">הדפס הכל</a>
           </div>
       </div>
-      <div id="googleDriveImport">
-      <select id="jsonFileSelector" onchange="importSelectedFile()"></select>
-      <button onclick="listGoogleDriveFiles()">טעון קבצים</button>
+    <button onclick="importFromGoogleDrive()">ייבא מ-Google Drive</button>
   </div>
   </div>
     <div id="addSubjectForm">
@@ -1359,6 +1357,19 @@ async function importSelectedFile() {
         const jsonContent = await response.json();
         
         await importFromJSON(new File([JSON.stringify(jsonContent)], fileName, { type: 'application/json' }));
+    } catch (error) {
+        console.error('Error importing file:', error);
+        showError('לא ניתן לייבא את הקובץ');
+    }
+}
+async function importFromGoogleDrive() {
+    const fileUrl = 'https://drive.google.com/uc?export=download&id=1EHAHgPUwvwa_FwYaqMtJ-WHvgiX7X9h4';
+    
+    try {
+        const response = await fetch(fileUrl);
+        const jsonContent = await response.json();
+        
+        await importFromJSON(new File([JSON.stringify(jsonContent)], 'drive_file.json', { type: 'application/json' }));
     } catch (error) {
         console.error('Error importing file:', error);
         showError('לא ניתן לייבא את הקובץ');
