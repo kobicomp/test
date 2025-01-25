@@ -1191,7 +1191,8 @@ td.non-learning-day {
       <!-- Import button -->
 <input type="file" id="fileInput" accept=".csv,.json" style="display: none" onchange="handleFileImport(this.files[0])">
 <button onclick="document.getElementById('fileInput').click()">ייבא קובץ</button>
-
+<button onclick="importFromGitHub('csv')">ייבא CSV מ-GitHub</button>
+<button onclick="importFromGitHub('json')">ייבא JSON מ-GitHub</button>
       <!-- הוספת תפריט שיתוף חדש -->
       <div class="dropdown">
           <button onclick="toggleShareMenu()">שתף ⌄</button>
@@ -1407,7 +1408,28 @@ async function exportToJSON(type = 'all') {
         showError('שגיאה בייצוא הקובץ');
     }
 }
+async function importFromGitHub(fileType = 'csv') {
+    try {
+        // בקשת קישור קובץ מהמשתמש
+        const fileUrl = prompt(`הכנס קישור לקובץ ${fileType.toUpperCase()} ב-GitHub:`);
+        
+        if (!fileUrl) return;
 
+        // הורדת תוכן הקובץ
+        const response = await fetch(fileUrl);
+        const fileContent = await response.text();
+
+        if (fileType === 'csv') {
+            await importFromCSV(new File([fileContent], 'github_file.csv', { type: 'text/csv' }));
+        } else if (fileType === 'json') {
+            await importFromJSON(new File([fileContent], 'github_file.json', { type: 'application/json' }));
+        }
+
+    } catch (error) {
+        console.error('Error importing from GitHub:', error);
+        showError('שגיאה בייבוא הקובץ');
+    }
+}
 async function importFromJSON(file) {
     if (!file) {
         showError('נא לבחור קובץ');
