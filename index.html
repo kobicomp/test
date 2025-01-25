@@ -1432,78 +1432,122 @@ async function exportToJSON(type = 'all') {
     }
 }
 
-
-// עדכון לפונקציה הקיימת
 async function importFromJSON(file) {
-    if (!currentSubject) {
-        showError('יש לבחור מקצוע תחילה');
+    if (!file) {
+        showError('נא לבחור קובץ');
         resetFileInput();
         return;
     }
 
     try {
-        const reader = new FileReader();
-        reader.onload = async function(event) {
-            try {
-                const data = JSON.parse(event.target.result);
+        const text = await file.text();
+        const data = JSON.parse(text);
 
-                // בדיקת תקינות מבנה הקובץ
-                if (!data.metadata || !data.metadata.version) {
-                    throw new Error('פורמט קובץ לא תקין');
+        if (!data.metadata || !data.metadata.version) {
+            showError('פורמט קובץ לא תקין');
+            return;
+        }
+
+        const importType = await new Promise(resolve => {
+            if (confirm('האם לייבא למקצוע חדש? לחץ "אישור" לחדש או "ביטול" למקצוע קיים')) {
+                const name = prompt('הכנס שם למקצוע החדש:', data.metadata.subjectName);
+                if (!name) {
+                    resolve(null);
+                    return;
+                }
+                if (subjects.has(name)) {
+                    showError('מקצוע זה כבר קיים');
+                    resolve(null);
+                    return;
+                }
+                resolve({ type: 'new', name });
+            } else {
+                if (subjects.size === 0) {
+                    showError('אין מקצועות קיימים');
+                    resolve(null);
+                    return;
                 }
 
-                // עדכון תכנון (אם קיים)
-                if (data.planning && data.planning.topics) {
-                    currentSubject.topics = data.planning.topics.map(topic => ({
-                        title: topic.title || '',
-                        lessons: topic.lessons || 0,
-                        subtopics: (topic.subtopics || []).map(subtopic => ({
-                            title: subtopic.title || '',
-                            lessons: subtopic.lessons || 0,
-                            notes: subtopic.notes || ''
-                        }))
-                    }));
+                const subjectsList = Array.from(subjects.keys());
+                const selectHtml = subjectsList.map((subject, i) => `${i + 1}. ${subject}`).join('\n');
+                const selectedIndex = prompt(`בחר מקצוע:\n\n${selectHtml}`);
+
+                if (!selectedIndex) {
+                    resolve(null);
+                    return;
                 }
 
-                // עדכון לוח זמנים (אם קיים)
-                if (data.schedule) {
-                    if (data.schedule.lessonsPerDay) {
-                        currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
-                    }
-                    
-                    if (data.schedule.startDate) {
-                        document.getElementById('startDate').value = data.schedule.startDate;
-                    }
-                    
-                    if (data.schedule.endDate) {
-                        document.getElementById('endDate').value = data.schedule.endDate;
-                    }
-
-                    // עדכון שינויי שיעורים
-                    if (data.schedule.lessonChanges) {
-                        currentSubject.lessonChanges = {
-                            cancelledLessons: data.schedule.lessonChanges.cancelledLessons || [],
-                            cancelledDays: data.schedule.lessonChanges.cancelledDays || [],
-                            added: data.schedule.lessonChanges.added || []
-                        };
-                    }
+                const selectedSubject = subjectsList[parseInt(selectedIndex) - 1];
+                if (!selectedSubject) {
+                    showError('בחירה לא תקינה');
+                    resolve(null);
+                    return;
                 }
 
-                saveSubjectsToStorage();
-                await loadSubjectData();
-                showError('הקובץ יובא בהצלחה');
-            } catch (parseError) {
-                console.error('Error parsing JSON:', parseError);
-                showError('שגיאה בפענוח הקובץ');
+                resolve({ type: 'existing', name: selectedSubject });
             }
-        };
+        });
 
-        reader.onerror = function() {
-            console.error('Error reading file');
-            showError('שגיאה בקריאת הקובץ');
-        };
+        if (!importType) {
+            resetFileInput();
+            return;
+        }
 
-        reader.readAsText(file);
+        let targetSubject;
+        if (importType.type === 'new') {
+            targetSubject = {
+                name: importType.name,
+                lessonsPerDay: [0,0,0,0,0,0],
+                topics: [],
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                lastUpdate: new Date().toISOString(),
+                lessonChanges: {
+                    cancelledLessons: [],
+                    cancelledDays: [],
+                    added: []
+                }
+            };
+        } else {
+            const existingSubject = subjects.get(importType.name);
+            targetSubject = {
+                ...existingSubject,
+                topics: [],
+                lastUpdate: new Date().toISOString()
+            };
+        }
+
+        // טעינת נושאים מהקובץ
+        if (data.planning && data.planning.topics) {
+            targetSubject.topics = data.planning.topics.map(topic => ({
+                title: topic.title || '',
+                lessons: topic.subtopics.reduce((sum, sub) => sum + (sub.lessons || 0), 0),
+                subtopics: topic.subtopics.map(subtopic => ({
+                    title: subtopic.title || '',
+                    lessons: subtopic.lessons || 0,
+                    notes: subtopic.notes || ''
+                }))
+            }));
+        }
+
+        // עדכון שורות זמנים אם קיימות
+        if (data.schedule) {
+            if (data.schedule.startDate) targetSubject.startDate = data.schedule.startDate;
+            if (data.schedule.endDate) targetSubject.endDate = data.schedule.endDate;
+            if (data.schedule.lessonsPerDay) targetSubject.lessonsPerDay = data.schedule.lessonsPerDay;
+        }
+
+        subjects.set(targetSubject.name, targetSubject);
+        saveSubjectsToStorage();
+        updateSubjectSelect();
+
+        document.getElementById('subjectSelect').value = targetSubject.name;
+        currentSubject = targetSubject;
+        await loadSubjectData();
+        await generateTable();
+
+        showError('הנתונים יובאו בהצלחה');
+
     } catch (error) {
         console.error('Error importing JSON:', error);
         showError('שגיאה בייבוא הקובץ');
