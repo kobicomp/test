@@ -1322,7 +1322,7 @@ function handleFileImport(file) {
     }
 }
 async function listGoogleDriveFiles() {
-    const folderUrl = 'https://drive.google.com/drive/folders/1WqKL3HuQh7CPM_EGKPWeqjAArJcExB3O?usp=drive_link';
+    const folderUrl = 'https://drive.google.com/drive/folders/1WqKL3HuQh7CPM_EGKPWeqjAArJcExB3O?usp=sharing';
     
     try {
         const response = await fetch(`https://cors-anywhere.herokuapp.com/${folderUrl}`);
@@ -1332,7 +1332,6 @@ async function listGoogleDriveFiles() {
         const fileNames = (htmlContent.match(/[\w-]+\.json/g) || [])
             .filter((value, index, self) => self.indexOf(value) === index);
         
-        // יצירת תיבה נגללת
         const select = document.getElementById('jsonFileSelector');
         select.innerHTML = '<option value="">בחר קובץ</option>';
         
@@ -1359,7 +1358,6 @@ async function importSelectedFile() {
         const response = await fetch(fileUrl);
         const jsonContent = await response.json();
         
-        // ייבוא לקוד הקיים
         await importFromJSON(new File([JSON.stringify(jsonContent)], fileName, { type: 'application/json' }));
     } catch (error) {
         console.error('Error importing file:', error);
