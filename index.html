@@ -1350,7 +1350,18 @@ async function exportToJSON(type = 'all') {
         showError('שגיאה בייצוא הקובץ');
     }
 }
-
+function handleFileImport(file) {
+    if (!file) return;
+    
+    if (file.name.endsWith('.json')) {
+        importFromJSON(file);
+    } else if (file.name.endsWith('.csv')) {
+        importFromCSV(file);
+    } else {
+        showError('פורמט קובץ לא נתמך');
+        resetFileInput();
+    }
+}
 async function importFromJSON(file) {
     if (!currentSubject) {
         showError('יש לבחור מקצוע תחילה');
