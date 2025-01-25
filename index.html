@@ -1368,51 +1368,6 @@ function resetFileInput() {
         fileInput.value = '';
     }
 }
-async function importFromJSON(file) {
-    if (!currentSubject) {
-        showError('יש לבחור מקצוע תחילה');
-        resetFileInput();
-        return;
-    }
-
-    try {
-        const reader = new FileReader();
-        reader.onload = async function(event) {
-            try {
-                const data = JSON.parse(event.target.result);
-                
-                if (!data.metadata || !data.metadata.version) {
-                    throw new Error('פורמט קובץ לא תקין');
-                }
-
-                if (data.planning) {
-                    currentSubject.topics = data.planning.topics;
-                }
-                
-                if (data.schedule) {
-                    currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
-                    currentSubject.lessonChanges = data.schedule.lessonChanges;
-                    document.getElementById('startDate').value = data.schedule.startDate;
-                    document.getElementById('endDate').value = data.schedule.endDate;
-                }
-
-                saveSubjectsToStorage();
-                await loadSubjectData();
-                showError('הקובץ יובא בהצלחה');
-            } catch (parseError) {
-                console.error('Error parsing JSON:', parseError);
-                showError('שגיאה בפענוח הקובץ');
-            }
-        };
-
-        reader.readAsText(file);
-    } catch (error) {
-        console.error('Error importing JSON:', error);
-        showError('שגיאה בייבוא הקובץ');
-    } finally {
-        resetFileInput();
-    }
-}
 
 // עדכון לפונקציה הקיימת
 function handleExportClick(type) {
@@ -1473,6 +1428,8 @@ async function exportToJSON(type = 'all') {
     }
 }
 
+
+// עדכון לפונקציה הקיימת
 async function importFromJSON(file) {
     if (!currentSubject) {
         showError('יש לבחור מקצוע תחילה');
@@ -1486,19 +1443,46 @@ async function importFromJSON(file) {
             try {
                 const data = JSON.parse(event.target.result);
 
+                // בדיקת תקינות מבנה הקובץ
                 if (!data.metadata || !data.metadata.version) {
                     throw new Error('פורמט קובץ לא תקין');
                 }
 
-                if (data.planning) {
-                    currentSubject.topics = data.planning.topics;
+                // עדכון תכנון (אם קיים)
+                if (data.planning && data.planning.topics) {
+                    currentSubject.topics = data.planning.topics.map(topic => ({
+                        title: topic.title || '',
+                        lessons: topic.lessons || 0,
+                        subtopics: (topic.subtopics || []).map(subtopic => ({
+                            title: subtopic.title || '',
+                            lessons: subtopic.lessons || 0,
+                            notes: subtopic.notes || ''
+                        }))
+                    }));
                 }
 
+                // עדכון לוח זמנים (אם קיים)
                 if (data.schedule) {
-                    currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
-                    currentSubject.lessonChanges = data.schedule.lessonChanges;
-                    document.getElementById('startDate').value = data.schedule.startDate;
-                    document.getElementById('endDate').value = data.schedule.endDate;
+                    if (data.schedule.lessonsPerDay) {
+                        currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
+                    }
+                    
+                    if (data.schedule.startDate) {
+                        document.getElementById('startDate').value = data.schedule.startDate;
+                    }
+                    
+                    if (data.schedule.endDate) {
+                        document.getElementById('endDate').value = data.schedule.endDate;
+                    }
+
+                    // עדכון שינויי שיעורים
+                    if (data.schedule.lessonChanges) {
+                        currentSubject.lessonChanges = {
+                            cancelledLessons: data.schedule.lessonChanges.cancelledLessons || [],
+                            cancelledDays: data.schedule.lessonChanges.cancelledDays || [],
+                            added: data.schedule.lessonChanges.added || []
+                        };
+                    }
                 }
 
                 saveSubjectsToStorage();
@@ -1510,6 +1494,11 @@ async function importFromJSON(file) {
             }
         };
 
+        reader.onerror = function() {
+            console.error('Error reading file');
+            showError('שגיאה בקריאת הקובץ');
+        };
+
         reader.readAsText(file);
     } catch (error) {
         console.error('Error importing JSON:', error);
@@ -1517,61 +1506,6 @@ async function importFromJSON(file) {
     } finally {
         resetFileInput();
     }
-}
-
-// עדכון לפונקציה הקיימת
-async function importFromJSON(file) {
-   console.log('Starting JSON import');
-   if (!currentSubject) {
-       showError('יש לבחור מקצוע תחילה');
-       resetFileInput();
-       return;
-   }
-
-   try {
-       const reader = new FileReader();
-       reader.onload = async function(event) {
-           try {
-               console.log('File read successfully');
-               const data = JSON.parse(event.target.result);
-               console.log('Parsed JSON:', data);
-               
-               if (!data.metadata || !data.metadata.version) {
-                   throw new Error('פורמט קובץ לא תקין');
-               }
-
-               if (data.planning) {
-                   currentSubject.topics = data.planning.topics;
-               }
-               
-               if (data.schedule) {
-                   currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
-                   currentSubject.lessonChanges = data.schedule.lessonChanges;
-                   document.getElementById('startDate').value = data.schedule.startDate;
-                   document.getElementById('endDate').value = data.schedule.endDate;
-               }
-
-               saveSubjectsToStorage();
-               await loadSubjectData();
-               showError('הקובץ יובא בהצלחה');
-           } catch (parseError) {
-               console.error('Error parsing JSON:', parseError);
-               showError('שגיאה בפענוח הקובץ');
-           }
-       };
-
-       reader.onerror = function() {
-           console.error('Error reading file');
-           showError('שגיאה בקריאת הקובץ');
-       };
-
-       reader.readAsText(file);
-   } catch (error) {
-       console.error('Error importing JSON:', error);
-       showError('שגיאה בייבוא הקובץ');
-   } finally {
-       resetFileInput();
-   }
 }
 function switchTab(event, tabId) {
    document.querySelectorAll('.tab-button').forEach(button => {
