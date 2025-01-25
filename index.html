@@ -1362,6 +1362,12 @@ function handleFileImport(file) {
         resetFileInput();
     }
 }
+function resetFileInput() {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+}
 async function importFromJSON(file) {
     if (!currentSubject) {
         showError('יש לבחור מקצוע תחילה');
