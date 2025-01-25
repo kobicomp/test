@@ -1183,9 +1183,9 @@ td.non-learning-day {
       <div class="dropdown">
           <button onclick="toggleExportMenu()">ייצוא ⌄</button>
           <div id="exportMenu" class="dropdown-content">
-              <a onclick="handleExportClick('planning')">ייצוא תכנון</a>
-              <a onclick="handleExportClick('schedule')">ייצוא לוז</a>
-              <a onclick="handleExportClick('all')">ייצוא הכל</a>
+              <a onclick="askExportFormat('planning')">ייצוא תכנון</a>
+              <a onclick="askExportFormat('schedule')">ייצוא לוז</a>
+              <a onclick="askExportFormat('all')">ייצוא הכל</a>
           </div>
       </div>
       <!-- Import button -->
@@ -1341,12 +1341,12 @@ async function exportToJSON(type = 'all') {
         const blob = new Blob([jsonStr], { type: 'application/json' });
         const link = document.createElement('a');
         const date = new Date().toLocaleDateString('he-IL').replace(/\./g, '-');
-        
+
         link.href = URL.createObjectURL(blob);
         link.download = `${currentSubject.name}_${type}_${date}.json`;
         link.click();
         URL.revokeObjectURL(link.href);
-        
+
     } catch (error) {
         console.error('Error exporting JSON:', error);
         showError('שגיאה בייצוא הקובץ');
@@ -1365,7 +1365,7 @@ async function importFromJSON(file) {
         reader.onload = async function(event) {
             try {
                 const data = JSON.parse(event.target.result);
-                
+
                 if (!data.metadata || !data.metadata.version) {
                     throw new Error('פורמט קובץ לא תקין');
                 }
@@ -1373,7 +1373,7 @@ async function importFromJSON(file) {
                 if (data.planning) {
                     currentSubject.topics = data.planning.topics;
                 }
-                
+
                 if (data.schedule) {
                     currentSubject.lessonsPerDay = data.schedule.lessonsPerDay;
                     currentSubject.lessonChanges = data.schedule.lessonChanges;
@@ -1401,7 +1401,7 @@ async function importFromJSON(file) {
 
 function handleFileImport(file) {
     if (!file) return;
-    
+
     if (file.name.endsWith('.json')) {
         importFromJSON(file);
     } else if (file.name.endsWith('.csv')) {
@@ -1416,7 +1416,7 @@ function handleFileImport(file) {
 function handleExportClick(type) {
     document.getElementById('exportMenu').style.display = 'none';
     const format = prompt('בחר פורמט לייצוא (json/csv):', 'json').toLowerCase();
-    
+
     if (format === 'json') {
         exportToJSON(type);
     } else if (format === 'csv') {
@@ -3750,6 +3750,27 @@ async function getWeekLessons(weekDays) {
         lessons.push(isLearning ? (currentSubject.lessonsPerDay[i] || 0) : 0);
     }
     return lessons;
+}
+function updateExportMenu() {
+    const menu = document.getElementById('exportMenu');
+    menu.innerHTML = `
+        <a onclick="askExportFormat('planning')">ייצוא תכנון</a>
+        <a onclick="askExportFormat('schedule')">ייצוא לוז</a>
+        <a onclick="askExportFormat('all')">ייצוא הכל</a>
+    `;
+}
+
+function askExportFormat(type) {
+    document.getElementById('exportMenu').style.display = 'none';
+    const format = prompt('בחר פורמט לייצוא (json/csv):', 'json').toLowerCase();
+    
+    if (format === 'json') {
+        exportToJSON(type);
+    } else if (format === 'csv') {
+        exportToCSV(type);
+    } else {
+        showError('פורמט לא נתמך');
+    }
 }
 async function sendToWhatsApp(type = 'all') {
     if (!currentSubject) {
