@@ -1201,7 +1201,7 @@ td.non-learning-day {
               <a onclick="shareFile('all')">שתף הכל</a>
           </div>
       </div>
-
+<button onclick="importFromGitHub()">ייבא תבנית</button>
       <!-- שאר הכפתורים -->
       <div class="dropdown">
           <button onclick="togglePrintMenu()">הדפסה ⌄</button>
@@ -1306,7 +1306,19 @@ td.non-learning-day {
 <script>
 // === Tab Functions ===
 // עדכון פונקציית switchTab
-
+async function importFromGitHub() {
+   const fileUrl = 'https://raw.githubusercontent.com/kobicomp/ticnun/main/%D7%AA%D7%95%D7%A8%D7%94%20%D7%94%D7%93%D7%A8%20%D7%9B%D7%94%D7%9F_planning_2025-01-25.json';
+   
+   try {
+       const response = await fetch(fileUrl);
+       const jsonContent = await response.json();
+       
+       await importFromJSON(new File([JSON.stringify(jsonContent)], 'template.json', { type: 'application/json' }));
+   } catch (error) {
+       console.error('Error importing file:', error);
+       showError('לא ניתן לייבא את הקובץ');
+   }
+}
 function handleFileImport(file) {
     if (!file) return;
 
