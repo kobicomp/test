@@ -322,7 +322,7 @@
                 date: "entry.1431651377",
                 hour: "entry.1887686014",
                 subject: "entry.1869424962",
-                 roomName: "entry.2087001113"
+                 roomName: "entry.2087001113",
             },
 
             maxWeeklyBookings: 4,
@@ -350,16 +350,7 @@
                         return {};
                     }
                 },
-                populateSelect(id, items) {
-                    const select = document.getElementById(id);
-                    select.innerHTML = `<option value="">בחר/י ${id === 'teacher' ? 'מורה' : 'כיתה'}</option>`;
-                    items.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item;
-                        option.textContent = item;
-                        select.appendChild(option);
-                    });
-                },
+              
                 setData(bookings) {
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
                 },
@@ -373,7 +364,16 @@
                     };
                     this.setData(bookings);
                 },
-
+                populateSelect(id, items) {
+                    const select = document.getElementById(id);
+                    select.innerHTML = `<option value="">בחר/י ${id === 'teacher' ? 'מורה' : 'כיתה'}</option>`;
+                    items.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item;
+                        option.textContent = item;
+                        select.appendChild(option);
+                    });
+                },
                 removeBooking(key) {
                     const bookings = this.getData();
                     if (bookings[key]) {
