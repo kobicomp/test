@@ -74,6 +74,7 @@
             border-radius: 4px;
             font-size: 14px;
             font-weight: bold;
+            display: inline-block;
         }
 
         .status.active {
@@ -88,8 +89,16 @@
 
         .loading {
             display: none;
-            text-align: center;
-            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
 
         .spinner {
@@ -132,6 +141,26 @@
             font-weight: bold;
             margin: 10px 0;
         }
+
+        .error-message {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .bookings-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -142,6 +171,8 @@
                 <option value="">בחר חדר</option>
             </select>
         </div>
+
+        <div id="error-message" class="error-message"></div>
 
         <div class="summary-cards">
             <div class="summary-card">
@@ -182,25 +213,59 @@
     </div>
 
     <script>
-    const CONFIG = {
-    urls: {
-        schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv'
-    }
-};
+        const CONFIG = {
+            urls: {
+                schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv'
+            },
+            refreshInterval: 60000 // רענון כל דקה
+        };
+
         const dashboard = {
             scheduleData: [],
             selectedRoom: '',
+            refreshTimer: null,
 
             async init() {
-                await this.loadRooms();
-                document.getElementById('room-select').addEventListener('change', (e) => {
-                    this.selectedRoom = e.target.value;
-                    this.loadBookings();
-                });
+                try {
+                    await this.loadRooms();
+                    
+                    // הוספת מאזיני אירועים
+                    document.getElementById('room-select').addEventListener('change', (e) => {
+                        this.selectedRoom = e.target.value;
+                        if (this.selectedRoom) {
+                            this.loadBookings();
+                            // הפעלת רענון אוטומטי
+                            if (this.refreshTimer) clearInterval(this.refreshTimer);
+                            this.refreshTimer = setInterval(() => this.loadBookings(), CONFIG.refreshInterval);
+                        } else {
+                            // ניקוי הנתונים כשאין חדר נבחר
+                            this.scheduleData = [];
+                            this.updateSummary();
+                            this.renderBookings();
+                            if (this.refreshTimer) {
+                                clearInterval(this.refreshTimer);
+                                this.refreshTimer = null;
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    this.showError('אירעה שגיאה בטעינת הנתונים. אנא נסה שוב מאוחר יותר.');
+                    console.error('Initialization error:', error);
+                }
+            },
+
+            showError(message) {
+                const errorElement = document.getElementById('error-message');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
             },
 
             showLoading() {
-                document.getElementById('loading').style.display = 'block';
+                document.getElementById('loading').style.display = 'flex';
             },
 
             hideLoading() {
@@ -208,31 +273,36 @@
             },
 
             async loadRooms() {
-      try {
-          // שימוש באותו URL של ההזמנות
-          const response = await fetch(CONFIG.urls.schedule);
-          const csvText = await response.text();
-          const bookings = this.parseCSV(csvText);
-          
-          // חילוץ רשימת חדרים ייחודית מההזמנות
-          const uniqueRooms = [...new Set(bookings
-              .map(booking => booking['שם החדר'])
-              .filter(room => room) // מסנן ערכים ריקים
-          )].sort();
-          
-          const select = document.getElementById('room-select');
-          select.innerHTML = '<option value="">בחר חדר</option>';
-          
-          uniqueRooms.forEach(room => {
-              const option = document.createElement('option');
-              option.value = room;
-              option.textContent = room;
-              select.appendChild(option);
-          });
-      } catch (error) {
-          console.error('Error loading rooms:', error);
-      }
-  },
+                this.showLoading();
+                try {
+                    const response = await fetch(CONFIG.urls.schedule);
+                    if (!response.ok) throw new Error('נכשל בטעינת רשימת החדרים');
+
+                    const csvText = await response.text();
+                    const bookings = this.parseCSV(csvText);
+                    
+                    // חילוץ רשימת חדרים ייחודית
+                    const uniqueRooms = [...new Set(bookings
+                        .map(booking => booking['שם החדר'])
+                        .filter(room => room)
+                    )].sort();
+                    
+                    const select = document.getElementById('room-select');
+                    select.innerHTML = '<option value="">בחר חדר</option>';
+                    
+                    uniqueRooms.forEach(room => {
+                        const option = document.createElement('option');
+                        option.value = room;
+                        option.textContent = room;
+                        select.appendChild(option);
+                    });
+                } catch (error) {
+                    this.showError('אירעה שגיאה בטעינת רשימת החדרים');
+                    console.error('Error loading rooms:', error);
+                } finally {
+                    this.hideLoading();
+                }
+            },
 
             async loadBookings() {
                 if (!this.selectedRoom) return;
@@ -240,12 +310,11 @@
                 this.showLoading();
                 try {
                     const timestamp = Date.now();
-                    const baseUrl = 'URL-TO-SCHEDULE-SHEET';
-                    const urlWithTimestamp = baseUrl.includes('?') ?
-                        `${baseUrl}&t=${timestamp}` :
-                        `${baseUrl}?t=${timestamp}`;
+                    const urlWithTimestamp = `${CONFIG.urls.schedule}${CONFIG.urls.schedule.includes('?') ? '&' : '?'}t=${timestamp}`;
 
                     const response = await fetch(urlWithTimestamp);
+                    if (!response.ok) throw new Error('נכשל בטעינת ההזמנות');
+
                     const csvText = await response.text();
                     let bookings = this.parseCSV(csvText);
 
@@ -261,7 +330,8 @@
                         for (let week = 0; week < weeksCount; week++) {
                             expandedBookings.push({
                                 ...booking,
-                                'תאריך': baseDate.clone().add(week, 'weeks').format('YYYY-MM-DD')
+                                'תאריך': baseDate.clone().add(week, 'weeks').format('YYYY-MM-DD'),
+                                'שבוע': week + 1
                             });
                         }
                     });
@@ -270,6 +340,7 @@
                     this.updateSummary();
                     this.renderBookings();
                 } catch (error) {
+                    this.showError('אירעה שגיאה בטעינת ההזמנות');
                     console.error('Error loading bookings:', error);
                 } finally {
                     this.hideLoading();
@@ -289,9 +360,9 @@
                     moment(booking['תאריך']).isBetween(startOfWeek, endOfWeek, 'day', '[]')
                 ).length;
 
-                const recurringBookings = this.scheduleData.filter(booking => 
-                    parseInt(booking['מספר שבועות']) > 1
-                ).length;
+                const recurringBookings = new Set(this.scheduleData
+                    .filter(booking => parseInt(booking['מספר שבועות']) > 1)
+                    .map(booking => `${booking['שם המורה']}_${booking['שעה במערכת']}`)).size;
 
                 document.getElementById('today-bookings').textContent = todayBookings;
                 document.getElementById('week-bookings').textContent = weekBookings;
@@ -302,7 +373,16 @@
                 const tbody = document.getElementById('bookings-tbody');
                 tbody.innerHTML = '';
 
-                // מיון ההזמנות לפי תאריך ושעה
+                if (this.scheduleData.length === 0) {
+                    const row = tbody.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 6;
+                    cell.textContent = 'אין הזמנות להצגה';
+                    cell.style.textAlign = 'center';
+                    return;
+                }
+
+                // מיון לפי תאריך ושעה
                 const sortedBookings = [...this.scheduleData].sort((a, b) => {
                     const dateCompare = a['תאריך'].localeCompare(b['תאריך']);
                     if (dateCompare !== 0) return dateCompare;
@@ -322,7 +402,7 @@
                         <td>${booking['מקצוע']}</td>
                         <td>
                             <span class="status ${isRecurring ? 'recurring' : 'active'}">
-                                ${isRecurring ? 'שיעור קבוע' : 'חד פעמי'}
+                                ${isRecurring ? `שיעור קבוע (${booking['שבוע'}/${booking['מספר שבועות']})` : 'חד פעמי'}
                             </span>
                         </td>
                     `;
