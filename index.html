@@ -419,26 +419,7 @@
             },
 
             async loadSchedule() {
-                  try {
-        const csvText = await response.text();
-        const newScheduleData = this.parseCSV(csvText);
-
-        // הדפסת כל השורות וסוג הנתונים
-        console.log('כל הנתונים:', newScheduleData);
-        console.log('שדות בנתונים:', Object.keys(newScheduleData[0] || {}));
-        console.log('שם החדר הנוכחי:', ROOM_NAME);
-
-        this.scheduleData = newScheduleData.filter(entry => {
-            console.log('בדיקת שורה:', entry);
-            console.log('שם החדר בשורה:', entry['שם החדר']);
-            return entry['שם החדר'] === ROOM_NAME;
-        });
-
-        console.log('נתונים לאחר סינון:', this.scheduleData);
-    } catch (error) {
-        console.error('Error loading schedule:', error);
-    }
-}
+             
                 try {
                     const timestamp = Date.now();
                     const baseUrl = CONFIG.urls.schedule;
