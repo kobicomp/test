@@ -2,7 +2,7 @@
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>מערכת הזמנת חדר דינאמיקלאס</title>
+    <title>מערכת הזמנת חדרים</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         :root {
@@ -232,9 +232,9 @@
 <body>
     <div class="container">
         <div class="room-info">
-            <h2>חדר דינאמיקלאס</h2>
-            <p>חדר מחשבים חדשני ומתקדם המיועד ללמידה פעילה ושיתופית</p>
-            <p>מתאים ל: עד 36 תלמידים, מצויד ב: מקרן, לוח חכם, 6 שולחנות עגולים</p>
+            <h2 id="room-name"></h2>
+            <p id="room-description"></p>
+            <p id="room-details"></p>
         </div>
 
         <div class="controls">
@@ -294,12 +294,16 @@
     </div>
 
     <script>
+        // הגדרות חדר - יש לשנות עבור כל חדר
         const CONFIG = {
-             name: "הרב קוק",
-            systemName: "חדר דינאמיקלאס",
-            systemDescription: "חדר מחשבים חדשני ומתקדם המיועד ללמידה פעילה ושיתופית",
-            systemDetails: "מתאים ל: עד 36 תלמידים, מצויד ב: מקרן, לוח חכם, 6 שולחנות עגולים",
+            room: {
+                id: "dynamiclass",  // מזהה ייחודי לחדר
+                name: "חדר דינאמיקלאס",
+                description: "חדר מחשבים חדשני ומתקדם המיועד ללמידה פעילה ושיתופית",
+                details: "מתאים ל: עד 36 תלמידים, מצויד ב: מקרן, לוח חכם, 6 שולחנות עגולים"
+            },
 
+            // הגדרות מערכת השעות
             daysSchedule: {
                 0: { name: 'ראשון', lessons: 7 },
                 1: { name: 'שני', lessons: 7 },
@@ -309,22 +313,25 @@
                 5: { name: 'שישי', lessons: 4 }
             },
 
+            // כתובות URL
             urls: {
-         schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGAfaT0O-12Zm4TTwPmJ0hLE9PXyE0ISsyUM5kRNN63R06-cxI8oZktSXj9IRVQrRcn2rSCy_u8vtQ/pub?output=csv',
-         teachers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUvRHe90lOs14oPNfL3uRqN73uEgmg7L_ON2gXnCD-CuZ_FmTZDRb-rxmmZmeq4frFxh-IMcGLEfy-/pub?output=csv',
-         classes: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1t6xbHD1i8uWUFQb5MmaHbjjyOLhcCdxs26f0nIABkNoGULEia-mfdsS78KlLNeZdtJ31XQEdi70C/pub?gid=0&single=true&output=csv',
-         form: 'https://docs.google.com/forms/d/e/1FAIpQLSeOFAZPcacD0pPV6ffQW4Eg5FpMvLqyTHjz3RZ1i5KMJeGrkQ/formResponse'
-     },
+                schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv',
+                teachers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUvRHe90lOs14oPNfL3uRqN73uEgmg7L_ON2gXnCD-CuZ_FmTZDRb-rxmmZmeq4frFxh-IMcGLEfy-/pub?output=csv',
+                classes: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1t6xbHD1i8uWUFQb5MmaHbjjyOLhcCdxs26f0nIABkNoGULEia-mfdsS78KlLNeZdtJ31XQEdi70C/pub?gid=0&single=true&output=csv',
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSeOFAZPcacD0pPV6ffQW4Eg5FpMvLqyTHjz3RZ1i5KMJeGrkQ/formResponse'
+            },
 
+            // שדות טופס גוגל
             formFields: {
-            room: "entry.2087001113",
                 teacher: "entry.1323321977",
                 class: "entry.1450687623",
                 date: "entry.1431651377",
                 hour: "entry.1887686014",
-                subject: "entry.1869424962"
+                subject: "entry.1869424962",
+                room: "entry.2087001113"
             },
 
+            // הגדרות כלליות
             maxWeeklyBookings: 4,
             maxWeeksAhead: 4,
             tempBookingTimeout: 5,
@@ -332,6 +339,7 @@
             statusCheckInterval: 10,
             maxStatusCheckAttempts: 10
         };
+
         const scheduler = {
             currentWeek: moment(),
             scheduleData: [],
@@ -340,7 +348,7 @@
             activeStatusChecks: new Map(),
 
             tempBookingsManager: {
-                STORAGE_KEY: 'tempBookings_dynamiclass',
+                STORAGE_KEY: `tempBookings_${CONFIG.room.id}`,
 
                 getData() {
                     try {
@@ -357,7 +365,7 @@
 
                 addBooking(booking) {
                     const bookings = this.getData();
-                    const key = `${booking.תאריך}_${booking['שעה במערכת']}`;
+                    const key = `${booking.תאריך}_${booking['שעה במערכת']}_${booking['שם החדר']}`;
                     bookings[key] = {
                         ...booking,
                         expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
@@ -395,6 +403,7 @@
                             this.loadTeachers(),
                             this.loadClasses()
                         ]);
+                        this.updateRoomInfo();
                     }
                     await this.loadSchedule();
                     this.tempBookingsManager.getValidBookings();
@@ -406,80 +415,13 @@
                 }
             },
 
+            updateRoomInfo() {
+                document.getElementById('room-name').textContent = CONFIG.room.name;
+                document.getElementById('room-description').textContent = CONFIG.room.description;
+                document.getElementById('room-details').textContent = CONFIG.room.details;
+            },
+
             async loadSchedule() {
-      try {
-          const timestamp = Date.now();
-          const baseUrl = CONFIG.urls.schedule;
-          const urlWithTimestamp = baseUrl.includes('?') ?
-              `${baseUrl}&t=${timestamp}` :
-              `${baseUrl}?t=${timestamp}`;
-  
-          const response = await fetch(urlWithTimestamp, {
-              cache: 'no-store',
-              headers: {
-                  'Cache-Control': 'no-cache, no-store, must-revalidate',
-                  'Pragma': 'no-cache'
-              }
-          });
-  
-          if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-  
-          const csvText = await response.text();
-          let newScheduleData = this.parseCSV(csvText);  // שינינו ל-let במקום const
-  
-          // סינון לפי שם החדר
-          newScheduleData = newScheduleData.filter(booking => booking['שם חדר'] === CONFIG.name);
-  
-          // בדיקת הזמנות זמניות
-          const tempBookings = this.tempBookingsManager.getValidBookings();
-          Object.entries(tempBookings).forEach(([key, tempBooking]) => {
-              const confirmedBooking = newScheduleData.find(booking =>
-                  booking.תאריך === tempBooking.תאריך &&
-                  booking['שעה במערכת'] === tempBooking['שעה במערכת']
-              );
-  
-              if (confirmedBooking) {
-                  const isOurBooking = confirmedBooking['שם המורה'] === tempBooking['שם המורה'] &&
-                                     confirmedBooking['כיתה'] === tempBooking['כיתה'];
-  
-                  this.tempBookingsManager.removeBooking(key);
-                  if (this.activeStatusChecks.has(key)) {
-                      clearInterval(this.activeStatusChecks.get(key));
-                      this.activeStatusChecks.delete(key);
-  
-                      if (isOurBooking) {
-                          alert('ההזמנה שלך אושרה בהצלחה!');
-                      } else {
-                          alert(`מצטערים, המורה ${confirmedBooking['שם המורה']} כבר הזמין/ה את החדר לשעה זו.`);
-                      }
-                  }
-              }
-          });
-  
-          this.scheduleData = newScheduleData;
-          this.renderSchedule();
-      } catch (error) {
-          console.error('Error loading schedule:', error);
-      }
-  },
-
-            async loadTeachers() {
-                const response = await fetch(CONFIG.urls.teachers);
-                const csvText = await response.text();
-                this.teachersList = this.parseList(csvText);
-                this.populateSelect('teacher', this.teachersList);
-            },
-
-            async loadClasses() {
-                const response = await fetch(CONFIG.urls.classes);
-                const csvText = await response.text();
-                this.classesList = this.parseList(csvText);
-                this.populateSelect('class', this.classesList);
-            },
-
-            async checkBookingStatus(booking) {
                 try {
                     const timestamp = Date.now();
                     const baseUrl = CONFIG.urls.schedule;
@@ -500,100 +442,120 @@
                     }
 
                     const csvText = await response.text();
-                    const bookings = this.parseCSV(csvText);
+                    const newScheduleData = this.parseCSV(csvText);
 
-                    return bookings.some(b =>
-                        b.תאריך === booking.תאריך &&
-                        b['שעה במערכת'] === booking['שעה במערכת'] &&
-                        b['שם המורה'] === booking['שם המורה'] &&
-                        b['כיתה'] === booking['כיתה']
-                    );
+                    // בדיקת הזמנות זמניות
+                    const tempBookings = this.tempBookingsManager.getValidBookings();
+                    Object.entries(tempBookings).forEach(([key, tempBooking]) => {
+                        const confirmedBooking = newScheduleData.find(booking =>
+                            booking.תאריך === tempBooking.תאריך &&
+                            booking['שעה במערכת'] === tempBooking['שעה במערכת'] &&
+                            booking['שם החדר'] === tempBooking['שם החדר']
+                        );
+
+                        if (confirmedBooking) {
+                            const isOurBooking = confirmedBooking['שם המורה'] === tempBooking['שם המורה'] &&
+                                               confirmedBooking['כיתה'] === tempBooking['כיתה'];
+
+                            this.tempBookingsManager.removeBooking(key);
+                            if (this.activeStatusChecks.has(key)) {
+                                clearInterval(this.activeStatusChecks.get(key));
+                                this.activeStatusChecks.delete(key);
+
+                                if (isOurBooking) {
+                                    alert('ההזמנה שלך אושרה בהצלחה!');
+                                } else {
+                                    alert(`מצטערים, המורה ${confirmedBooking['שם המורה']} כבר הזמין/ה את החדר לשעה זו.`);
+                                }
+                            }
+                        }
+                    });
+
+                    this.scheduleData = newScheduleData;
+                    this.renderSchedule();
                 } catch (error) {
-                    console.error('Error checking booking status:', error);
-                    return false;
+                    console.error('Error loading schedule:', error);
                 }
             },
 
-            startStatusCheck(booking) {
-             const key = `${booking.תאריך}_${booking['שעה במערכת']}`;
-             let attempts = 0;
+            async loadTeachers() {
+                const response = await fetch(CONFIG.urls.teachers);
+                const csvText = await response.text();
+                this.teachersList = this.parseList(csvText);
+                this.populateSelect('teacher', this.teachersList);
+            },
 
-             if (this.activeStatusChecks.has(key)) {
-                 clearInterval(this.activeStatusChecks.get(key));
-             }
+            async loadClasses() {
+                const response = await fetch(CONFIG.urls.classes);
+                const csvText = await response.text();
+                this.classesList = this.parseList(csvText);
+                this.populateSelect('class', this.classesList);
+            },
 
-             const checkInterval = setInterval(async () => {
-                 attempts++;
-                 await this.loadSchedule();
+            getBookingForSlot(date, hour) {
+                // חיפוש הזמנה קבועה
+                const permanentBooking = this.scheduleData.find(booking =>
+                    booking.תאריך === date &&
+                    parseInt(booking['שעה במערכת']) === hour &&
+                    booking['שם החדר'] === CONFIG.room.name
+                );
+                if (permanentBooking) return permanentBooking;
 
-                 // בדיקה האם ההזמנה עדיין קיימת במערכת הזמנית
-                 const tempBooking = this.tempBookingsManager.getData()[key];
-                 if (!tempBooking) {
-                     // ההזמנה הוסרה - או אושרה או נדחתה (ההודעה כבר נשלחה ב-loadSchedule)
-                     clearInterval(checkInterval);
-                     this.activeStatusChecks.delete(key);
-                 } else if (attempts >= CONFIG.maxStatusCheckAttempts) {
-                     clearInterval(checkInterval);
-                     this.activeStatusChecks.delete(key);
-                     alert('ההזמנה עדיין בהמתנה לאישור. נא לבדוק שוב מאוחר יותר.');
-                     // הסרת ההזמנה הזמנית אחרי מספר ניסיונות
-                     this.tempBookingsManager.removeBooking(key);
-                     this.renderSchedule();
-                 }
-             }, CONFIG.statusCheckInterval * 1000);
+                // חיפוש הזמנה זמנית
+                const tempBookings = this.tempBookingsManager.getValidBookings();
+                const key = `${date}_${hour}_${CONFIG.room.name}`;
+                const tempBooking = tempBookings[key];
 
-             this.activeStatusChecks.set(key, checkInterval);
-         },
-         async handleSubmit(event) {
-     event.preventDefault();
- 
-     const formData = {
-         'שם חדר': CONFIG.name,  // שינוי מ-CONFIG.currentRoom.name ל-CONFIG.name
-         'שם המורה': document.getElementById('teacher').value,
-         'כיתה': document.getElementById('class').value,
-         'תאריך': document.getElementById('selected-date').value,
-         'שעה במערכת': document.getElementById('selected-hour').value,
-         'מקצוע': document.getElementById('subject').value
-     };
- 
-     try {
-         // בדיקה אחרונה לפני שמירה
-         const key = `${formData.תאריך}_${formData['שעה במערכת']}`;
-         if (this.getBookingForSlot(formData.תאריך, parseInt(formData['שעה במערכת']))) {
-             throw new Error('החדר כבר תפוס בשעה זו');
-         }
- 
-         // שמירה זמנית
-         this.tempBookingsManager.addBooking(formData);
- 
-         // עדכון תצוגה מיידית
-         this.renderSchedule();
- 
-         // הכנת הנתונים לטופס Google
-         const googleFormData = new FormData();
-         googleFormData.append(CONFIG.formFields.room, formData['שם חדר']);
-         googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
-         googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
-         googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
-         googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
-         googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
- 
-         // שליחה לטופס Google
-         await fetch(CONFIG.urls.form, {
-             method: 'POST',
-             body: googleFormData,
-             mode: 'no-cors'
-         });
- 
-         // התחלת בדיקת סטטוס
-         this.startStatusCheck(formData);
- 
-         this.closeForm();
-         alert('ההזמנה נשלחה ונמצאת בבדיקה. תקבל עדכון כשההזמנה תאושר.');
-     } catch (error) {
-         document.getElementById('error-message').textContent = error.message;
-     }
- },
+                if (tempBooking) {
+                    return { ...tempBooking, isPending: true };
+                }
+
+                return null;
+            },
+
+            async handleSubmit(event) {
+                event.preventDefault();
+
+                const formData = {
+                    'שם המורה': document.getElementById('teacher').value,
+                    'כיתה': document.getElementById('class').value,
+                    'תאריך': document.getElementById('selected-date').value,
+                    'שעה במערכת': document.getElementById('selected-hour').value,
+                    'מקצוע': document.getElementById('subject').value,
+                    'שם החדר': CONFIG.room.name
+                };
+
+                try {
+                    const key = `${formData.תאריך}_${formData['שעה במערכת']}_${formData['שם החדר']}`;
+                    if (this.getBookingForSlot(formData.תאריך, parseInt(formData['שעה במערכת']))) {
+                        throw new Error('החדר כבר תפוס בשעה זו');
+                    }
+
+                    this.tempBookingsManager.addBooking(formData);
+                    this.renderSchedule();
+
+                    const googleFormData = new FormData();
+                    googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
+                    googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
+                    googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
+                    googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
+                    googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
+                    googleFormData.append(CONFIG.formFields.room, formData['שם החדר']);
+
+                    await fetch(CONFIG.urls.form, {
+                        method: 'POST',
+                        body: googleFormData,
+                        mode: 'no-cors'
+                    });
+
+                    this.startStatusCheck(formData);
+                    this.closeForm();
+                    alert('ההזמנה נשלחה ונמצאת בבדיקה. תקבל עדכון כשההזמנה תאושר.');
+                } catch (error) {
+                    document.getElementById('error-message').textContent = error.message;
+                }
+            },
+
             renderSchedule() {
                 const tbody = document.querySelector('#schedule tbody');
                 tbody.innerHTML = '';
@@ -605,13 +567,11 @@
                 for (let hour = 1; hour <= Math.max(...Object.values(CONFIG.daysSchedule).map(d => d.lessons)); hour++) {
                     const row = document.createElement('tr');
 
-                    // תא שעה
                     const hourCell = document.createElement('td');
                     hourCell.textContent = `שעה ${hour}`;
                     hourCell.style.fontWeight = 'bold';
                     row.appendChild(hourCell);
 
-                    // תאים לכל יום
                     for (let day = 0; day < 6; day++) {
                         if (hour <= CONFIG.daysSchedule[day].lessons) {
                             const cell = document.createElement('td');
@@ -635,7 +595,6 @@
                                 cell.innerHTML = '<div class="status-text available">פנוי</div>';
                                 cell.onclick = () => this.openBookingForm(date, hour);
                             }
-
                             row.appendChild(cell);
                         } else {
                             const emptyCell = document.createElement('td');
@@ -647,22 +606,32 @@
                 }
             },
 
-            getBookingForSlot(date, hour) {
-                const permanentBooking = this.scheduleData.find(booking =>
-                    booking.תאריך === date &&
-                    parseInt(booking['שעה במערכת']) === hour
-                );
-                if (permanentBooking) return permanentBooking;
+            startStatusCheck(booking) {
+                const key = `${booking.תאריך}_${booking['שעה במערכת']}_${booking['שם החדר']}`;
+                let attempts = 0;
 
-                const tempBookings = this.tempBookingsManager.getValidBookings();
-                const key = `${date}_${hour}`;
-                const tempBooking = tempBookings[key];
-
-                if (tempBooking) {
-                    return { ...tempBooking, isPending: true };
+                if (this.activeStatusChecks.has(key)) {
+                    clearInterval(this.activeStatusChecks.get(key));
                 }
 
-                return null;
+                const checkInterval = setInterval(async () => {
+                    attempts++;
+                    await this.loadSchedule();
+
+                    const tempBooking = this.tempBookingsManager.getData()[key];
+                    if (!tempBooking) {
+                        clearInterval(checkInterval);
+                        this.activeStatusChecks.delete(key);
+                    } else if (attempts >= CONFIG.maxStatusCheckAttempts) {
+                        clearInterval(checkInterval);
+                        this.activeStatusChecks.delete(key);
+                        alert('ההזמנה עדיין בהמתנה לאישור. נא לבדוק שוב מאוחר יותר.');
+                        this.tempBookingsManager.removeBooking(key);
+                        this.renderSchedule();
+                    }
+                }, CONFIG.statusCheckInterval * 1000);
+
+                this.activeStatusChecks.set(key, checkInterval);
             },
 
             openBookingForm(date, hour) {
@@ -708,6 +677,7 @@
                 count += this.scheduleData.filter(booking => {
                     const bookingDate = moment(booking['תאריך']);
                     return booking[field] === value &&
+                           booking['שם החדר'] === CONFIG.room.name &&
                            bookingDate.isBetween(weekStart, weekEnd, 'day', '[]');
                 }).length;
 
@@ -715,6 +685,7 @@
                 count += Object.values(tempBookings).filter(booking => {
                     const bookingDate = moment(booking['תאריך']);
                     return booking[field] === value &&
+                           booking['שם החדר'] === CONFIG.room.name &&
                            bookingDate.isBetween(weekStart, weekEnd, 'day', '[]');
                 }).length;
 
@@ -738,18 +709,6 @@
 
                 this.currentWeek = newWeek;
                 this.renderSchedule();
-            },
-
-            showLoading() {
-                document.getElementById('loading-overlay').style.display = 'flex';
-            },
-
-            hideLoading() {
-                document.getElementById('loading-overlay').style.display = 'none';
-            },
-
-            async delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
             },
 
             parseCSV(csv) {
@@ -782,8 +741,20 @@
                     option.textContent = item;
                     select.appendChild(option);
                 });
+            },
+
+            showLoading() {
+                document.getElementById('loading-overlay').style.display = 'flex';
+            },
+
+            hideLoading() {
+                document.getElementById('loading-overlay').style.display = 'none';
+            },
+
+            async delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
             }
-        };
+            };
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
