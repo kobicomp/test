@@ -182,6 +182,11 @@
     </div>
 
     <script>
+    const CONFIG = {
+    urls: {
+        schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv'
+    }
+};
         const dashboard = {
             scheduleData: [],
             selectedRoom: '',
@@ -203,19 +208,31 @@
             },
 
             async loadRooms() {
-                // כאן נטען את רשימת החדרים מהגוגל שיטס
-                const response = await fetch('URL-TO-ROOMS-LIST');
-                const csvText = await response.text();
-                const rooms = this.parseCSV(csvText);
-                
-                const select = document.getElementById('room-select');
-                rooms.forEach(room => {
-                    const option = document.createElement('option');
-                    option.value = room.name;
-                    option.textContent = room.name;
-                    select.appendChild(option);
-                });
-            },
+      try {
+          // שימוש באותו URL של ההזמנות
+          const response = await fetch(CONFIG.urls.schedule);
+          const csvText = await response.text();
+          const bookings = this.parseCSV(csvText);
+          
+          // חילוץ רשימת חדרים ייחודית מההזמנות
+          const uniqueRooms = [...new Set(bookings
+              .map(booking => booking['שם החדר'])
+              .filter(room => room) // מסנן ערכים ריקים
+          )].sort();
+          
+          const select = document.getElementById('room-select');
+          select.innerHTML = '<option value="">בחר חדר</option>';
+          
+          uniqueRooms.forEach(room => {
+              const option = document.createElement('option');
+              option.value = room;
+              option.textContent = room;
+              select.appendChild(option);
+          });
+      } catch (error) {
+          console.error('Error loading rooms:', error);
+      }
+  },
 
             async loadBookings() {
                 if (!this.selectedRoom) return;
