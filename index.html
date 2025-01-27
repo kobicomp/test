@@ -350,7 +350,16 @@
                         return {};
                     }
                 },
-
+                populateSelect(id, items) {
+                    const select = document.getElementById(id);
+                    select.innerHTML = `<option value="">בחר/י ${id === 'teacher' ? 'מורה' : 'כיתה'}</option>`;
+                    items.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item;
+                        option.textContent = item;
+                        select.appendChild(option);
+                    });
+                },
                 setData(bookings) {
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
                 },
@@ -789,32 +798,25 @@
          document.getElementById('error-message').textContent = error.message;
      }
   }
-            populateSelect(id, items) {
-                const select = document.getElementById(id);
-                select.innerHTML = `<option value="">בחר/י ${id === 'teacher' ? 'מורה' : 'כיתה'}</option>`;
-                items.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item;
-                    option.textContent = item;
-                    select.appendChild(option);
-                });
-            }
-        };
+          
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            scheduler.loadData(true);
-            setInterval(() => scheduler.loadData(), CONFIG.autoRefreshInterval * 1000);
-
-            document.getElementById('teacher').addEventListener('change', () =>
-                scheduler.updateWeeklyStatus(document.getElementById('selected-date').value));
-
-            document.getElementById('class').addEventListener('change', () =>
-                scheduler.updateWeeklyStatus(document.getElementById('selected-date').value));
-
-            document.getElementById('reservation-form').addEventListener('submit', (e) =>
-                scheduler.handleSubmit(e));
-        });
-    </script>
-</body>
-</html>
+        };
+    
+            // Initialize
+            document.addEventListener('DOMContentLoaded', () => {
+                scheduler.loadData(true);
+                setInterval(() => scheduler.loadData(), CONFIG.autoRefreshInterval * 1000);
+    
+                document.getElementById('teacher').addEventListener('change', () =>
+                    scheduler.updateWeeklyStatus(document.getElementById('selected-date').value));
+    
+                document.getElementById('class').addEventListener('change', () =>
+                    scheduler.updateWeeklyStatus(document.getElementById('selected-date').value));
+    
+                document.getElementById('reservation-form').addEventListener('submit', (e) =>
+                    scheduler.handleSubmit(e));
+            });
+        </script>
+    </body>
+    </html>
