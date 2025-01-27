@@ -545,33 +545,55 @@
              this.activeStatusChecks.set(key, checkInterval);
          },
          async handleSubmit(event) {
- event.preventDefault();
-
- const formData = {
-     'שם חדר': CONFIG.currentRoom.name,  // הוספנו את שם החדר
-     'שם המורה': document.getElementById('teacher').value,
-     'כיתה': document.getElementById('class').value,
-     'תאריך': document.getElementById('selected-date').value,
-     'שעה במערכת': document.getElementById('selected-hour').value,
-     'מקצוע': document.getElementById('subject').value
- };
-
- try {
-     // ... הקוד הקיים ...
-
-     const googleFormData = new FormData();
-     googleFormData.append(CONFIG.formFields.room, formData['שם חדר']);     // הוספנו את שליחת שם החדר
-     googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
-     googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
-     googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
-     googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
-     googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
-
-     // ... המשך הקוד הקיים ...
- } catch (error) {
-     document.getElementById('error-message').textContent = error.message;
- }
-},
+     event.preventDefault();
+ 
+     const formData = {
+         'שם חדר': CONFIG.name,  // שינוי מ-CONFIG.currentRoom.name ל-CONFIG.name
+         'שם המורה': document.getElementById('teacher').value,
+         'כיתה': document.getElementById('class').value,
+         'תאריך': document.getElementById('selected-date').value,
+         'שעה במערכת': document.getElementById('selected-hour').value,
+         'מקצוע': document.getElementById('subject').value
+     };
+ 
+     try {
+         // בדיקה אחרונה לפני שמירה
+         const key = `${formData.תאריך}_${formData['שעה במערכת']}`;
+         if (this.getBookingForSlot(formData.תאריך, parseInt(formData['שעה במערכת']))) {
+             throw new Error('החדר כבר תפוס בשעה זו');
+         }
+ 
+         // שמירה זמנית
+         this.tempBookingsManager.addBooking(formData);
+ 
+         // עדכון תצוגה מיידית
+         this.renderSchedule();
+ 
+         // הכנת הנתונים לטופס Google
+         const googleFormData = new FormData();
+         googleFormData.append(CONFIG.formFields.room, formData['שם חדר']);
+         googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
+         googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
+         googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
+         googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
+         googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
+ 
+         // שליחה לטופס Google
+         await fetch(CONFIG.urls.form, {
+             method: 'POST',
+             body: googleFormData,
+             mode: 'no-cors'
+         });
+ 
+         // התחלת בדיקת סטטוס
+         this.startStatusCheck(formData);
+ 
+         this.closeForm();
+         alert('ההזמנה נשלחה ונמצאת בבדיקה. תקבל עדכון כשההזמנה תאושר.');
+     } catch (error) {
+         document.getElementById('error-message').textContent = error.message;
+     }
+ },
             renderSchedule() {
                 const tbody = document.querySelector('#schedule tbody');
                 tbody.innerHTML = '';
