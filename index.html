@@ -427,14 +427,39 @@
           }
   
           const csvText = await response.text();
-          const newScheduleData = this.parseCSV(csvText);
-          
-          // נוסיף כאן את שורת הסינון
-          newScheduleData = newScheduleData.filter(booking => booking['שם חדר'] === CONFIG.currentRoom.name);
+          let newScheduleData = this.parseCSV(csvText);  // שינינו ל-let במקום const
   
-          // המשך הקוד הקיים...
+          // סינון לפי שם החדר
+          newScheduleData = newScheduleData.filter(booking => booking['שם חדר'] === CONFIG.name);
+  
+          // בדיקת הזמנות זמניות
           const tempBookings = this.tempBookingsManager.getValidBookings();
-          // ... שאר הקוד נשאר זהה
+          Object.entries(tempBookings).forEach(([key, tempBooking]) => {
+              const confirmedBooking = newScheduleData.find(booking =>
+                  booking.תאריך === tempBooking.תאריך &&
+                  booking['שעה במערכת'] === tempBooking['שעה במערכת']
+              );
+  
+              if (confirmedBooking) {
+                  const isOurBooking = confirmedBooking['שם המורה'] === tempBooking['שם המורה'] &&
+                                     confirmedBooking['כיתה'] === tempBooking['כיתה'];
+  
+                  this.tempBookingsManager.removeBooking(key);
+                  if (this.activeStatusChecks.has(key)) {
+                      clearInterval(this.activeStatusChecks.get(key));
+                      this.activeStatusChecks.delete(key);
+  
+                      if (isOurBooking) {
+                          alert('ההזמנה שלך אושרה בהצלחה!');
+                      } else {
+                          alert(`מצטערים, המורה ${confirmedBooking['שם המורה']} כבר הזמין/ה את החדר לשעה זו.`);
+                      }
+                  }
+              }
+          });
+  
+          this.scheduleData = newScheduleData;
+          this.renderSchedule();
       } catch (error) {
           console.error('Error loading schedule:', error);
       }
