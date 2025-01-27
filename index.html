@@ -321,7 +321,7 @@
                 class: "entry.1450687623",
                 date: "entry.1431651377",
                 hour: "entry.1887686014",
-                subject: "entry.1869424962"
+                subject: "entry.1869424962",
                  roomName: "entry.2087001113"
             },
 
@@ -543,54 +543,7 @@
 
              this.activeStatusChecks.set(key, checkInterval);
          },
-             async handleSubmit(event) {
-                   event.preventDefault();
-
-                   const formData = {
-                       'שם המורה': document.getElementById('teacher').value,
-                       'כיתה': document.getElementById('class').value,
-                       'תאריך': document.getElementById('selected-date').value,
-                       'שעה במערכת': document.getElementById('selected-hour').value,
-                       'מקצוע': document.getElementById('subject').value
-                   };
-
-                   try {
-                       // בדיקה אחרונה לפני שמירה
-                       const key = `${formData.תאריך}_${formData['שעה במערכת']}`;
-                       if (this.getBookingForSlot(formData.תאריך, parseInt(formData['שעה במערכת']))) {
-                           throw new Error('החדר כבר תפוס בשעה זו');
-                       }
-
-                       // שמירה זמנית
-                       this.tempBookingsManager.addBooking(formData);
-
-                       // עדכון תצוגה מיידית
-                       this.renderSchedule();
-
-                       // הכנת הנתונים לטופס Google
-                       const googleFormData = new FormData();
-                       googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
-                       googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
-                       googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
-                       googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
-                       googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
-
-                       // שליחה לטופס Google
-                       await fetch(CONFIG.urls.form, {
-                           method: 'POST',
-                           body: googleFormData,
-                           mode: 'no-cors'
-                       });
-
-                       // התחלת בדיקת סטטוס
-                       this.startStatusCheck(formData);
-
-                       this.closeForm();
-                       alert('ההזמנה נשלחה ונמצאת בבדיקה. תקבל עדכון כשההזמנה תאושר.');
-                   } catch (error) {
-                       document.getElementById('error-message').textContent = error.message;
-                   }
-               },
+            
             renderSchedule() {
                 const tbody = document.querySelector('#schedule tbody');
                 tbody.innerHTML = '';
@@ -787,30 +740,55 @@
                     );
             },
             async handleSubmit(event) {
-    event.preventDefault();
-    
-    const formData = {
-        'שם המורה': document.getElementById('teacher').value,
-        'כיתה': document.getElementById('class').value,
-        'תאריך': document.getElementById('selected-date').value,
-        'שעה במערכת': document.getElementById('selected-hour').value,
-        'מקצוע': document.getElementById('subject').value,
-        'שם החדר': ROOM_NAME // הוספת שם החדר
-    };
-
-    try {
-        // הכנת הנתונים לטופס Google
-        const googleFormData = new FormData();
-        googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
-        googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
-        googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
-        googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
-        googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
-        googleFormData.append(CONFIG.formFields.roomName, formData['שם החדר']); // שליחת שם החדר
-        
-        // השאר נשאר זהה לקוד המקורי
-    }
-}
+     event.preventDefault();
+  
+     const formData = {
+         'שם המורה': document.getElementById('teacher').value,
+         'כיתה': document.getElementById('class').value,
+         'תאריך': document.getElementById('selected-date').value,
+         'שעה במערכת': document.getElementById('selected-hour').value,
+         'מקצוע': document.getElementById('subject').value,
+         'שם החדר': ROOM_NAME // הוספת שם החדר
+     };
+  
+     try {
+         // בדיקה אחרונה לפני שמירה
+         const key = `${formData.תאריך}_${formData['שעה במערכת']}`;
+         if (this.getBookingForSlot(formData.תאריך, parseInt(formData['שעה במערכת']))) {
+             throw new Error('החדר כבר תפוס בשעה זו');
+         }
+  
+         // שמירה זמנית
+         this.tempBookingsManager.addBooking(formData);
+  
+         // עדכון תצוגה מיידית
+         this.renderSchedule();
+  
+         // הכנת הנתונים לטופס Google
+         const googleFormData = new FormData();
+         googleFormData.append(CONFIG.formFields.teacher, formData['שם המורה']);
+         googleFormData.append(CONFIG.formFields.class, formData['כיתה']);
+         googleFormData.append(CONFIG.formFields.date, formData['תאריך']);
+         googleFormData.append(CONFIG.formFields.hour, formData['שעה במערכת']);
+         googleFormData.append(CONFIG.formFields.subject, formData['מקצוע']);
+         googleFormData.append(CONFIG.formFields.roomName, formData['שם החדר']); // הוספת שם החדר
+  
+         // שליחה לטופס Google
+         await fetch(CONFIG.urls.form, {
+             method: 'POST',
+             body: googleFormData,
+             mode: 'no-cors'
+         });
+  
+         // התחלת בדיקת סטטוס
+         this.startStatusCheck(formData);
+  
+         this.closeForm();
+         alert('ההזמנה נשלחה ונמצאת בבדיקה. תקבל עדכון כשההזמנה תאושר.');
+     } catch (error) {
+         document.getElementById('error-message').textContent = error.message;
+     }
+  }
             populateSelect(id, items) {
                 const select = document.getElementById(id);
                 select.innerHTML = `<option value="">בחר/י ${id === 'teacher' ? 'מורה' : 'כיתה'}</option>`;
