@@ -412,62 +412,90 @@
             },
 
             async loadSchedule() {
-                  try {
-                      const timestamp = Date.now();
-                      const baseUrl = CONFIG.urls.schedule;
-                      const urlWithTimestamp = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${timestamp}`;
+      try {
+          const timestamp = Date.now();
+          const baseUrl = CONFIG.urls.schedule;
+          const urlWithTimestamp = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${timestamp}&rand=${Math.random()}`;
   
-                      const response = await fetch(urlWithTimestamp, {
-                          cache: 'no-store',
-                          headers: {
-                              'Cache-Control': 'no-cache, no-store, must-revalidate',
-                              'Pragma': 'no-cache'
-                          }
-                      });
+          console.log('Fetching from URL:', urlWithTimestamp);
   
-                      if (!response.ok) {
-                          throw new Error(`HTTP error! status: ${response.status}`);
+          const response = await fetch(urlWithTimestamp, {
+              cache: 'no-store',
+              headers: {
+                  'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+              }
+          });
+  
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+  
+          const csvText = await response.text();
+          console.log('Raw CSV data:', csvText.substring(0, 500) + '...'); // מציג את 500 התווים הראשונים
+  
+          const allBookings = this.parseCSV(csvText);
+          console.log('All parsed bookings:', allBookings);
+          console.log('Looking for room:', CONFIG.currentRoom.name);
+  
+          // בדיקת מבנה הנתונים
+          if (allBookings.length > 0) {
+              console.log('First booking columns:', Object.keys(allBookings[0]));
+              console.log('Sample booking:', allBookings[0]);
+          }
+  
+          // סינון ההזמנות לפי החדר הנוכחי
+          this.scheduleData = allBookings.filter(booking => {
+              const hasRoomName = 'שם חדר' in booking;
+              const roomName = booking['שם חדר'];
+              
+              console.log(`Checking booking - Has room name: ${hasRoomName}, Room name: "${roomName}", Matches current room: ${roomName === CONFIG.currentRoom.name}`);
+              
+              return roomName === CONFIG.currentRoom.name;
+          });
+  
+          console.log('Filtered bookings:', this.scheduleData);
+  
+          // בדיקת הזמנות זמניות
+          const tempBookings = this.tempBookingsManager.getValidBookings();
+          console.log('Temporary bookings:', tempBookings);
+  
+          Object.entries(tempBookings).forEach(([key, tempBooking]) => {
+              const confirmedBooking = this.scheduleData.find(booking =>
+                  booking.תאריך === tempBooking.תאריך &&
+                  booking['שעה במערכת'] === tempBooking['שעה במערכת']
+              );
+  
+              if (confirmedBooking) {
+                  console.log('Found confirmed booking:', confirmedBooking);
+                  const isOurBooking = confirmedBooking['שם המורה'] === tempBooking['שם המורה'] &&
+                                     confirmedBooking['כיתה'] === tempBooking['כיתה'];
+  
+                  this.tempBookingsManager.removeBooking(key);
+                  if (this.activeStatusChecks.has(key)) {
+                      clearInterval(this.activeStatusChecks.get(key));
+                      this.activeStatusChecks.delete(key);
+  
+                      if (isOurBooking) {
+                          alert('ההזמנה שלך אושרה בהצלחה!');
+                      } else {
+                          alert(`מצטערים, המורה ${confirmedBooking['שם המורה']} כבר הזמין/ה את החדר לשעה זו.`);
                       }
-  
-                      const csvText = await response.text();
-                      const allBookings = this.parseCSV(csvText);
-                      
-                      // סינון ההזמנות לפי החדר הנוכחי
-                      this.scheduleData = allBookings.filter(booking => 
-                          booking['שם חדר'] === CONFIG.currentRoom.name
-                      );
-  
-                      // בדיקת הזמנות זמניות
-                      const tempBookings = this.tempBookingsManager.getValidBookings();
-                      Object.entries(tempBookings).forEach(([key, tempBooking]) => {
-                          const confirmedBooking = this.scheduleData.find(booking =>
-                              booking.תאריך === tempBooking.תאריך &&
-                              booking['שעה במערכת'] === tempBooking['שעה במערכת']
-                          );
-  
-                          if (confirmedBooking) {
-                              const isOurBooking = confirmedBooking['שם המורה'] === tempBooking['שם המורה'] &&
-                                                 confirmedBooking['כיתה'] === tempBooking['כיתה'];
-  
-                              this.tempBookingsManager.removeBooking(key);
-                              if (this.activeStatusChecks.has(key)) {
-                                  clearInterval(this.activeStatusChecks.get(key));
-                                  this.activeStatusChecks.delete(key);
-  
-                                  if (isOurBooking) {
-                                      alert('ההזמנה שלך אושרה בהצלחה!');
-                                  } else {
-                                      alert(`מצטערים, המורה ${confirmedBooking['שם המורה']} כבר הזמין/ה את החדר לשעה זו.`);
-                                  }
-                              }
-                          }
-                      });
-  
-                      this.renderSchedule();
-                  } catch (error) {
-                      console.error('Error loading schedule:', error);
                   }
-              },
+              }
+          });
+  
+          this.renderSchedule();
+  
+      } catch (error) {
+          console.error('Error in loadSchedule:', error);
+          console.error('Error details:', {
+              message: error.message,
+              stack: error.stack
+          });
+      }
+  },
   
               async loadTeachers() {
                   const response = await fetch(CONFIG.urls.teachers);
