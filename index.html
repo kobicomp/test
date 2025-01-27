@@ -2,7 +2,7 @@
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>מערכת הזמנת חדר </title>
+    <title>מערכת הזמנת חדר דינאמיקלאס</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         :root {
@@ -232,7 +232,7 @@
 <body>
     <div class="container">
         <div class="room-info">
-            <h2> חדר דינאמיקלאס בנות</h2>
+            <h2>חדר דינאמיקלאס</h2>
             <p>חדר מחשבים חדשני ומתקדם המיועד ללמידה פעילה ושיתופית</p>
             <p>מתאים ל: עד 36 תלמידים, מצויד ב: מקרן, לוח חכם, 6 שולחנות עגולים</p>
         </div>
@@ -294,7 +294,7 @@
     </div>
 
     <script>
-        const ROOM_NAME = "חדר דינאמיקלאס בנות";
+        const ROOM_NAME = "חדר דינאמיקלאס";
         const CONFIG = {
             systemName: "חדר דינאמיקלאס",
             systemDescription: "חדר מחשבים חדשני ומתקדם המיועד ללמידה פעילה ושיתופית",
@@ -372,7 +372,7 @@
                     const key = `${booking.תאריך}_${booking['שעה במערכת']}`;
                     bookings[key] = {
                         ...booking,
-                        expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
+                        expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 30 * 1000)
                     };
                     this.setData(bookings);
                 },
@@ -419,7 +419,6 @@
             },
 
             async loadSchedule() {
-             
                 try {
                     const timestamp = Date.now();
                     const baseUrl = CONFIG.urls.schedule;
