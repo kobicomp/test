@@ -1,672 +1,89 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ניהול מרכזי - מערכת הזמנת חדרים</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <style>
-        :root {
-            --primary-color: #2196F3;
-            --success-color: #4CAF50;
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            direction: rtl;
-            background-color: #f5f5f5;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .room-selector {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .room-selector select {
-            padding: 10px;
-            font-size: 16px;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .bookings-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .bookings-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .bookings-table th, 
-        .bookings-table td {
-            padding: 12px;
-            text-align: right;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .bookings-table th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .bookings-table tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .status {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .status.active {
-            background-color: var(--success-color);
-            color: white;
-        }
-
-        .status.recurring {
-            background-color: var(--warning-color);
-            color: white;
-        }
-
-        .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .summary-card h3 {
-            margin: 0;
-            color: var(--primary-color);
-        }
-
-        .summary-card .number {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .error-message {
-            background-color: var(--danger-color);
-            color: white;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
-            display: none;
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .view-toggle button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .view-toggle button.active {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .schedule-view {
-            display: none;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .schedule-view.active {
-            display: block;
-        }
-
-        .list-view {
-            display: none;
-        }
-
-        .list-view.active {
-            display: block;
-        }
-
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .schedule-table th, 
-        .schedule-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-            height: 80px;
-            vertical-align: top;
-        }
-
-        .schedule-table th {
-            background-color: var(--primary-color);
-            color: white;
-            height: auto;
-        }
-
-        .schedule-cell {
-            min-height: 60px;
-            font-size: 0.9em;
-        }
-
-        .schedule-booking {
-            background: #e3f2fd;
-            padding: 5px;
-            border-radius: 4px;
-            margin-bottom: 5px;
-            font-size: 0.8em;
-        }
-
-        .schedule-booking.recurring {
-            background: #fff3e0;
-        }
-
-        .week-navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .current-week {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .bookings-table {
-                display: block;
-                overflow-x: auto;
-            }
-
-            .schedule-table {
-                font-size: 0.8em;
-            }
-
-            .schedule-booking {
-                font-size: 0.7em;
-            }
-
-            .schedule-cell {
-                padding: 4px;
-            }
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רוצים להכיר? - חמ"ד תורני נריה</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <!-- בחירת חדר -->
-        <div class="room-selector">
-            <h2>בחירת חדר</h2>
-            <select id="room-select">
-                <option value="">בחר חדר</option>
-            </select>
-        </div>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-center mb-2 text-blue-600">רוצים להכיר?</h1>
+            <h2 class="text-xl text-center mb-6 text-gray-700">טופס רישום למפגש הכרות עם צוות חמ"ד תורני נריה</h2>
+            
+            <form action="https://docs.google.com/forms/d/e/1FAIpQLSe-M8ImLjwt4A0WWBk642xEzeBzcR-yjxtrcLJKwGWvpbc7kA/formResponse" method="POST" class="space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">שם הילד/ה</label>
+                        <input type="text" name="entry.491642234" required
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">שם משפחה</label>
+                        <input type="text" name="entry.10190720" required
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
 
-        <!-- כפתורי החלפת תצוגה -->
-        <div class="view-toggle">
-            <button id="list-view-btn" class="active">תצוגת רשימה</button>
-            <button id="schedule-view-btn">תצוגת מערכת</button>
-        </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">שם האם</label>
+                        <input type="text" name="entry.214554180" required
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">מספר טלפון של האם</label>
+                        <input type="tel" name="entry.354077414" required
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
 
-        <div id="error-message" class="error-message"></div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">שם האב</label>
+                        <input type="text" name="entry.1865488101" required
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">מספר טלפון של האב</label>
+                        <input type="tel" name="entry.1296138712" required
+                            class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
 
-        <!-- כרטיסי סיכום -->
-        <div class="summary-cards">
-            <div class="summary-card">
-                <h3>הזמנות היום</h3>
-                <div id="today-bookings" class="number">0</div>
-            </div>
-            <div class="summary-card">
-                <h3>הזמנות השבוע</h3>
-                <div id="week-bookings" class="number">0</div>
-            </div>
-            <div class="summary-card">
-                <h3>שיעורים קבועים</h3>
-                <div id="recurring-bookings" class="number">0</div>
-            </div>
-        </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">שם הגן</label>
+                    <input type="text" name="entry.1250467273" required
+                        class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
 
-        <!-- תצוגת רשימה -->
-        <div id="list-view" class="list-view active">
-            <div class="bookings-container">
-                <h2>הזמנות</h2>
-                <table class="bookings-table">
-                    <thead>
-                        <tr>
-                            <th>תאריך</th>
-                            <th>שעה</th>
-                            <th>מורה</th>
-                            <th>כיתה</th>
-                            <th>מקצוע</th>
-                            <th>סטטוס</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bookings-tbody"></tbody>
-                </table>
-            </div>
-        </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">רצינו לספר לכם על הילד/ה</label>
+                    <textarea name="entry.2127601542" rows="4"
+                        class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
 
-        <!-- תצוגת מערכת -->
-        <div id="schedule-view" class="schedule-view">
-            <div class="week-navigation">
-                <button onclick="dashboard.changeWeek(-1)">◀ שבוע קודם</button>
-                <span class="current-week" id="current-week"></span>
-                <button onclick="dashboard.changeWeek(1)">שבוע הבא ▶</button>
-            </div>
-            <div class="schedule-container">
-                <table class="schedule-table">
-                    <thead>
-                        <tr>
-                            <th>שעה</th>
-                            <th>ראשון</th>
-                            <th>שני</th>
-                            <th>שלישי</th>
-                            <th>רביעי</th>
-                            <th>חמישי</th>
-                            <th>שישי</th>
-                        </tr>
-                    </thead>
-                    <tbody id="schedule-tbody"></tbody>
-                </table>
-            </div>
-        </div>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">מה חשוב לנו שיהיה בבית הספר?</label>
+                    <textarea name="entry.702710483" rows="4"
+                        class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
 
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>טוען נתונים...</p>
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">רצינו לשאול...</label>
+                    <textarea name="entry.1185389746" rows="4"
+                        class="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        שליחת הטופס
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <script>
-        const CONFIG = {
-            urls: {
-                schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv'
-            },
-            refreshInterval: 60000, // רענון כל דקה
-            daysSchedule: {
-                0: { name: 'ראשון', lessons: 7 },
-                1: { name: 'שני', lessons: 7 },
-                2: { name: 'שלישי', lessons: 5 },
-                3: { name: 'רביעי', lessons: 7 },
-                4: { name: 'חמישי', lessons: 7 },
-                5: { name: 'שישי', lessons: 4 }
-            }
-        };
-        const dashboard = {
-            scheduleData: [],
-            selectedRoom: '',
-            refreshTimer: null,
-            currentWeek: moment(),
-            currentView: 'list',
-
-            async init() {
-                try {
-                    await this.loadRooms();
-                    this.initializeViewToggle();
-                    
-                    document.getElementById('room-select').addEventListener('change', (e) => {
-                        this.selectedRoom = e.target.value;
-                        if (this.selectedRoom) {
-                            this.loadBookings();
-                            if (this.refreshTimer) clearInterval(this.refreshTimer);
-                            this.refreshTimer = setInterval(() => this.loadBookings(), CONFIG.refreshInterval);
-                        } else {
-                            this.scheduleData = [];
-                            this.updateSummary();
-                            this.renderCurrentView();
-                            if (this.refreshTimer) {
-                                clearInterval(this.refreshTimer);
-                                this.refreshTimer = null;
-                            }
-                        }
-                    });
-
-                } catch (error) {
-                    this.showError('אירעה שגיאה בטעינת הנתונים');
-                    console.error('Initialization error:', error);
-                }
-            },
-
-            initializeViewToggle() {
-                const listBtn = document.getElementById('list-view-btn');
-                const scheduleBtn = document.getElementById('schedule-view-btn');
-                const listView = document.getElementById('list-view');
-                const scheduleView = document.getElementById('schedule-view');
-
-                listBtn.addEventListener('click', () => {
-                    this.currentView = 'list';
-                    listBtn.classList.add('active');
-                    scheduleBtn.classList.remove('active');
-                    listView.classList.add('active');
-                    scheduleView.classList.remove('active');
-                    this.renderCurrentView();
-                });
-
-                scheduleBtn.addEventListener('click', () => {
-                    this.currentView = 'schedule';
-                    scheduleBtn.classList.add('active');
-                    listBtn.classList.remove('active');
-                    scheduleView.classList.add('active');
-                    listView.classList.remove('active');
-                    this.renderCurrentView();
-                });
-            },
-
-            showError(message) {
-                const errorElement = document.getElementById('error-message');
-                errorElement.textContent = message;
-                errorElement.style.display = 'block';
-                setTimeout(() => {
-                    errorElement.style.display = 'none';
-                }, 5000);
-            },
-
-            showLoading() {
-                document.getElementById('loading').style.display = 'flex';
-            },
-
-            hideLoading() {
-                document.getElementById('loading').style.display = 'none';
-            },
-
-            async loadRooms() {
-                this.showLoading();
-                try {
-                    const response = await fetch(CONFIG.urls.schedule);
-                    if (!response.ok) throw new Error('נכשל בטעינת רשימת החדרים');
-
-                    const csvText = await response.text();
-                    const bookings = this.parseCSV(csvText);
-                    
-                    const uniqueRooms = [...new Set(bookings
-                        .map(booking => booking['שם החדר'])
-                        .filter(room => room)
-                    )].sort();
-                    
-                    const select = document.getElementById('room-select');
-                    select.innerHTML = '<option value="">בחר חדר</option>';
-                    
-                    uniqueRooms.forEach(room => {
-                        const option = document.createElement('option');
-                        option.value = room;
-                        option.textContent = room;
-                        select.appendChild(option);
-                    });
-                } catch (error) {
-                    this.showError('אירעה שגיאה בטעינת רשימת החדרים');
-                    console.error('Error loading rooms:', error);
-                } finally {
-                    this.hideLoading();
-                }
-            },
-
-            async loadBookings() {
-                if (!this.selectedRoom) return;
-
-                this.showLoading();
-                try {
-                    const timestamp = Date.now();
-                    const urlWithTimestamp = `${CONFIG.urls.schedule}${CONFIG.urls.schedule.includes('?') ? '&' : '?'}t=${timestamp}`;
-
-                    const response = await fetch(urlWithTimestamp);
-                    if (!response.ok) throw new Error('נכשל בטעינת ההזמנות');
-
-                    const csvText = await response.text();
-                    let bookings = this.parseCSV(csvText);
-
-                    // סינון לפי החדר הנבחר
-                    bookings = bookings.filter(booking => booking['שם החדר'] === this.selectedRoom);
-
-                    // הרחבת ההזמנות החוזרות
-                    const expandedBookings = [];
-                    bookings.forEach(booking => {
-                        const weeksCount = parseInt(booking['מספר שבועות']) || 1;
-                        const baseDate = moment(booking['תאריך']);
-                        
-                        for (let week = 0; week < weeksCount; week++) {
-                            expandedBookings.push({
-                                ...booking,
-                                'תאריך': baseDate.clone().add(week, 'weeks').format('YYYY-MM-DD'),
-                                'שבוע': week + 1
-                            });
-                        }
-                    });
-
-                    this.scheduleData = expandedBookings;
-                    this.updateSummary();
-                    this.renderCurrentView();
-                } catch (error) {
-                    this.showError('אירעה שגיאה בטעינת ההזמנות');
-                    console.error('Error loading bookings:', error);
-                } finally {
-                    this.hideLoading();
-                }
-            },
-
-            changeWeek(delta) {
-                this.currentWeek.add(delta, 'weeks');
-                this.renderSchedule();
-            },
-
-            updateSummary() {
-                const today = moment().format('YYYY-MM-DD');
-                const startOfWeek = moment().startOf('week');
-                const endOfWeek = moment().endOf('week');
-
-                const todayBookings = this.scheduleData.filter(booking => 
-                    booking['תאריך'] === today
-                ).length;
-
-                const weekBookings = this.scheduleData.filter(booking => 
-                    moment(booking['תאריך']).isBetween(startOfWeek, endOfWeek, 'day', '[]')
-                ).length;
-
-                const recurringBookings = new Set(this.scheduleData
-                    .filter(booking => parseInt(booking['מספר שבועות']) > 1)
-                    .map(booking => `${booking['שם המורה']}_${booking['שעה במערכת']}`)).size;
-
-                document.getElementById('today-bookings').textContent = todayBookings;
-                document.getElementById('week-bookings').textContent = weekBookings;
-                document.getElementById('recurring-bookings').textContent = recurringBookings;
-            },
-
-            renderCurrentView() {
-                if (this.currentView === 'list') {
-                    this.renderBookings();
-                } else {
-                    this.renderSchedule();
-                }
-            },
-
-            renderSchedule() {
-                const tbody = document.getElementById('schedule-tbody');
-                tbody.innerHTML = '';
-
-                const startOfWeek = this.currentWeek.clone().startOf('week');
-                document.getElementById('current-week').textContent = 
-                    `${startOfWeek.format('DD/MM/YYYY')} - ${startOfWeek.clone().endOf('week').format('DD/MM/YYYY')}`;
-
-                for (let hour = 1; hour <= Math.max(...Object.values(CONFIG.daysSchedule).map(d => d.lessons)); hour++) {
-                    const row = document.createElement('tr');
-                    
-                    // תא שעה
-                    const hourCell = document.createElement('td');
-                    hourCell.textContent = `שעה ${hour}`;
-                    row.appendChild(hourCell);
-
-                    // תאים לכל יום
-                    for (let day = 0; day < 6; day++) {
-                        if (hour <= CONFIG.daysSchedule[day].lessons) {
-                            const cell = document.createElement('td');
-                            const date = startOfWeek.clone().add(day, 'days').format('YYYY-MM-DD');
-                            
-                            const bookingsForSlot = this.scheduleData.filter(booking => 
-                                booking['תאריך'] === date && 
-                                parseInt(booking['שעה במערכת']) === hour
-                            );
-
-                            if (bookingsForSlot.length > 0) {
-                                bookingsForSlot.forEach(booking => {
-                                    const isRecurring = parseInt(booking['מספר שבועות']) > 1;
-                                    const bookingDiv = document.createElement('div');
-                                    bookingDiv.className = `schedule-booking ${isRecurring ? 'recurring' : ''}`;
-                                    bookingDiv.innerHTML = `
-                                        <strong>${booking['שם המורה']}</strong><br>
-                                        ${booking['כיתה']} - ${booking['מקצוע']}
-                                        ${isRecurring ? `<br>(${booking['שבוע']}/${booking['מספר שבועות']})` : ''}
-                                    `;
-                                    cell.appendChild(bookingDiv);
-                                });
-                            }
-
-                            row.appendChild(cell);
-                        } else {
-                            const emptyCell = document.createElement('td');
-                            emptyCell.style.backgroundColor = '#f5f5f5';
-                            row.appendChild(emptyCell);
-                        }
-                    }
-
-                    tbody.appendChild(row);
-                }
-            },
-
-            renderBookings() {
-                const tbody = document.getElementById('bookings-tbody');
-                tbody.innerHTML = '';
-
-                if (this.scheduleData.length === 0) {
-                    const row = tbody.insertRow();
-                    const cell = row.insertCell();
-                    cell.colSpan = 6;
-                    cell.textContent = 'אין הזמנות להצגה';
-                    cell.style.textAlign = 'center';
-                    return;
-                }
-
-                const sortedBookings = [...this.scheduleData].sort((a, b) => {
-                    const dateCompare = a['תאריך'].localeCompare(b['תאריך']);
-                    if (dateCompare !== 0) return dateCompare;
-                    return parseInt(a['שעה במערכת']) - parseInt(b['שעה במערכת']);
-                });
-
-                sortedBookings.forEach(booking => {
-                    const row = document.createElement('tr');
-                    const date = moment(booking['תאריך']).format('DD/MM/YYYY');
-                    const isRecurring = parseInt(booking['מספר שבועות']) > 1;
-                    
-                    row.innerHTML = `
-                        <td>${date}</td>
-                        <td>שעה ${booking['שעה במערכת']}</td>
-                        <td>${booking['שם המורה']}</td>
-                        <td>${booking['כיתה']}</td>
-                        <td>${booking['מקצוע']}</td>
-                        <td>
-                            <span class="status ${isRecurring ? 'recurring' : 'active'}">
-                                ${isRecurring ? `שיעור קבוע (${booking['שבוע']}/${booking['מספר שבועות']})` : 'חד פעמי'}
-                            </span>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            },
-
-            parseCSV(csv) {
-                const lines = csv.split('\n');
-                const headers = lines[0].split(',').map(h => h.trim());
-                return lines.slice(1)
-                    .map(line => {
-                        const values = line.split(',').map(v => v.trim());
-                        const entry = {};
-                        headers.forEach((header, i) => {
-                            entry[header] = values[i];
-                        });
-                        return entry;
-                    })
-                    .filter(entry => entry['שם המורה'] && entry['תאריך']);
-            }
-        };
-
-        // הפעלת המערכת
-        document.addEventListener('DOMContentLoaded', () => {
-            dashboard.init();
-        });
-    </script>
 </body>
 </html>
