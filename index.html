@@ -395,19 +395,18 @@
                     const isRecurring = parseInt(booking['מספר שבועות']) > 1;
                     
                     row.innerHTML = `
-                        <td>${date}</td>
-                        <td>שעה ${booking['שעה במערכת']}</td>
-                        <td>${booking['שם המורה']}</td>
-                        <td>${booking['כיתה']}</td>
-                        <td>${booking['מקצוע']}</td>
-                        <td>
-                            <span class="status ${isRecurring ? 'recurring' : 'active'}">
-                                ${isRecurring ? `שיעור קבוע (${booking['שבוע'}/${booking['מספר שבועות']})` : 'חד פעמי'}
-                            </span>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
+    <td>${date}</td>
+    <td>שעה ${booking['שעה במערכת']}</td>
+    <td>${booking['שם המורה']}</td>
+    <td>${booking['כיתה']}</td>
+    <td>${booking['מקצוע']}</td>
+    <td>
+        <span class="status ${isRecurring ? 'recurring' : 'active'}">
+            ${isRecurring ? `שיעור קבוע (${booking['שבוע']}/${booking['מספר שבועות']})` : 'חד פעמי'}
+        </span>
+    </td>
+`;
+tbody.appendChild(row);                });
             },
 
             parseCSV(csv) {
