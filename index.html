@@ -151,6 +151,99 @@
             display: none;
         }
 
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .view-toggle button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .schedule-view {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .schedule-view.active {
+            display: block;
+        }
+
+        .list-view {
+            display: none;
+        }
+
+        .list-view.active {
+            display: block;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .schedule-table th, 
+        .schedule-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            height: 80px;
+            vertical-align: top;
+        }
+
+        .schedule-table th {
+            background-color: var(--primary-color);
+            color: white;
+            height: auto;
+        }
+
+        .schedule-cell {
+            min-height: 60px;
+            font-size: 0.9em;
+        }
+
+        .schedule-booking {
+            background: #e3f2fd;
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 0.8em;
+        }
+
+        .schedule-booking.recurring {
+            background: #fff3e0;
+        }
+
+        .week-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .current-week {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -160,11 +253,24 @@
                 display: block;
                 overflow-x: auto;
             }
+
+            .schedule-table {
+                font-size: 0.8em;
+            }
+
+            .schedule-booking {
+                font-size: 0.7em;
+            }
+
+            .schedule-cell {
+                padding: 4px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- בחירת חדר -->
         <div class="room-selector">
             <h2>בחירת חדר</h2>
             <select id="room-select">
@@ -172,8 +278,15 @@
             </select>
         </div>
 
+        <!-- כפתורי החלפת תצוגה -->
+        <div class="view-toggle">
+            <button id="list-view-btn" class="active">תצוגת רשימה</button>
+            <button id="schedule-view-btn">תצוגת מערכת</button>
+        </div>
+
         <div id="error-message" class="error-message"></div>
 
+        <!-- כרטיסי סיכום -->
         <div class="summary-cards">
             <div class="summary-card">
                 <h3>הזמנות היום</h3>
@@ -189,21 +302,49 @@
             </div>
         </div>
 
-        <div class="bookings-container">
-            <h2>הזמנות</h2>
-            <table class="bookings-table">
-                <thead>
-                    <tr>
-                        <th>תאריך</th>
-                        <th>שעה</th>
-                        <th>מורה</th>
-                        <th>כיתה</th>
-                        <th>מקצוע</th>
-                        <th>סטטוס</th>
-                    </tr>
-                </thead>
-                <tbody id="bookings-tbody"></tbody>
-            </table>
+        <!-- תצוגת רשימה -->
+        <div id="list-view" class="list-view active">
+            <div class="bookings-container">
+                <h2>הזמנות</h2>
+                <table class="bookings-table">
+                    <thead>
+                        <tr>
+                            <th>תאריך</th>
+                            <th>שעה</th>
+                            <th>מורה</th>
+                            <th>כיתה</th>
+                            <th>מקצוע</th>
+                            <th>סטטוס</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookings-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- תצוגת מערכת -->
+        <div id="schedule-view" class="schedule-view">
+            <div class="week-navigation">
+                <button onclick="dashboard.changeWeek(-1)">◀ שבוע קודם</button>
+                <span class="current-week" id="current-week"></span>
+                <button onclick="dashboard.changeWeek(1)">שבוע הבא ▶</button>
+            </div>
+            <div class="schedule-container">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>שעה</th>
+                            <th>ראשון</th>
+                            <th>שני</th>
+                            <th>שלישי</th>
+                            <th>רביעי</th>
+                            <th>חמישי</th>
+                            <th>שישי</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-tbody"></tbody>
+                </table>
+            </div>
         </div>
 
         <div id="loading" class="loading">
@@ -217,31 +358,38 @@
             urls: {
                 schedule: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv'
             },
-            refreshInterval: 60000 // רענון כל דקה
+            refreshInterval: 60000, // רענון כל דקה
+            daysSchedule: {
+                0: { name: 'ראשון', lessons: 7 },
+                1: { name: 'שני', lessons: 7 },
+                2: { name: 'שלישי', lessons: 5 },
+                3: { name: 'רביעי', lessons: 7 },
+                4: { name: 'חמישי', lessons: 7 },
+                5: { name: 'שישי', lessons: 4 }
+            }
         };
-
         const dashboard = {
             scheduleData: [],
             selectedRoom: '',
             refreshTimer: null,
+            currentWeek: moment(),
+            currentView: 'list',
 
             async init() {
                 try {
                     await this.loadRooms();
+                    this.initializeViewToggle();
                     
-                    // הוספת מאזיני אירועים
                     document.getElementById('room-select').addEventListener('change', (e) => {
                         this.selectedRoom = e.target.value;
                         if (this.selectedRoom) {
                             this.loadBookings();
-                            // הפעלת רענון אוטומטי
                             if (this.refreshTimer) clearInterval(this.refreshTimer);
                             this.refreshTimer = setInterval(() => this.loadBookings(), CONFIG.refreshInterval);
                         } else {
-                            // ניקוי הנתונים כשאין חדר נבחר
                             this.scheduleData = [];
                             this.updateSummary();
-                            this.renderBookings();
+                            this.renderCurrentView();
                             if (this.refreshTimer) {
                                 clearInterval(this.refreshTimer);
                                 this.refreshTimer = null;
@@ -250,9 +398,34 @@
                     });
 
                 } catch (error) {
-                    this.showError('אירעה שגיאה בטעינת הנתונים. אנא נסה שוב מאוחר יותר.');
+                    this.showError('אירעה שגיאה בטעינת הנתונים');
                     console.error('Initialization error:', error);
                 }
+            },
+
+            initializeViewToggle() {
+                const listBtn = document.getElementById('list-view-btn');
+                const scheduleBtn = document.getElementById('schedule-view-btn');
+                const listView = document.getElementById('list-view');
+                const scheduleView = document.getElementById('schedule-view');
+
+                listBtn.addEventListener('click', () => {
+                    this.currentView = 'list';
+                    listBtn.classList.add('active');
+                    scheduleBtn.classList.remove('active');
+                    listView.classList.add('active');
+                    scheduleView.classList.remove('active');
+                    this.renderCurrentView();
+                });
+
+                scheduleBtn.addEventListener('click', () => {
+                    this.currentView = 'schedule';
+                    scheduleBtn.classList.add('active');
+                    listBtn.classList.remove('active');
+                    scheduleView.classList.add('active');
+                    listView.classList.remove('active');
+                    this.renderCurrentView();
+                });
             },
 
             showError(message) {
@@ -281,7 +454,6 @@
                     const csvText = await response.text();
                     const bookings = this.parseCSV(csvText);
                     
-                    // חילוץ רשימת חדרים ייחודית
                     const uniqueRooms = [...new Set(bookings
                         .map(booking => booking['שם החדר'])
                         .filter(room => room)
@@ -338,13 +510,18 @@
 
                     this.scheduleData = expandedBookings;
                     this.updateSummary();
-                    this.renderBookings();
+                    this.renderCurrentView();
                 } catch (error) {
                     this.showError('אירעה שגיאה בטעינת ההזמנות');
                     console.error('Error loading bookings:', error);
                 } finally {
                     this.hideLoading();
                 }
+            },
+
+            changeWeek(delta) {
+                this.currentWeek.add(delta, 'weeks');
+                this.renderSchedule();
             },
 
             updateSummary() {
@@ -369,6 +546,67 @@
                 document.getElementById('recurring-bookings').textContent = recurringBookings;
             },
 
+            renderCurrentView() {
+                if (this.currentView === 'list') {
+                    this.renderBookings();
+                } else {
+                    this.renderSchedule();
+                }
+            },
+
+            renderSchedule() {
+                const tbody = document.getElementById('schedule-tbody');
+                tbody.innerHTML = '';
+
+                const startOfWeek = this.currentWeek.clone().startOf('week');
+                document.getElementById('current-week').textContent = 
+                    `${startOfWeek.format('DD/MM/YYYY')} - ${startOfWeek.clone().endOf('week').format('DD/MM/YYYY')}`;
+
+                for (let hour = 1; hour <= Math.max(...Object.values(CONFIG.daysSchedule).map(d => d.lessons)); hour++) {
+                    const row = document.createElement('tr');
+                    
+                    // תא שעה
+                    const hourCell = document.createElement('td');
+                    hourCell.textContent = `שעה ${hour}`;
+                    row.appendChild(hourCell);
+
+                    // תאים לכל יום
+                    for (let day = 0; day < 6; day++) {
+                        if (hour <= CONFIG.daysSchedule[day].lessons) {
+                            const cell = document.createElement('td');
+                            const date = startOfWeek.clone().add(day, 'days').format('YYYY-MM-DD');
+                            
+                            const bookingsForSlot = this.scheduleData.filter(booking => 
+                                booking['תאריך'] === date && 
+                                parseInt(booking['שעה במערכת']) === hour
+                            );
+
+                            if (bookingsForSlot.length > 0) {
+                                bookingsForSlot.forEach(booking => {
+                                    const isRecurring = parseInt(booking['מספר שבועות']) > 1;
+                                    const bookingDiv = document.createElement('div');
+                                    bookingDiv.className = `schedule-booking ${isRecurring ? 'recurring' : ''}`;
+                                    bookingDiv.innerHTML = `
+                                        <strong>${booking['שם המורה']}</strong><br>
+                                        ${booking['כיתה']} - ${booking['מקצוע']}
+                                        ${isRecurring ? `<br>(${booking['שבוע']}/${booking['מספר שבועות']})` : ''}
+                                    `;
+                                    cell.appendChild(bookingDiv);
+                                });
+                            }
+
+                            row.appendChild(cell);
+                        } else {
+                            const emptyCell = document.createElement('td');
+                            emptyCell.style.backgroundColor = '#f5f5f5';
+                            row.appendChild(emptyCell);
+                        }
+                    }
+
+                    tbody.appendChild(row);
+                }
+            },
+
             renderBookings() {
                 const tbody = document.getElementById('bookings-tbody');
                 tbody.innerHTML = '';
@@ -382,7 +620,6 @@
                     return;
                 }
 
-                // מיון לפי תאריך ושעה
                 const sortedBookings = [...this.scheduleData].sort((a, b) => {
                     const dateCompare = a['תאריך'].localeCompare(b['תאריך']);
                     if (dateCompare !== 0) return dateCompare;
@@ -395,18 +632,19 @@
                     const isRecurring = parseInt(booking['מספר שבועות']) > 1;
                     
                     row.innerHTML = `
-    <td>${date}</td>
-    <td>שעה ${booking['שעה במערכת']}</td>
-    <td>${booking['שם המורה']}</td>
-    <td>${booking['כיתה']}</td>
-    <td>${booking['מקצוע']}</td>
-    <td>
-        <span class="status ${isRecurring ? 'recurring' : 'active'}">
-            ${isRecurring ? `שיעור קבוע (${booking['שבוע']}/${booking['מספר שבועות']})` : 'חד פעמי'}
-        </span>
-    </td>
-`;
-tbody.appendChild(row);                });
+                        <td>${date}</td>
+                        <td>שעה ${booking['שעה במערכת']}</td>
+                        <td>${booking['שם המורה']}</td>
+                        <td>${booking['כיתה']}</td>
+                        <td>${booking['מקצוע']}</td>
+                        <td>
+                            <span class="status ${isRecurring ? 'recurring' : 'active'}">
+                                ${isRecurring ? `שיעור קבוע (${booking['שבוע']}/${booking['מספר שבועות']})` : 'חד פעמי'}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
             },
 
             parseCSV(csv) {
