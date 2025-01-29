@@ -6,25 +6,23 @@
     <title>רוצים להכיר? - חמ"ד תורני נריה</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .pastel-gradient {
-            background: linear-gradient(135deg, #f3e7ff 0%, #e0f7ff 50%, #fff5e6 100%);
+        body {
+            background-color: #E6F3FF;
+        }
+        .form-container {
+            background-color: #F8FAFC;
         }
     </style>
 </head>
-<body class="pastel-gradient min-h-screen">
+<body class="min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <div class="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-8">
+        <div class="form-container rounded-lg shadow-lg p-8">
             <div class="text-center mb-6">
-                <img src="/api/placeholder/400/150" alt="לוגו חמ״ד תורני נריה" class="mx-auto mb-4">
+                <img src="/api/placeholder/400/150" alt="לוגו חמ״ד תורני נריה" class="mx-auto mb-4 w-96">
                 <h1 class="text-3xl font-bold text-center mb-2 text-blue-600">רוצים להכיר?</h1>
                 <h2 class="text-xl text-center mb-6 text-gray-700">טופס רישום למפגש היכרות עם צוות חמ"ד תורני נריה</h2>
             </div>
             
-            <!-- Validation Message -->
-            <div id="validationMessage" class="hidden mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-md">
-                אנא מלאו את כל השדות המסומנים ב-*
-            </div>
-
             <!-- Success Message -->
             <div id="successMessage" class="hidden mb-4 p-4 bg-green-100 text-green-700 rounded-md text-center">
                 הטופס נשלח בהצלחה!
@@ -33,6 +31,11 @@
             <!-- Error Message -->
             <div id="errorMessage" class="hidden mb-4 p-4 bg-red-100 text-red-700 rounded-md text-center">
                 אירעה שגיאה בשליחת הטופס. אנא נסו שנית.
+            </div>
+
+            <!-- Validation Message -->
+            <div id="validationMessage" class="hidden mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-md">
+                אנא מלאו את כל השדות המסומנים ב-*
             </div>
 
             <form id="registrationForm" class="space-y-6" novalidate>
