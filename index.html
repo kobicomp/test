@@ -927,20 +927,22 @@ function renderClassDistributionChart() {
     
     const labels = Object.keys(processedData.classCounts).sort();
     
-    // חישוב אחוזי תגובה ואחוז הלא מגיעות מתוך כלל התלמידות
+    // חישוב נתונים מפורטים לכל כיתה
     const chartData = labels.map(cls => {
-        const totalInClass = processedData.classCounts[cls];
-        const notAttendingInClass = processedData.classesWithNoShow[cls] || 0;
-        const respondedCount = totalInClass - notAttendingInClass;
+        const totalInClass = CONFIG.CLASS_SIZES[cls] || 0; // גודל כיתה מלא
+        const respondedCount = processedData.classCounts[cls]; // סך העונות
+        const attendingCount = respondedCount - (processedData.classesWithNoShow[cls] || 0); // מאשרות הגעה
 
         const respondedRate = (respondedCount / totalInClass) * 100;
-        const notAttendingRate = (notAttendingInClass / totalInClass) * 100;
+        const attendingRate = (attendingCount / respondedCount) * 100;
 
         return {
             className: cls,
             totalStudents: totalInClass,
+            respondedCount: respondedCount,
+            attendingCount: attendingCount,
             respondedRate: respondedRate.toFixed(1),
-            notAttendingRate: notAttendingRate.toFixed(1)
+            attendingRate: attendingRate.toFixed(1)
         };
     });
     
@@ -959,9 +961,9 @@ function renderClassDistributionChart() {
                 backgroundColor: function(context) {
                     const item = chartData[context.dataIndex];
                     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                    gradient.addColorStop(0, '#4a2c82');  // צבע כללי
-                    gradient.addColorStop(item.notAttendingRate/100, '#4a2c82');  // צבע תגובות חיוביות
-                    gradient.addColorStop(item.notAttendingRate/100, '#dc3545');  // צבע תגובות שליליות
+                    gradient.addColorStop(0, '#4a2c82');  // צבע תגובות חיוביות
+                    gradient.addColorStop(item.attendingRate/100, '#4a2c82');  // צבע תגובות חיוביות
+                    gradient.addColorStop(item.attendingRate/100, '#dc3545');  // צבע לא מגיעים
                     gradient.addColorStop(1, '#dc3545');
                     return gradient;
                 },
@@ -979,7 +981,7 @@ function renderClassDistributionChart() {
                             return [
                                 `סה"כ תלמידות: ${item.totalStudents}`,
                                 `אחוז תגובה: ${item.respondedRate}%`,
-                                `אחוז לא מגיעים: ${item.notAttendingRate}%`
+                                `מגיעים: ${item.attendingCount}/${item.respondedCount} (${item.attendingRate}%)`
                             ];
                         }
                     }
