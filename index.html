@@ -922,23 +922,26 @@
        }
        
        // יצירת תרשים התפלגות כיתות
-   function renderClassDistributionChart() {
+ function renderClassDistributionChart() {
     const ctx = document.getElementById('classDistributionChart').getContext('2d');
     
     const labels = Object.keys(processedData.classCounts).sort();
     
-    // חישוב אחוזי השתתפות וחוסר השתתפות
-    const attendingRates = labels.map(cls => {
+    // חישוב אחוזי תגובה ואחוז הלא מגיעות מתוך התגובות
+    const chartData = labels.map(cls => {
         const totalInClass = processedData.classCounts[cls];
         const notAttendingInClass = processedData.classesWithNoShow[cls] || 0;
-        const attendingInClass = totalInClass - notAttendingInClass;
-        return ((attendingInClass / totalInClass) * 100).toFixed(1);
-    });
-    
-    const notAttendingRates = labels.map(cls => {
-        const totalInClass = processedData.classCounts[cls];
-        const notAttendingInClass = processedData.classesWithNoShow[cls] || 0;
-        return ((notAttendingInClass / totalInClass) * 100).toFixed(1);
+        const respondedCount = totalInClass; // מספר שענו
+
+        const respondedRate = (respondedCount / totalInClass) * 100;
+        const notAttendingRate = (notAttendingInClass / respondedCount) * 100;
+
+        return {
+            className: cls,
+            totalStudents: totalInClass,
+            respondedRate: respondedRate.toFixed(1),
+            notAttendingRate: notAttendingRate.toFixed(1)
+        };
     });
     
     const existingChart = Chart.getChart(ctx);
@@ -951,14 +954,17 @@
         data: {
             labels: labels,
             datasets: [{
-                label: 'מגיעים',
-                data: attendingRates,
-                backgroundColor: '#4a2c82', // צבע כחול כהה למגיעים
-                barPercentage: 0.7,
-            }, {
-                label: 'לא מגיעים',
-                data: notAttendingRates,
-                backgroundColor: '#dc3545', // צבע אדום לא מגיעים
+                label: 'אחוז תגובה מהכיתה',
+                data: chartData.map(item => item.respondedRate),
+                backgroundColor: function(context) {
+                    const item = chartData[context.dataIndex];
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, '#4a2c82');  // צבע כללי
+                    gradient.addColorStop(item.notAttendingRate/100, '#4a2c82');  // צבע תגובות חיוביות
+                    gradient.addColorStop(item.notAttendingRate/100, '#dc3545');  // צבע תגובות שליליות
+                    gradient.addColorStop(1, '#dc3545');
+                    return gradient;
+                },
                 barPercentage: 0.7,
             }]
         },
@@ -966,57 +972,27 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: false
-                },
-                legend: {
-                    position: 'top',
-                    align: 'center',
-                    labels: {
-                        usePointStyle: true,
-                        boxWidth: 10,
-                        font: {
-                            size: 12
-                        }
-                    }
-                },
                 tooltip: {
-                    rtl: true,
-                    textDirection: 'rtl',
                     callbacks: {
                         label: function(context) {
-                            return `${context.dataset.label}: ${context.parsed.y}%`;
+                            const item = chartData[context.dataIndex];
+                            return [
+                                `סה"כ תלמידות: ${item.totalStudents}`,
+                                `אחוז תגובה: ${item.respondedRate}%`,
+                                `אחוז לא מגיעים מהעונים: ${item.notAttendingRate}%`
+                            ];
                         }
                     }
                 }
             },
             scales: {
-                x: {
-                    stacked: true, // מיזוג העמודות
-                    ticks: {
-                        font: {
-                            size: 12
-                        }
-                    },
-                    grid: {
-                        display: false
-                    }
-                },
                 y: {
-                    stacked: true, // מיזוג העמודות
                     beginAtZero: true,
-                    max: 100, // מגביל את הציר ל-100%
+                    max: 100,
                     ticks: {
                         callback: function(value) {
                             return value + '%';
-                        },
-                        precision: 0,
-                        font: {
-                            size: 12
                         }
-                    },
-                    grid: {
-                        color: '#f0f0f0'
                     }
                 }
             }
