@@ -922,19 +922,19 @@
        }
        
        // יצירת תרשים התפלגות כיתות
- function renderClassDistributionChart() {
+function renderClassDistributionChart() {
     const ctx = document.getElementById('classDistributionChart').getContext('2d');
     
     const labels = Object.keys(processedData.classCounts).sort();
     
-    // חישוב אחוזי תגובה ואחוז הלא מגיעות מתוך התגובות
+    // חישוב אחוזי תגובה ואחוז הלא מגיעות מתוך כלל התלמידות
     const chartData = labels.map(cls => {
         const totalInClass = processedData.classCounts[cls];
         const notAttendingInClass = processedData.classesWithNoShow[cls] || 0;
-        const respondedCount = totalInClass; // מספר שענו
+        const respondedCount = totalInClass - notAttendingInClass;
 
         const respondedRate = (respondedCount / totalInClass) * 100;
-        const notAttendingRate = (notAttendingInClass / respondedCount) * 100;
+        const notAttendingRate = (notAttendingInClass / totalInClass) * 100;
 
         return {
             className: cls,
@@ -979,7 +979,7 @@
                             return [
                                 `סה"כ תלמידות: ${item.totalStudents}`,
                                 `אחוז תגובה: ${item.respondedRate}%`,
-                                `אחוז לא מגיעים מהעונים: ${item.notAttendingRate}%`
+                                `אחוז לא מגיעים: ${item.notAttendingRate}%`
                             ];
                         }
                     }
