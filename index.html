@@ -1079,20 +1079,20 @@ function renderClassDistributionChart() {
        }
        
        // הצגת אחוזי השתתפות לפי כיתה
-     function renderParticipationRates() {
+   function renderParticipationRates() {
     const container = document.getElementById('participationRates');
     container.innerHTML = '';
     
-    const sortedClasses = Object.keys(processedData.participationRates).sort();
+    const sortedClasses = Object.keys(processedData.classCounts).sort();
     
     sortedClasses.forEach(className => {
-        const rate = processedData.participationRates[className];
-        const attendingCount = processedData.classCounts[className] - 
-            (processedData.classesWithNoShow[className] || 0);
-        const totalCount = processedData.classCounts[className];
-        
-        const classParticipation = processedData.totalClassParticipation[className] || 
-            { registered: totalCount, totalSize: 0, rate: 0 };
+        const totalInClass = CONFIG.CLASS_SIZES[className] || 0;
+        const respondedCount = processedData.classCounts[className];
+        const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
+        const attendingCount = respondedCount - notAttendingInClass;
+
+        const respondedRate = (respondedCount / totalInClass) * 100;
+        const attendingRate = (attendingCount / respondedCount) * 100;
         
         const rowDiv = document.createElement('div');
         rowDiv.style.marginBottom = '20px';
@@ -1107,7 +1107,7 @@ function renderClassDistributionChart() {
         classNameSpan.style.fontWeight = '600';
         
         const countRateSpan = document.createElement('span');
-        countRateSpan.textContent = `${attendingCount}/${totalCount} (${rate}%)`;
+        countRateSpan.textContent = `${respondedCount}/${totalInClass} (${respondedRate.toFixed(1)}%)`;
         
         headerDiv.appendChild(classNameSpan);
         headerDiv.appendChild(countRateSpan);
@@ -1118,35 +1118,30 @@ function renderClassDistributionChart() {
         const fillDiv = document.createElement('div');
         fillDiv.className = 'progress-fill';
         
-        // שינוי הגדרות הרוחב והצבע
-        fillDiv.style.width = `${(attendingCount / totalCount) * 100}%`;
+        // יצירת גרדיאנט עם שני צבעים
+        fillDiv.style.background = `linear-gradient(to right, 
+            #4a2c82 ${(attendingCount/respondedCount)*100}%, 
+            #dc3545 ${(attendingCount/respondedCount)*100}%)`;
         
-        if (rate >= 80) {
-            fillDiv.style.backgroundColor = '#28a745';
-        } else if (rate >= 60) {
-            fillDiv.style.backgroundColor = '#17a2b8';
-        } else if (rate >= 40) {
-            fillDiv.style.backgroundColor = '#fd7e14';
-        } else {
-            fillDiv.style.backgroundColor = '#dc3545';
-        }
+        fillDiv.style.width = `${respondedRate}%`;
+        fillDiv.style.height = '25px';
         
-        if (attendingCount / totalCount > 0.15) {
-            fillDiv.textContent = `${attendingCount}/${totalCount}`;
+        if (respondedCount / totalInClass > 0.15) {
+            fillDiv.textContent = `${respondedCount}/${totalInClass}`;
         }
         
         progressDiv.appendChild(fillDiv);
         rowDiv.appendChild(headerDiv);
         rowDiv.appendChild(progressDiv);
         
-        // הוספת אחוז ההשתתפות כטקסט משני
-        const rateDiv = document.createElement('div');
-        rateDiv.style.fontSize = '13px';
-        rateDiv.style.color = '#666';
-        rateDiv.style.marginTop = '5px';
-        rateDiv.textContent = `אחוז השתתפות: ${rate}%`;
+        // הוספת פירוט על אחוז המאשרים
+        const detailDiv = document.createElement('div');
+        detailDiv.style.fontSize = '13px';
+        detailDiv.style.color = '#666';
+        detailDiv.style.marginTop = '5px';
+        detailDiv.textContent = `מאשרים: ${attendingCount}/${respondedCount} (${attendingRate.toFixed(1)}%)`;
         
-        rowDiv.appendChild(rateDiv);
+        rowDiv.appendChild(detailDiv);
         
         container.appendChild(rowDiv);
     });
