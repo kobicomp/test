@@ -922,16 +922,24 @@
        }
        
        // יצירת תרשים התפלגות כיתות
-      function renderClassDistributionChart() {
+   function renderClassDistributionChart() {
     const ctx = document.getElementById('classDistributionChart').getContext('2d');
     
     const labels = Object.keys(processedData.classCounts).sort();
-    const data = labels.map(cls => processedData.classCounts[cls]);
-    const notAttendingData = labels.map(cls => processedData.classesWithNoShow[cls] || 0);
-    const attendingData = labels.map((cls, i) => data[i] - notAttendingData[i]);
     
-    // חישוב אחוזי השתתפות לכל כיתה
-    const participationRates = labels.map(cls => processedData.participationRates[cls]);
+    // חישוב אחוזי השתתפות וחוסר השתתפות
+    const attendingRates = labels.map(cls => {
+        const totalInClass = processedData.classCounts[cls];
+        const notAttendingInClass = processedData.classesWithNoShow[cls] || 0;
+        const attendingInClass = totalInClass - notAttendingInClass;
+        return ((attendingInClass / totalInClass) * 100).toFixed(1);
+    });
+    
+    const notAttendingRates = labels.map(cls => {
+        const totalInClass = processedData.classCounts[cls];
+        const notAttendingInClass = processedData.classesWithNoShow[cls] || 0;
+        return ((notAttendingInClass / totalInClass) * 100).toFixed(1);
+    });
     
     const existingChart = Chart.getChart(ctx);
     if (existingChart) {
@@ -943,52 +951,72 @@
         data: {
             labels: labels,
             datasets: [{
-                label: 'סה"כ תלמידות',
-                data: data,
-                backgroundColor: '#4a2c82',
+                label: 'מגיעים',
+                data: attendingRates,
+                backgroundColor: '#4a2c82', // צבע כחול כהה למגיעים
                 barPercentage: 0.7,
             }, {
-                label: 'אחוז השתתפות',
-                data: participationRates,
-                type: 'line',
-                borderColor: '#fd7e14',
-                borderWidth: 3,
-                fill: false,
-                pointStyle: 'circle',
-                pointRadius: 5,
+                label: 'לא מגיעים',
+                data: notAttendingRates,
+                backgroundColor: '#dc3545', // צבע אדום לא מגיעים
+                barPercentage: 0.7,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const datasetLabel = context.dataset.label;
-                            const value = context.parsed.y;
-                            const index = context.dataIndex;
-                            
-                            if (datasetLabel === 'סה"כ תלמידות') {
-                                return `סה"כ תלמידות: ${value}`;
-                            } else {
-                                return `אחוז השתתפות: ${value}%`;
-                            }
+                title: {
+                    display: false
+                },
+                legend: {
+                    position: 'top',
+                    align: 'center',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        font: {
+                            size: 12
                         }
                     }
                 },
-                legend: {
-                    labels: {
-                        usePointStyle: true,
+                tooltip: {
+                    rtl: true,
+                    textDirection: 'rtl',
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y}%`;
+                        }
                     }
                 }
             },
             scales: {
+                x: {
+                    stacked: true, // מיזוג העמודות
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
                 y: {
+                    stacked: true, // מיזוג העמודות
                     beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'מספר תלמידות / אחוז השתתפות'
+                    max: 100, // מגביל את הציר ל-100%
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        },
+                        precision: 0,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: '#f0f0f0'
                     }
                 }
             }
