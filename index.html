@@ -1,907 +1,612 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>ניתוח נתוני רישום - יום סבבא אגף בנות</title>
-   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
-   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-   <style>
-       :root {
-           --primary-color: #4a2c82;
-           --primary-light: #f8f6ff;
-           --secondary-color: #6a41b4;
-           --success-color: #28a745;
-           --warning-color: #fd7e14;
-           --danger-color: #dc3545;
-           --border-radius: 12px;
-       }
-       
-       body {
-           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-           max-width: 1200px;
-           margin: 0 auto;
-           padding: 20px;
-           background-color: #f7f6fb;
-           color: #333;
-           line-height: 1.6;
-       }
-       
-       header {
-           text-align: center;
-           margin-bottom: 30px;
-       }
-       
-       h1 {
-           color: var(--primary-color);
-           font-size: 32px;
-           margin-bottom: 10px;
-       }
-       
-       h2 {
-           color: var(--primary-color);
-           font-size: 24px;
-           margin-bottom: 15px;
-       }
-       
-       .logo-container {
-           margin-bottom: 20px;
-       }
-       
-       .logo {
-           max-width: 200px;
-           display: none;
-       }
-       
-       .logo.loaded {
-           display: block;
-       }
-       
-       .dashboard {
-           display: grid;
-           grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
-           gap: 25px;
-       }
-       
-       .card {
-           background-color: white;
-           border-radius: var(--border-radius);
-           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-           overflow: hidden;
-           transition: transform 0.3s ease, box-shadow 0.3s ease;
-       }
-       
-       .card:hover {
-           transform: translateY(-5px);
-           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-       }
-       
-       .card-header {
-           background-color: var(--primary-color);
-           color: white;
-           padding: 15px 20px;
-           font-size: 18px;
-           font-weight: 600;
-           display: flex;
-           justify-content: space-between;
-           align-items: center;
-       }
-       
-       .card-body {
-           padding: 20px;
-           min-height: 300px;
-       }
-       
-       .summary-card {
-           grid-column: 1 / -1;
-           display: grid;
-           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-           gap: 15px;
-       }
-       
-       .summary-item {
-           text-align: center;
-           padding: 15px;
-           background-color: var(--primary-light);
-           border-radius: 8px;
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           justify-content: center;
-       }
-       
-       .summary-value {
-           font-size: 32px;
-           font-weight: 700;
-           color: var(--primary-color);
-           margin: 10px 0;
-       }
-       
-       .summary-label {
-           font-size: 14px;
-           color: #555;
-       }
-       
-       .table-container {
-           overflow-x: auto;
-       }
-       
-       table {
-           width: 100%;
-           border-collapse: collapse;
-           margin: 10px 0;
-       }
-       
-       th, td {
-           padding: 12px 15px;
-           text-align: right;
-           border-bottom: 1px solid #ddd;
-       }
-       
-       th {
-           background-color: var(--primary-light);
-           font-weight: 600;
-           color: var(--primary-color);
-           cursor: pointer;
-           position: relative;
-       }
-       
-       th:hover {
-           background-color: #ede8ff;
-       }
-       
-       th.sorted::after {
-           content: '';
-           position: absolute;
-           right: 5px;
-           width: 0;
-           height: 0;
-           border-left: 5px solid transparent;
-           border-right: 5px solid transparent;
-       }
-       
-       th.sorted.asc::after {
-           border-bottom: 5px solid var(--primary-color);
-           top: 45%;
-       }
-       
-       th.sorted.desc::after {
-           border-top: 5px solid var(--primary-color);
-           top: 45%;
-       }
-       
-       tr:hover {
-           background-color: #f9f7ff;
-       }
-       
-       .progress-bar {
-           background-color: #f0ebff;
-           height: 25px;
-           border-radius: 12px;
-           margin: 5px 0;
-           position: relative;
-           overflow: hidden;
-       }
-       
-       .progress-fill {
-           height: 100%;
-           border-radius: 12px;
-           transition: width 1s ease;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           color: white;
-           font-weight: 600;
-           font-size: 12px;
-       }
-       
-       .chart-container {
-           position: relative;
-           height: 300px;
-           width: 100%;
-       }
-       
-       .loading-container {
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           justify-content: center;
-           min-height: 400px;
-       }
-       
-       .loader {
-           border: 5px solid #f3f3f3;
-           border-top: 5px solid var(--primary-color);
-           border-radius: 50%;
-           width: 50px;
-           height: 50px;
-           animation: spin 1s linear infinite;
-           margin-bottom: 20px;
-       }
-       
-       @keyframes spin {
-           0% { transform: rotate(0deg); }
-           100% { transform: rotate(360deg); }
-       }
-       
-       .error-message {
-           text-align: center;
-           color: var(--danger-color);
-           background-color: #f8d7da;
-           padding: 15px;
-           border-radius: 8px;
-           margin: 20px 0;
-       }
-       
-       .success-message {
-           text-align: center;
-           color: var(--success-color);
-           background-color: #d4edda;
-           padding: 15px;
-           border-radius: 8px;
-           margin: 20px 0;
-           display: none;
-       }
-       
-       .notification {
-           position: fixed;
-           top: 20px;
-           left: 20px;
-           right: 20px;
-           background-color: #fd7e14;
-           color: white;
-           padding: 15px;
-           border-radius: 5px;
-           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-           z-index: 1000;
-           display: none;
-           text-align: center;
-       }
-       
-       .notification.show {
-           display: block;
-           animation: fadeIn 0.3s, fadeOut 0.5s 3.5s forwards;
-       }
-       
-       @keyframes fadeIn {
-           from { opacity: 0; }
-           to { opacity: 1; }
-       }
-       
-       @keyframes fadeOut {
-           from { opacity: 1; }
-           to { opacity: 0; }
-       }
-       
-       .pagination {
-           display: flex;
-           justify-content: center;
-           margin-top: 20px;
-       }
-       
-       .pagination button {
-           background-color: var(--primary-light);
-           border: none;
-           color: var(--primary-color);
-           padding: 8px 16px;
-           margin: 0 5px;
-           border-radius: 5px;
-           cursor: pointer;
-           transition: all 0.3s;
-       }
-       
-       .pagination button:hover:not(.active) {
-           background-color: #e2dbff;
-       }
-       
-       .pagination button.active {
-           background-color: var(--primary-color);
-           color: white;
-       }
-       
-       .highlight {
-           background-color: #fff3cd;
-           padding: 3px 5px;
-           border-radius: 3px;
-       }
-       
-       select, .btn {
-           padding: 8px 12px;
-           border-radius: 5px;
-           border: 1px solid #ddd;
-           background-color: white;
-           font-size: 14px;
-           margin-right: 5px;
-       }
-       
-       .btn {
-           cursor: pointer;
-           background-color: var(--primary-color);
-           color: white;
-           border: none;
-           transition: background-color 0.3s;
-       }
-       
-       .btn:hover {
-           background-color: var(--secondary-color);
-       }
-       
-       .btn-secondary {
-           background-color: #6c757d;
-       }
-       
-       .btn-secondary:hover {
-           background-color: #5a6268;
-       }
-       
-       .btn-success {
-           background-color: var(--success-color);
-       }
-       
-       .btn-success:hover {
-           background-color: #218838;
-       }
-       
-       .filter-controls {
-           display: flex;
-           flex-wrap: wrap;
-           gap: 10px;
-           margin-bottom: 15px;
-       }
-       
-       .export-controls {
-           margin-top: 20px;
-           display: flex;
-           justify-content: center;
-           gap: 10px;
-       }
-       
-       @media print {
-           body {
-               width: 100%;
-               margin: 0;
-               padding: 0;
-               background-color: white;
-           }
-           
-           .card {
-               break-inside: avoid;
-               box-shadow: none;
-               margin-bottom: 20px;
-               page-break-inside: avoid;
-           }
-           
-           .dashboard {
-               display: block;
-           }
-           
-           .btn, .pagination, .filter-controls, select, 
-           .export-controls, .notification {
-               display: none;
-           }
-           
-           .card-header {
-               background-color: #f0f0f0 !important;
-               color: black !important;
-               -webkit-print-color-adjust: exact;
-               print-color-adjust: exact;
-           }
-           
-           .progress-fill {
-               -webkit-print-color-adjust: exact;
-               print-color-adjust: exact;
-           }
-           
-           @page {
-               size: A4 landscape;
-               margin: 1cm;
-           }
-       }
-       
-       @media (max-width: 768px) {
-           .dashboard {
-               grid-template-columns: 1fr;
-           }
-           
-           .card-body {
-               padding: 15px;
-           }
-           
-           .summary-value {
-               font-size: 24px;
-           }
-           
-           .filter-controls {
-               flex-direction: column;
-           }
-       }
-   </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניתוח נתוני רישום - יום סבבא אגף בנות</title>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a2c82;
+            --primary-light: #f8f6ff;
+            --secondary-color: #6a41b4;
+            --success-color: #28a745;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --border-radius: 12px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f6fb;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .logo-container {
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            max-width: 200px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+            gap: 25px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+            min-height: 300px;
+        }
+        
+        .summary-card {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--primary-light);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .summary-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--primary-light);
+            font-weight: 600;
+            color: var(--primary-color);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        th:hover {
+            background-color: #ede8ff;
+        }
+        
+        th.sorted::after {
+            content: '';
+            position: absolute;
+            right: 5px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+        }
+        
+        th.sorted.asc::after {
+            border-bottom: 5px solid var(--primary-color);
+            top: 45%;
+        }
+        
+        th.sorted.desc::after {
+            border-top: 5px solid var(--primary-color);
+            top: 45%;
+        }
+        
+        tr:hover {
+            background-color: #f9f7ff;
+        }
+        
+        .progress-bar {
+            background-color: #f0ebff;
+            height: 25px;
+            border-radius: 12px;
+            margin: 5px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            text-align: center;
+            color: var(--danger-color);
+            background-color: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .success-message {
+            text-align: center;
+            color: var(--success-color);
+            background-color: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background-color: #fd7e14;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+        
+        .notification.show {
+            display: block;
+            animation: fadeIn 0.3s, fadeOut 0.5s 3.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            background-color: var(--primary-light);
+            border: none;
+            color: var(--primary-color);
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .pagination button:hover:not(.active) {
+            background-color: #e2dbff;
+        }
+        
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+        
+        select, .btn {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        
+        .btn {
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .export-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        @media print {
+            body {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: white;
+            }
+            
+            .card {
+                break-inside: avoid;
+                box-shadow: none;
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }
+            
+            .dashboard {
+                display: block;
+            }
+            
+            .btn, .pagination, .filter-controls, select, 
+            .export-controls, .notification {
+                display: none;
+            }
+            
+            .card-header {
+                background-color: #f0f0f0 !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .progress-fill {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            @page {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            .summary-value {
+                font-size: 24px;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-   <header>
-       <div class="logo-container">
-           <img src="logo.png" alt="לוגו" class="logo" onload="this.classList.add('loaded')">
-       </div>
-       <h1>ניתוח נתוני רישום - יום סבבא אגף בנות</h1>
-   </header>
-   
-   <div id="loading" class="loading-container">
-       <div class="loader"></div>
-       <h2>טוען נתוני רישום...</h2>
-   </div>
-   
-   <div id="error" class="error-message" style="display: none;">
-       <p>אירעה שגיאה בטעינת הנתונים. אנא נסה שוב מאוחר יותר.</p>
-       <p id="errorDetails"></p>
-   </div>
-   
-   <div id="dashboard" class="dashboard" style="display: none;">
-       <!-- כרטיס סיכום נתונים -->
-       <div class="card summary-card">
-           <div class="summary-item">
-               <div class="summary-label">סה"כ תלמידות</div>
-               <div id="totalStudents" class="summary-value">0</div>
-           </div>
-           <div class="summary-item">
-               <div class="summary-label">סה"כ משפחות</div>
-               <div id="totalFamilies" class="summary-value">0</div>
-           </div>
-           <div class="summary-item">
-               <div class="summary-label">אחוז השתתפות</div>
-               <div id="participationRate" class="summary-value">0%</div>
-           </div>
-           <div class="summary-item">
-               <div class="summary-label">סבים</div>
-               <div id="grandpaCount" class="summary-value">0</div>
-           </div>
-           <div class="summary-item">
-               <div class="summary-label">סבתות</div>
-               <div id="grandmaCount" class="summary-value">0</div>
-           </div>
-           <div class="summary-item">
-               <div class="summary-label">מלווים אחרים</div>
-               <div id="otherCount" class="summary-value">0</div>
-           </div>
-       </div>
-       
-       <!-- כרטיס התפלגות לפי כיתות -->
-       <div class="card">
-           <div class="card-header">
-               התפלגות תלמידות לפי כיתה
-           </div>
-           <div class="card-body">
-               <div class="chart-container">
-                   <canvas id="classDistributionChart"></canvas>
-               </div>
-           </div>
-       </div>
-   </div>
-<!-- הוסף את זה לחלק ה-dashboard בHTML -->
-<div class="card">
-    <div class="card-header">
-        נתוני השתתפות מפורטים לפי כיתה
-    </div>
-    <div class="card-body">
-        <div class="export-controls">
-            <button class="btn" onclick="exportTableToCSV('detailed-class-data.csv', 'detailedClassTable')">ייצא לקובץ CSV</button>
-            <button class="btn btn-secondary" onclick="printTable('detailedClassTable')">הדפסה</button>
+    <header>
+        <div class="logo-container">
+            <img src="logo.png" alt="לוגו" class="logo" onerror="this.style.display='none'">
         </div>
-        <div class="table-container">
-            <table id="detailedClassTable">
-                <thead>
-                    <tr>
-                        <th onclick="sortTable('detailedClassTable', 0)">כיתה</th>
-                        <th onclick="sortTable('detailedClassTable', 1)">מספר תלמידות</th>
-                        <th onclick="sortTable('detailedClassTable', 2)">מגיעים</th>
-                        <th onclick="sortTable('detailedClassTable', 3)">לא מגיעים</th>
-                        <th onclick="sortTable('detailedClassTable', 4)">אחוז השתתפות</th>
-                        <th onclick="sortTable('detailedClassTable', 5)">סה"כ בכיתה</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- הנתונים יוזנו באמצעות JavaScript -->
-                </tbody>
-            </table>
-        </div>
+        <h1>ניתוח נתוני רישום - יום סבבא אגף בנות</h1>
+    </header>
+    
+    <div id="notification" class="notification"></div>
+    
+    <div id="loading" class="loading-container">
+        <div class="loader"></div>
+        <h2>טוען נתוני רישום...</h2>
     </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <span>רשימת תלמידות לפי סטטוס הגעה</span>
-        <div class="filter-controls">
-            <select id="classFilter" onchange="filterStudentList()">
-                <option value="all">כל הכיתות</option>
-            </select>
-            <select id="attendanceFilter" onchange="filterStudentList()">
-                <option value="all">כל הסטטוסים</option>
-                <option value="attending">מגיעים</option>
-                <option value="notAttending">לא מגיעים</option>
-            </select>
-            <input type="text" id="searchInput" placeholder="חיפוש..." oninput="debounce(filterStudentList, 300)()">
-        </div>
+    
+    <div id="error" class="error-message" style="display: none;">
+        <p>אירעה שגיאה בטעינת הנתונים. אנא נסה שוב מאוחר יותר.</p>
+        <p id="errorDetails"></p>
+        <button class="btn" onclick="retryLoading()">נסה שוב</button>
     </div>
-    <div class="card-body">
-        <div class="table-container">
-            <table id="studentList">
-                <thead>
-                    <tr>
-                        <th onclick="sortStudentList('name')">שם התלמידה</th>
-                        <th onclick="sortStudentList('className')">כיתה</th>
-                        <th onclick="sortStudentList('lastName')">שם משפחה</th>
-                        <th onclick="sortStudentList('attendees')">מי מגיע</th>
-                        <th onclick="sortStudentList('status')">סטטוס</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- הנתונים יוזנו באמצעות JavaScript -->
-                </tbody>
-            </table>
-        </div>
-        <div id="studentListPagination" class="pagination"></div>
+    
+    <div id="cacheNotice" class="success-message" style="display: none;">
+        <p>הנתונים מוצגים מגיבוי מקומי. תאריך עדכון אחרון: <span id="lastUpdateTime"></span></p>
+        <button class="btn" onclick="loadData()">רענן נתונים</button>
     </div>
-</div>
-   <script>
-   // ===== הגדרות =====
-       // משתנים גלובליים לרשימות
-let currentPage = 1;
-const rowsPerPage = 10;
-let filteredStudents = [];
-let currentSortColumn = 'name';
-let currentSortDirection = 'asc';
-
-// פונקציית debounce
-function debounce(func, wait) {
-    let timeout;
-    return function() {
-        const context = this, args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            func.apply(context, args);
-        }, wait);
-    };
-}
-
-// הצגת טבלת נתונים מפורטת לפי כיתה
-function renderDetailedClassTable() {
-    const tableBody = document.querySelector('#detailedClassTable tbody');
-    tableBody.innerHTML = '';
     
-    const sortedClasses = Object.keys(processedData.classCounts).sort();
-    
-    sortedClasses.forEach(className => {
-        const classKey = Object.keys(CONFIG.CLASS_SIZES).find(key => 
-            key.includes(className) || className.includes(key)
-        );
-        const totalInClass = classKey ? CONFIG.CLASS_SIZES[classKey] : 0;
+    <div id="dashboard" class="dashboard" style="display: none;">
+        <!-- כרטיס סיכום נתונים -->
+        <div class="card summary-card">
+            <div class="summary-item">
+                <div class="summary-label">סה"כ תלמידות</div>
+                <div id="totalStudents" class="summary-value">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">סה"כ משפחות</div>
+                <div id="totalFamilies" class="summary-value">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">אחוז השתתפות</div>
+                <div id="participationRate" class="summary-value">0%</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">סבים</div>
+                <div id="grandpaCount" class="summary-value">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">סבתות</div>
+                <div id="grandmaCount" class="summary-value">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">מלווים אחרים</div>
+                <div id="otherCount" class="summary-value">0</div>
+            </div>
+        </div>
         
-        const responded = processedData.classCounts[className];
-        const notAttending = processedData.classesWithNoShow[className] || 0;
-        const attending = responded - notAttending;
-        const responseRate = totalInClass > 0 ? (responded / totalInClass) * 100 : 0;
+        <!-- כרטיס התפלגות לפי כיתות -->
+        <div class="card">
+            <div class="card-header">
+                התפלגות תלמידות לפי כיתה
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="classDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
         
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${className}</td>
-            <td>${responded}</td>
-            <td>${attending}</td>
-            <td>${notAttending}</td>
-            <td>${responseRate.toFixed(1)}%</td>
-            <td>${totalInClass}</td>
-        `;
+        <!-- כרטיס אחוזי השתתפות -->
+        <div class="card">
+            <div class="card-header">
+                אחוזי השתתפות לפי כיתה
+            </div>
+            <div class="card-body">
+                <div id="participationRates"></div>
+            </div>
+        </div>
         
-        if (responseRate < 50) {
-            row.querySelector('td:nth-child(5)').classList.add('highlight');
-        }
+        <!-- כרטיס סוגי מלווים -->
+        <div class="card">
+            <div class="card-header">
+                התפלגות סוגי מלווים
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="attendeeTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
         
-        tableBody.appendChild(row);
-    });
-    
-    // שורת סיכום
-    const totalRow = document.createElement('tr');
-    totalRow.style.fontWeight = 'bold';
-    totalRow.style.backgroundColor = '#f5f2ff';
-    
-    const totalStudents = Object.values(processedData.classCounts).reduce((a, b) => a + b, 0);
-    const totalNotAttending = Object.values(processedData.classesWithNoShow).reduce((a, b) => a + b, 0);
-    const totalAttending = totalStudents - totalNotAttending;
-    const totalClassStudents = Object.values(CONFIG.CLASS_SIZES).reduce((a, b) => a + b, 0);
-    const totalResponseRate = (totalStudents / totalClassStudents) * 100;
-    
-    totalRow.innerHTML = `
-        <td>סה"כ</td>
-        <td>${totalStudents}</td>
-        <td>${totalAttending}</td>
-        <td>${totalNotAttending}</td>
-        <td>${totalResponseRate.toFixed(1)}%</td>
-        <td>${totalClassStudents}</td>
-    `;
-    
-    tableBody.appendChild(totalRow);
-}
-
-// מילוי רשימת הכיתות לסינון
-function populateClassFilter() {
-    const classFilter = document.getElementById('classFilter');
-    classFilter.innerHTML = '<option value="all">כל הכיתות</option>';
-    
-    const classes = Object.keys(processedData.classCounts).sort();
-    classes.forEach(className => {
-        const option = document.createElement('option');
-        option.value = className;
-        option.textContent = className;
-        classFilter.appendChild(option);
-    });
-}
-
-// סינון רשימת התלמידות
-function filterStudentList() {
-    const classFilter = document.getElementById('classFilter').value;
-    const attendanceFilter = document.getElementById('attendanceFilter').value;
-    const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
-    
-    filteredStudents = processedData.studentList.filter(student => {
-        const matchesClass = classFilter === 'all' || student.className === classFilter;
-        const matchesAttendance = attendanceFilter === 'all' || 
-            (attendanceFilter === 'attending' && student.status === 'מגיעים') ||
-            (attendanceFilter === 'notAttending' && student.status === 'לא מגיעים');
+        <!-- כרטיס נתוני השתתפות מפורטים -->
+        <div class="card">
+            <div class="card-header">
+                נתוני השתתפות מפורטים לפי כיתה
+            </div>
+            <div class="card-body">
+                <div class="export-controls">
+                    <button class="btn" onclick="exportTableToCSV('detailed-class-data.csv', 'detailedClassTable')">ייצא לקובץ CSV</button>
+                    <button class="btn btn-secondary" onclick="printTable('detailedClassTable')">הדפסה</button>
+                </div>
+                <div class="table-container">
+                    <table id="detailedClassTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('detailedClassTable', 0)">כיתה</th>
+                                <th onclick="sortTable('detailedClassTable', 1)">מספר תלמידות</th>
+                                <th onclick="sortTable('detailedClassTable', 2)">מגיעים</th>
+                                <th onclick="sortTable('detailedClassTable', 3)">לא מגיעים</th>
+                                <th onclick="sortTable('detailedClassTable', 4)">אחוז השתתפות</th>
+                                <th onclick="sortTable('detailedClassTable', 5)">סה"כ בכיתה</th>
+                                <th onclick="sortTable('detailedClassTable', 6)">% מהכיתה</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- הנתונים יוזנו באמצעות JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         
-        const matchesSearch = searchInput === '' || 
-            student.name.toLowerCase().includes(searchInput) ||
-            student.lastName.toLowerCase().includes(searchInput) ||
-            student.attendees.toLowerCase().includes(searchInput);
-        
-        return matchesClass && matchesAttendance && matchesSearch;
-    });
-    
-    currentPage = 1;
-    displayCurrentPage();
-}
-
-// הצגת העמוד הנוכחי
-function displayCurrentPage() {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = Math.min(startIndex + rowsPerPage, filteredStudents.length);
-    const displayedStudents = filteredStudents.slice(startIndex, endIndex);
-    
-    const tableBody = document.querySelector('#studentList tbody');
-    tableBody.innerHTML = '';
-    
-    if (displayedStudents.length === 0) {
-        const emptyRow = document.createElement('tr');
-        emptyRow.innerHTML = '<td colspan="5" style="text-align: center;">לא נמצאו תלמידות</td>';
-        tableBody.appendChild(emptyRow);
-        return;
-    }
-    
-    displayedStudents.forEach(student => {
-        const row = document.createElement('tr');
-        if (student.status === 'לא מגיעים') {
-            row.style.backgroundColor = '#ffeded';
-        }
-        
-        row.innerHTML = `
-            <td>${student.name}</td>
-            <td>${student.className}</td>
-            <td>${student.lastName}</td>
-            <td>${student.attendees}</td>
-            <td style="color: ${student.status === 'מגיעים' ? '#28a745' : '#dc3545'}">${student.status}</td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
-    
-    updatePagination();
-}
-
-// עדכון כפתורי דפדוף
-function updatePagination() {
-    const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
-    const paginationContainer = document.getElementById('studentListPagination');
-    paginationContainer.innerHTML = '';
-    
-    if (totalPages <= 1) return;
-    
-    // כפתור קודם
-    if (currentPage > 1) {
-        const prevButton = document.createElement('button');
-        prevButton.textContent = 'הקודם';
-        prevButton.onclick = () => {
-            currentPage--;
-            displayCurrentPage();
-        };
-        paginationContainer.appendChild(prevButton);
-    }
-    
-    // כפתורי עמודים
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === currentPage || i === 1 || i === totalPages || 
-            (i >= currentPage - 2 && i <= currentPage + 2)) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            pageButton.className = i === currentPage ? 'active' : '';
-            pageButton.onclick = () => {
-                currentPage = i;
-                displayCurrentPage();
-            };
-            paginationContainer.appendChild(pageButton);
-        } else if (i === currentPage - 3 || i === currentPage + 3) {
-            const dots = document.createElement('span');
-            dots.textContent = '...';
-            dots.style.margin = '0 8px';
-            paginationContainer.appendChild(dots);
-        }
-    }
-    
-    // כפתור הבא
-    if (currentPage < totalPages) {
-        const nextButton = document.createElement('button');
-        nextButton.textContent = 'הבא';
-        nextButton.onclick = () => {
-            currentPage++;
-            displayCurrentPage();
-        };
-        paginationContainer.appendChild(nextButton);
-    }
-}
-
-// ייצוא לCSV
-function exportTableToCSV(filename, tableId) {
-    const table = document.getElementById(tableId);
-    let csv = [];
-    
-    // הוספת כותרות
-    const headers = [];
-    table.querySelectorAll('th').forEach(th => {
-        headers.push('"' + th.textContent.replace(/"/g, '""') + '"');
-    });
-    csv.push(headers.join(','));
-    
-    // הוספת נתונים
-    table.querySelectorAll('tbody tr').forEach(tr => {
-        const row = [];
-        tr.querySelectorAll('td').forEach(td => {
-            row.push('"' + td.textContent.replace(/"/g, '""') + '"');
-        });
-        csv.push(row.join(','));
-    });
-    
-    // הורדת הקובץ
-    const csvContent = '\uFEFF' + csv.join('\n'); // BOM for Hebrew support
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// מיון טבלה
-function sortTable(tableId, columnIndex) {
-    const table = document.getElementById(tableId);
-    const tbody = table.getElementsByTagName('tbody')[0];
-    const rows = Array.from(tbody.getElementsByTagName('tr'));
-    
-    const summaryRow = rows.pop(); // שמירת שורת הסיכום
-    
-    rows.sort((a, b) => {
-        let aValue = a.cells[columnIndex].textContent;
-        let bValue = b.cells[columnIndex].textContent;
-        
-        // הסרת סימן % אם קיים
-        aValue = aValue.replace('%', '');
-        bValue = bValue.replace('%', '');
-        
-        // בדיקה אם המספרים
-        if (!isNaN(aValue) && !isNaN(bValue)) {
-            return parseFloat(aValue) - parseFloat(bValue);
-        }
-        
-        return aValue.localeCompare(bValue, 'he');
-    });
-    
-    // סידור מחדש של הטבלה
-    rows.forEach(row => tbody.appendChild(row));
-    tbody.appendChild(summaryRow); // החזרת שורת הסיכום
-}
-
-// עדכון תצוגת הדשבורד
-function renderDashboard() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'grid';
-    
-    renderClassDistributionChart();
-    renderDetailedClassTable();
-    
-    // אתחול רשימת התלמידות
-    populateClassFilter();
-    filterStudentList();
-}
-   const CONFIG = {
-       SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS-tw481NC9DzPt3RBOEoiGdeGv6FNRjC28NbKUuvY2bNWIdSqR4BmQTe8-n6RndK4NDOgVFtUirqU4/pub?output=csv',
-       CLASS_SIZES: {
-           'א\' עדי רחמני': 24,
-           'א\' רעות שיף': 23,
-           'ב\' הדר כהן': 30,
-           'ג\' שירה חדאד': 21,
-           'ד\' הדר כחלון': 30,
-           'ו\' ספיר צדוק': 25
-       }
-   };
-
-// משתנים גלובליים לניתוח הנתונים
-    let rawData = [];
-    let processedData = {
-        totalStudents: 0,
-        totalFamilies: 0,
-        classCounts: {},
-        classesWithNoShow: {},
-        attendeeTypes: {
-            "סבא": 0,
-            "סבתא": 0,
-            "אחר": 0,
-            "לא מגיעים": 0
-        },
-        participationRates: {},
-        studentList: [],
-        totalClassParticipation: {}
-    };
-
-    // טעינת נתונים מהקישור
-    async function loadData() {
-        document.getElementById('loading').style.display = 'flex';
-        document.getElementById('error').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'none';
-        
-        try {
-            const response = await fetch(CONFIG.SHEET_URL);
-            if (!response.ok) throw new Error(`שגיאת שרת: ${response.status}`);
-            const csvText = await response.text();
-            parseCSV(csvText);
-        } catch (error) {
-            console.error('שגיאה בטעינת הנתונים:', error);
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('errorDetails').textContent = error.message;
-        }
-    }
-
-    // ניתוח קובץ CSV
-    function parseCSV(csvText) {
-        Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            dynamicTyping: true,
-            complete: function(results) {
-                if (results.errors.length > 0) {
-                    console.error("שגיאות בניתוח הקובץ:", results.errors);
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('error').style.display = 'block';
-                    document.getElementById('errorDetails').textContent = "שגיאה בניתוח הקובץ";
-                    return;
-                }
+        <!-- כרטיס רשימת תלמידות -->
+        <div class="card">
+            <div class="card-header">
+                <span>רשימת תלמידות לפי סטטוס הגעה</span>
+            </div>
+            <div class="card-body">
+                <div class="filter-controls">
+                    <div>
+                        <label for="classFilter">סינון לפי כיתה:</label>
+                        <select id="classFilter" onchange="filterStudentList()">
+                            <option value="all">כל הכיתות</option>
+                            <!-- אפשרויות יתווספו דינמית -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="attendanceFilter">סינון לפי סטטוס:</label>
+                        <select id="attendanceFilter" onchange="filterStudentList()">
+                            <option value="all">כל התלמידות</option>
+                            <option value="attending">מגיעים</option>
+                            <option value="notAttending">לא מגיעים</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="text" id="searchInput" placeholder="חיפוש לפי שם/משפחה..." 
+                               oninput="debounce(filterStudentList, 300)()">
+                    </div>
+                </div>
                 
-                rawData = results.data;
-                analyzeData(rawData);
-                renderDashboard();
-            },
-            error: function(error) {
-                console.error("שגיאה בניתוח הקובץ:", error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('errorDetails').textContent = "שגיאה בניתוח הקובץ: " + error.message;
-            }
-        });
-    }
+                <div class="export-controls">
+                    <button class="btn" onclick="exportTableToCSV('student-list.csv', 'studentList')">ייצא לקובץ CSV</button>
+                    <button class="btn btn-secondary" onclick="printTable('studentList')">הדפסה</button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="studentList">
+                        <thead>
+                            <tr>
+                                <th onclick="sortStudentList('name')">שם התלמידה</th>
+                                <th onclick="sortStudentList('className')">כיתה</th>
+                                <th onclick="sortStudentList('lastName')">שם משפחה</th>
+                                <th onclick="sortStudentList('attendees')">מי מגיע</th>
+                                <th onclick="sortStudentList('status')">סטטוס</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- הנתונים יוזנו באמצעות JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="studentListPagination" class="pagination"></div>
+            </div>
+        </div>
+    </div>
 
-    // ניתוח הנתונים
-    function analyzeData(data) {
-        // איפוס הנתונים
-        processedData = {
+    <script>
+        // ===== הגדרות =====
+        const CONFIG = {
+            // קישור לגליון הנתונים
+            SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS-tw481NC9DzPt3RBOEoiGdeGv6FNRjC28NbKUuvY2bNWIdSqR4BmQTe8-n6RndK4NDOgVFtUirqU4/pub?output=csv',
+            // מידע מעודכן על גודלי כיתות
+             CLASS_SIZES: {
+        'א\' עדי רחמני': 24,
+        'א\' רעות שיף': 23,
+        'ב\' הדר כהן': 30,
+        'ג\' שירה חדאד': 21,
+        'ד\' הדר כחלון': 30,
+        'ו\' ספיר צדוק': 25
+    }
+        };
+        
+        // משתנים גלובליים לניתוח הנתונים
+        let rawData = [];
+        let processedData = {
             totalStudents: 0,
-            totalFamilies: data.length,
+            totalFamilies: 0,
             classCounts: {},
             classesWithNoShow: {},
             attendeeTypes: {
@@ -912,197 +617,1050 @@ function renderDashboard() {
             },
             participationRates: {},
             studentList: [],
+            // מידע חדש: אחוז ההשתתפות מתוך הכיתה המלאה
             totalClassParticipation: {}
         };
         
-        // מעבר על הנתונים
-        data.forEach((row, rowIndex) => {
-            // בדיקה האם המשפחה לא מגיעה
-            const notAttending = row["לא מגיעים"] ? true : false;
+        // משתנים לתצוגת רשימת התלמידות
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let filteredStudents = [];
+        let currentSortColumn = 'name';
+        let currentSortDirection = 'asc';
+        
+        // פונקציית debounce למניעת קריאות תכופות מדי
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this, args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+        
+        // הצגת הודעה למשתמש
+        function showNotification(message, duration = 4000) {
+            const notificationEl = document.getElementById('notification');
+            notificationEl.textContent = message;
+            notificationEl.classList.add('show');
             
-            // חיפוש מידע על מלווים
-            const hasGrandpa = row["שם סבא מגיע"] ? true : false;
-            const hasGrandma = row["שם סבתא מגיעה"] ? true : false;
-            const hasOther = row["אחר - קרבה"] ? true : false;
+            setTimeout(() => {
+                notificationEl.classList.remove('show');
+            }, duration);
+        }
+        
+        // ===== טעינת נתונים ועיבוד =====
+        
+        // טעינת נתונים מהקישור
+        async function loadData() {
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('cacheNotice').style.display = 'none';
             
-            if (hasGrandpa) processedData.attendeeTypes["סבא"]++;
-            if (hasGrandma) processedData.attendeeTypes["סבתא"]++;
-            if (hasOther) processedData.attendeeTypes["אחר"]++;
-            if (notAttending) processedData.attendeeTypes["לא מגיעים"]++;
-            
-            // מידע על מלווים לתצוגה
-            let attendeeInfo = notAttending ? "לא מגיעים" : "";
-            if (!notAttending) {
-                const attendees = [];
-                if (hasGrandpa) attendees.push(`סבא ${row["שם סבא מגיע"] || ""}`);
-                if (hasGrandma) attendees.push(`סבתא ${row["שם סבתא מגיעה"] || ""}`);
-                if (hasOther) attendees.push(`${row["אחר - קרבה"] || ""} ${row["אחר - שם פרטי"] || ""}`);
-                attendeeInfo = attendees.join(", ");
-            }
-            
-            // חיפוש תלמידות ברשומה
-            for (let i = 1; i <= 4; i++) {
-                const nameKey = `שם התלמיד ${i}`;
-                const classKey = `כיתה ${i}`;
+            try {
+                const response = await fetchWithRetry(CONFIG.SHEET_URL);
+                const csvText = await response.text();
+                parseCSV(csvText);
                 
-                if (row[nameKey] && row[classKey]) {
-                    const studentClass = row[classKey];
-                    
-                    processedData.totalStudents++;
-                    
-                    // ספירה לפי כיתה
-                    if (!processedData.classCounts[studentClass]) {
-                        processedData.classCounts[studentClass] = 0;
+            } catch (error) {
+                console.error('שגיאה בטעינת הנתונים:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorDetails').textContent = error.message;
+                
+                // נסה לטעון נתונים מהמטמון
+                tryLoadFromCache();
+            }
+        }
+        
+        // פונקציה לטעינה עם ניסיון חוזר
+        async function fetchWithRetry(url, maxRetries = 3, retryDelay = 1000) {
+            let lastError;
+            
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`שגיאת שרת: ${response.status}`);
                     }
-                    processedData.classCounts[studentClass]++;
-                    
-                    // ספירת לא מגיעים לפי כיתה
-                    if (notAttending) {
-                        if (!processedData.classesWithNoShow[studentClass]) {
-                            processedData.classesWithNoShow[studentClass] = 0;
-                        }
-                        processedData.classesWithNoShow[studentClass]++;
-                    }
-                    
-                    // הוספה לרשימת התלמידות
-                    processedData.studentList.push({
-                        name: row[nameKey],
-                        className: studentClass,
-                        lastName: row["שם משפחה"] || "",
-                        attendees: attendeeInfo,
-                        status: notAttending ? "לא מגיעים" : "מגיעים",
-                        rowId: rowIndex
-                    });
+                    return response;
+                } catch (error) {
+                    console.warn(`ניסיון ${i + 1}/${maxRetries} נכשל:`, error);
+                    lastError = error;
+                    // המתנה לפני ניסיון חוזר עם השהייה הולכת וגדלה
+                    await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, i)));
                 }
             }
-        });
-        
-        // חישוב אחוזי השתתפות לפי כיתה
-        Object.keys(processedData.classCounts).forEach(className => {
-            const totalInClass = processedData.classCounts[className];
-            const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
-            const attendingInClass = totalInClass - notAttendingInClass;
-            const rate = (attendingInClass / totalInClass) * 100;
-            processedData.participationRates[className] = parseFloat(rate.toFixed(1));
-        });
-        
-        // חישוב אחוז השתתפות כללי
-        const totalAttending = processedData.totalStudents - 
-            (Object.values(processedData.classesWithNoShow).reduce((a, b) => a + b, 0) || 0);
-        processedData.overallParticipationRate = parseFloat(
-            ((totalAttending / processedData.totalStudents) * 100).toFixed(1)
-        );
-    }
-
-    // הצגת הדשבורד
-    function renderDashboard() {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'grid';
-        renderClassDistributionChart();
-        updateSummaryCard();
-    }
-
-    // עדכון כרטיס הסיכום
-    function updateSummaryCard() {
-        document.getElementById('totalStudents').textContent = processedData.totalStudents;
-        document.getElementById('totalFamilies').textContent = processedData.totalFamilies;
-        document.getElementById('participationRate').textContent = `${processedData.overallParticipationRate}%`;
-        document.getElementById('grandpaCount').textContent = processedData.attendeeTypes["סבא"];
-        document.getElementById('grandmaCount').textContent = processedData.attendeeTypes["סבתא"];
-        document.getElementById('otherCount').textContent = processedData.attendeeTypes["אחר"];
-    }
-
-    // יצירת תרשים התפלגות כיתות
-    function renderClassDistributionChart() {
-        const ctx = document.getElementById('classDistributionChart').getContext('2d');
-        
-        const labels = Object.keys(processedData.classCounts).sort();
-        const data = [];
-        const notAttendingPercentages = [];
-
-        labels.forEach(className => {
-            // מצא את הכיתה המתאימה ב-CLASS_SIZES
-            const classKey = Object.keys(CONFIG.CLASS_SIZES).find(key => 
-                key.includes(className) || className.includes(key)
-            );
-            const totalInClass = classKey ? CONFIG.CLASS_SIZES[classKey] : 0;
             
-            // חישוב אחוז העונות מסך הכיתה
-            const responded = processedData.classCounts[className];
-            const responseRate = totalInClass > 0 ? (responded / totalInClass) * 100 : 0;
-            data.push(responseRate);
-
-            // חישוב אחוז הלא מגיעות מתוך העונות
-            const notAttending = processedData.classesWithNoShow[className] || 0;
-            const notAttendingRate = responded > 0 ? (notAttending / responded) * responseRate : 0;
-            notAttendingPercentages.push(notAttendingRate);
-        });
-
-        // קבל תרשים קיים אם יש ועדכן אותו
-        const existingChart = Chart.getChart(ctx);
-        if (existingChart) {
-            existingChart.destroy();
+            throw lastError;
         }
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'ענו ויגיעו',
-                        data: data.map((total, i) => total - notAttendingPercentages[i]),
-                        backgroundColor: '#4a2c82',
-                        stack: 'Stack 0',
-                    },
-                    {
-                        label: 'ענו ולא יגיעו',
-                        data: notAttendingPercentages,
-                        backgroundColor: '#dc3545',
-                        stack: 'Stack 0',
+        
+        // ניסיון מחדש של טעינת הנתונים
+        function retryLoading() {
+            loadData();
+        }
+        
+        // טעינה מהמטמון המקומי
+        function tryLoadFromCache() {
+            try {
+                const cachedData = localStorage.getItem('studentData');
+                const lastUpdate = localStorage.getItem('lastDataUpdate');
+                
+                if (cachedData && lastUpdate) {
+                    console.log('טוען נתונים מהמטמון המקומי...');
+                    rawData = JSON.parse(cachedData);
+                    analyzeData(rawData);
+                    renderDashboard();
+                    
+                    // הצג הודעה על שימוש בנתונים מהמטמון
+                    document.getElementById('cacheNotice').style.display = 'block';
+                    document.getElementById('lastUpdateTime').textContent = new Date(lastUpdate).toLocaleString();
+                }
+            } catch (e) {
+                console.error('שגיאה בטעינה מהמטמון:', e);
+            }
+        }
+        
+        // ניתוח קובץ CSV
+        function parseCSV(csvText) {
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        console.error("שגיאות בניתוח הקובץ:", results.errors);
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('errorDetails').textContent = "שגיאה בניתוח הקובץ";
+                        return;
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'אחוז מסך התלמידות בכיתה'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                    
+                    rawData = results.data;
+                    
+                    // שמירה במטמון
+                    try {
+                        localStorage.setItem('studentData', JSON.stringify(rawData));
+                        localStorage.setItem('lastDataUpdate', new Date().toISOString());
+                    } catch (e) {
+                        console.warn('לא ניתן לשמור במטמון המקומי:', e);
+                    }
+                    
+                    analyzeData(rawData);
+                    renderDashboard();
+                },
+                error: function(error) {
+                    console.error("שגיאה בניתוח הקובץ:", error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('errorDetails').textContent = "שגיאה בניתוח הקובץ: " + error.message;
+                    tryLoadFromCache();
+                }
+            });
+        }
+        
+        // ניתוח הנתונים
+        function analyzeData(data) {
+            // איפוס הנתונים
+            processedData = {
+                totalStudents: 0,
+                totalFamilies: data.length,
+                classCounts: {},
+                classesWithNoShow: {},
+                attendeeTypes: {
+                    "סבא": 0,
+                    "סבתא": 0,
+                    "אחר": 0,
+                    "לא מגיעים": 0
+                },
+                participationRates: {},
+                studentList: [],
+                totalClassParticipation: {}
+            };
+            
+            // מעבר על הנתונים
+            data.forEach((row, rowIndex) => {
+                // בדיקה האם המשפחה לא מגיעה
+                const notAttending = row["לא מגיעים"] ? true : false;
+                
+                // חיפוש מידע על מלווים
+                const hasGrandpa = row["שם סבא מגיע"] ? true : false;
+                const hasGrandma = row["שם סבתא מגיעה"] ? true : false;
+                const hasOther = row["אחר - קרבה"] ? true : false;
+                
+                if (hasGrandpa) processedData.attendeeTypes["סבא"]++;
+                if (hasGrandma) processedData.attendeeTypes["סבתא"]++;
+                if (hasOther) processedData.attendeeTypes["אחר"]++;
+                if (notAttending) processedData.attendeeTypes["לא מגיעים"]++;
+                
+                // מידע על מלווים לתצוגה
+                let attendeeInfo = notAttending ? "לא מגיעים" : "";
+                if (!notAttending) {
+                    const attendees = [];
+                    if (hasGrandpa) attendees.push(`סבא ${row["שם סבא מגיע"] || ""}`);
+                    if (hasGrandma) attendees.push(`סבתא ${row["שם סבתא מגיעה"] || ""}`);
+                    if (hasOther) attendees.push(`${row["אחר - קרבה"] || ""} ${row["אחר - שם פרטי"] || ""}`);
+                    attendeeInfo = attendees.join(", ");
+                }
+                
+                // חיפוש תלמידות ברשומה
+                for (let i = 1; i <= 4; i++) {
+                    const nameKey = `שם התלמיד ${i}`;
+                    const classKey = `כיתה ${i}`;
+                    
+                    if (row[nameKey] && row[classKey]) {
+                        const studentName = row[nameKey];
+                        const studentClass = row[classKey];
+                        
+                        processedData.totalStudents++;
+                        
+                        // ספירה לפי כיתה
+                    if (!processedData.classCounts[studentClass]) {
+                           processedData.classCounts[studentClass] = 0;
+                       }
+                       processedData.classCounts[studentClass]++;
+                       
+                       // ספירת לא מגיעים לפי כיתה
+                       if (notAttending) {
+                           if (!processedData.classesWithNoShow[studentClass]) {
+                               processedData.classesWithNoShow[studentClass] = 0;
+                           }
+                           processedData.classesWithNoShow[studentClass]++;
+                       }
+                       
+                       // הוספה לרשימת התלמידות
+                       processedData.studentList.push({
+                           name: studentName,
+                           className: studentClass,
+                           lastName: row["שם משפחה"] || "",
+                           attendees: attendeeInfo,
+                           status: notAttending ? "לא מגיעים" : "מגיעים",
+                           rowId: rowIndex
+                       });
+                   }
+               }
+           });
+           
+           // חישוב אחוזי השתתפות לפי כיתה
+           Object.keys(processedData.classCounts).forEach(className => {
+               const totalInClass = processedData.classCounts[className];
+               const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
+               const attendingInClass = totalInClass - notAttendingInClass;
+               const rate = (attendingInClass / totalInClass) * 100;
+               processedData.participationRates[className] = parseFloat(rate.toFixed(1));
+               
+               // חישוב אחוז ההשתתפות מתוך הכיתה המלאה
+               const totalClassSize = CONFIG.CLASS_SIZES[className] || 0;
+               if (totalClassSize > 0) {
+                   const classParticipationRate = (totalInClass / totalClassSize) * 100;
+                   processedData.totalClassParticipation[className] = {
+                       registered: totalInClass,
+                       totalSize: totalClassSize,
+                       rate: parseFloat(classParticipationRate.toFixed(1))
+                   };
+               }
+           });
+           
+           // חישוב אחוז השתתפות כללי
+           const totalAttending = processedData.totalStudents - 
+               (Object.values(processedData.classesWithNoShow).reduce((a, b) => a + b, 0) || 0);
+           processedData.overallParticipationRate = parseFloat(
+               ((totalAttending / processedData.totalStudents) * 100).toFixed(1)
+           );
+       }
+       
+       // ===== הצגת הדשבורד =====
+       
+       // הצגת הדשבורד
+       function renderDashboard() {
+           document.getElementById('loading').style.display = 'none';
+           document.getElementById('dashboard').style.display = 'grid';
+           
+           updateSummaryCard();
+           renderClassDistributionChart();
+           renderAttendeeTypesChart();
+           renderParticipationRates();
+           renderDetailedClassTable();
+           renderStudentList();
+           
+           // אתחול רשימת הכיתות לסינון
+           populateClassFilter();
+       }
+       
+       // מילוי רשימת הכיתות לסינון
+       function populateClassFilter() {
+           const classFilter = document.getElementById('classFilter');
+           classFilter.innerHTML = '<option value="all">כל הכיתות</option>';
+           
+           const classes = Object.keys(processedData.classCounts).sort();
+           classes.forEach(className => {
+               const option = document.createElement('option');
+               option.value = className;
+               option.textContent = className;
+               classFilter.appendChild(option);
+           });
+       }
+       
+       // עדכון כרטיס הסיכום
+       function updateSummaryCard() {
+           // סה"כ תלמידות
+           document.getElementById('totalStudents').textContent = processedData.totalStudents;
+           
+           // סה"כ משפחות
+           document.getElementById('totalFamilies').textContent = processedData.totalFamilies;
+           
+           // אחוז השתתפות
+           document.getElementById('participationRate').textContent = `${processedData.overallParticipationRate}%`;
+           
+           // ספירת מלווים
+           document.getElementById('grandpaCount').textContent = processedData.attendeeTypes["סבא"];
+           document.getElementById('grandmaCount').textContent = processedData.attendeeTypes["סבתא"];
+           document.getElementById('otherCount').textContent = processedData.attendeeTypes["אחר"];
+       }
+       
+       // יצירת תרשים התפלגות כיתות
+      function renderClassDistributionChart() {
+    const ctx = document.getElementById('classDistributionChart').getContext('2d');
+    
+    const labels = Object.keys(processedData.classCounts).sort();
+    const data = labels.map(cls => processedData.classCounts[cls]);
+    const notAttendingData = labels.map(cls => processedData.classesWithNoShow[cls] || 0);
+    const attendingData = labels.map((cls, i) => data[i] - notAttendingData[i]);
+    
+    // חישוב אחוזי השתתפות לכל כיתה
+    const participationRates = labels.map(cls => processedData.participationRates[cls]);
+    
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'סה"כ תלמידות',
+                data: data,
+                backgroundColor: '#4a2c82',
+                barPercentage: 0.7,
+            }, {
+                label: 'אחוז השתתפות',
+                data: participationRates,
+                type: 'line',
+                borderColor: '#fd7e14',
+                borderWidth: 3,
+                fill: false,
+                pointStyle: 'circle',
+                pointRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const datasetLabel = context.dataset.label;
+                            const value = context.parsed.y;
+                            const index = context.dataIndex;
+                            
+                            if (datasetLabel === 'סה"כ תלמידות') {
+                                return `סה"כ תלמידות: ${value}`;
+                            } else {
+                                return `אחוז השתתפות: ${value}%`;
                             }
                         }
                     }
                 },
-                plugins: {
-                    tooltip: {
-                        rtl: true,
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.dataset.label;
-                                const value = context.raw;
-                                return `${label}: ${value.toFixed(1)}%`;
-                            }
-                        }
-                    },
-                    legend: {
-                        position: 'top',
-                        reverse: true
+                legend: {
+                    labels: {
+                        usePointStyle: true,
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'מספר תלמידות / אחוז השתתפות'
                     }
                 }
             }
-        });
-    }
-
-    // טעינת הנתונים בטעינת הדף
-    window.addEventListener('DOMContentLoaded', loadData);
+        }
+    });
+}
+       
+       // יצירת תרשים סוגי מלווים
+       function renderAttendeeTypesChart() {
+           const ctx = document.getElementById('attendeeTypesChart').getContext('2d');
+           
+           const data = [
+               processedData.attendeeTypes["סבא"],
+               processedData.attendeeTypes["סבתא"],
+               processedData.attendeeTypes["אחר"]
+           ];
+           
+           const totalAttendees = data.reduce((a, b) => a + b, 0);
+           
+           // קבל תרשים קיים אם יש ועדכן אותו
+           const existingChart = Chart.getChart(ctx);
+           if (existingChart) {
+               existingChart.destroy();
+           }
+           
+           new Chart(ctx, {
+               type: 'doughnut',
+               data: {
+                   labels: ['סבא', 'סבתא', 'אחר'],
+                   datasets: [{
+                       data: data,
+                       backgroundColor: ['#4a2c82', '#e83e8c', '#fd7e14'],
+                       borderWidth: 0
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false,
+                   cutout: '65%',
+                   plugins: {
+                       legend: {
+                           position: 'right',
+                           labels: {
+                               usePointStyle: true,
+                               generateLabels: function(chart) {
+                                   const data = chart.data;
+                                   if (data.labels.length && data.datasets.length) {
+                                       return data.labels.map((label, i) => {
+                                           const value = data.datasets[0].data[i];
+                                           const percentage = totalAttendees ? 
+                                               Math.round((value / totalAttendees) * 100) : 0;
+                                           
+                                           return {
+                                               text: `${label}: ${value} (${percentage}%)`,
+                                               fillStyle: data.datasets[0].backgroundColor[i],
+                                               strokeStyle: data.datasets[0].backgroundColor[i],
+                                               lineWidth: 0,
+                                               hidden: isNaN(data.datasets[0].data[i]) || data.datasets[0].data[i] === 0,
+                                               index: i
+                                           };
+                                       });
+                                   }
+                                   return [];
+                               }
+                           }
+                       },
+                       tooltip: {
+                           rtl: true,
+                           textDirection: 'rtl',
+                           callbacks: {
+                               label: function(context) {
+                                   const value = context.raw;
+                                   const percentage = totalAttendees ? 
+                                       Math.round((value / totalAttendees) * 100) : 0;
+                                   return `${context.label}: ${value} (${percentage}%)`;
+                               }
+                           }
+                       }
+                   }
+               }
+           });
+       }
+       
+       // הצגת אחוזי השתתפות לפי כיתה
+     function renderParticipationRates() {
+    const container = document.getElementById('participationRates');
+    container.innerHTML = '';
+    
+    const sortedClasses = Object.keys(processedData.participationRates).sort();
+    
+    sortedClasses.forEach(className => {
+        const rate = processedData.participationRates[className];
+        const attendingCount = processedData.classCounts[className] - 
+            (processedData.classesWithNoShow[className] || 0);
+        const totalCount = processedData.classCounts[className];
+        
+        const classParticipation = processedData.totalClassParticipation[className] || 
+            { registered: totalCount, totalSize: 0, rate: 0 };
+        
+        const rowDiv = document.createElement('div');
+        rowDiv.style.marginBottom = '20px';
+        
+        const headerDiv = document.createElement('div');
+        headerDiv.style.display = 'flex';
+        headerDiv.style.justifyContent = 'space-between';
+        headerDiv.style.marginBottom = '5px';
+        
+        const classNameSpan = document.createElement('span');
+        classNameSpan.textContent = className;
+        classNameSpan.style.fontWeight = '600';
+        
+        const countRateSpan = document.createElement('span');
+        countRateSpan.textContent = `${attendingCount}/${totalCount} (${rate}%)`;
+        
+        headerDiv.appendChild(classNameSpan);
+        headerDiv.appendChild(countRateSpan);
+        
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'progress-bar';
+        
+        const fillDiv = document.createElement('div');
+        fillDiv.className = 'progress-fill';
+        
+        // שינוי הגדרות הרוחב והצבע
+        fillDiv.style.width = `${(attendingCount / totalCount) * 100}%`;
+        
+        if (rate >= 80) {
+            fillDiv.style.backgroundColor = '#28a745';
+        } else if (rate >= 60) {
+            fillDiv.style.backgroundColor = '#17a2b8';
+        } else if (rate >= 40) {
+            fillDiv.style.backgroundColor = '#fd7e14';
+        } else {
+            fillDiv.style.backgroundColor = '#dc3545';
+        }
+        
+        if (attendingCount / totalCount > 0.15) {
+            fillDiv.textContent = `${attendingCount}/${totalCount}`;
+        }
+        
+        progressDiv.appendChild(fillDiv);
+        rowDiv.appendChild(headerDiv);
+        rowDiv.appendChild(progressDiv);
+        
+        // הוספת אחוז ההשתתפות כטקסט משני
+        const rateDiv = document.createElement('div');
+        rateDiv.style.fontSize = '13px';
+        rateDiv.style.color = '#666';
+        rateDiv.style.marginTop = '5px';
+        rateDiv.textContent = `אחוז השתתפות: ${rate}%`;
+        
+        rowDiv.appendChild(rateDiv);
+        
+        container.appendChild(rowDiv);
+    });
+}
+       
+       // הצגת טבלת נתונים מפורטת לפי כיתה
+       function renderDetailedClassTable() {
+           const tableBody = document.querySelector('#detailedClassTable tbody');
+           tableBody.innerHTML = '';
+           
+           // מיון הכיתות
+           const sortedClasses = Object.keys(processedData.classCounts).sort();
+           
+           sortedClasses.forEach(className => {
+               const totalInClass = processedData.classCounts[className];
+               const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
+               const attendingInClass = totalInClass - notAttendingInClass;
+               const rate = processedData.participationRates[className];
+               
+               // מידע על גודל הכיתה המלא
+               const classTotalSize = CONFIG.CLASS_SIZES[className] || 0;
+               const classRegistrationRate = classTotalSize > 0 ? 
+                   parseFloat(((totalInClass / classTotalSize) * 100).toFixed(1)) : 0;
+               
+               const row = document.createElement('tr');
+               
+               const classCell = document.createElement('td');
+               classCell.textContent = className;
+               
+               const totalCell = document.createElement('td');
+               totalCell.textContent = totalInClass;
+               
+               const attendingCell = document.createElement('td');
+               attendingCell.textContent = attendingInClass;
+               
+               const notAttendingCell = document.createElement('td');
+               notAttendingCell.textContent = notAttendingInClass;
+               
+               const rateCell = document.createElement('td');
+               rateCell.textContent = `${rate}%`;
+               
+               // הדגשת אחוזים נמוכים
+               if (rate < 50) {
+                   rateCell.classList.add('highlight');
+               }
+               
+               // הוספת תאים חדשים עם מידע על גודל הכיתה המלא
+               const classSizeCell = document.createElement('td');
+               classSizeCell.textContent = classTotalSize > 0 ? classTotalSize : 'לא ידוע';
+               
+               const classRegistrationRateCell = document.createElement('td');
+               if (classTotalSize > 0) {
+                   classRegistrationRateCell.textContent = `${classRegistrationRate}%`;
+                   if (classRegistrationRate < 70) {
+                       classRegistrationRateCell.classList.add('highlight');
+                   }
+               } else {
+                   classRegistrationRateCell.textContent = 'לא ידוע';
+               }
+               
+               row.appendChild(classCell);
+               row.appendChild(totalCell);
+               row.appendChild(attendingCell);
+               row.appendChild(notAttendingCell);
+               row.appendChild(rateCell);
+               row.appendChild(classSizeCell);
+               row.appendChild(classRegistrationRateCell);
+               
+               tableBody.appendChild(row);
+           });
+           
+           // שורת סיכום
+           const totalRow = document.createElement('tr');
+           totalRow.style.fontWeight = 'bold';
+           totalRow.style.backgroundColor = '#f5f2ff';
+           
+           const totalLabelCell = document.createElement('td');
+           totalLabelCell.textContent = 'סה"כ';
+           
+           const totalStudentsCell = document.createElement('td');
+           totalStudentsCell.textContent = processedData.totalStudents;
+           
+           const totalAttending = processedData.totalStudents - 
+               (Object.values(processedData.classesWithNoShow).reduce((a, b) => a + b, 0) || 0);
+           
+           const totalAttendingCell = document.createElement('td');
+           totalAttendingCell.textContent = totalAttending;
+           
+           const totalNotAttendingCell = document.createElement('td');
+           totalNotAttendingCell.textContent = processedData.totalStudents - totalAttending;
+           
+           const totalRateCell = document.createElement('td');
+           totalRateCell.textContent = `${processedData.overallParticipationRate}%`;
+           
+           // חישוב סה"כ תלמידות בכל הכיתות
+           const totalClassSizes = Object.values(CONFIG.CLASS_SIZES).reduce((sum, size) => sum + size, 0);
+           const totalClassSizeCell = document.createElement('td');
+           totalClassSizeCell.textContent = totalClassSizes;
+           
+           // חישוב אחוז ההרשמה הכללי
+           const totalRegistrationRate = parseFloat(((processedData.totalStudents / totalClassSizes) * 100).toFixed(1));
+           const totalRegistrationRateCell = document.createElement('td');
+           totalRegistrationRateCell.textContent = `${totalRegistrationRate}%`;
+           
+           totalRow.appendChild(totalLabelCell);
+           totalRow.appendChild(totalStudentsCell);
+           totalRow.appendChild(totalAttendingCell);
+           totalRow.appendChild(totalNotAttendingCell);
+           totalRow.appendChild(totalRateCell);
+           totalRow.appendChild(totalClassSizeCell);
+           totalRow.appendChild(totalRegistrationRateCell);
+           
+           tableBody.appendChild(totalRow);
+       }
+       
+       // ===== רשימת תלמידות ופעולות =====
+       
+       // הצגת רשימת תלמידות
+       function renderStudentList() {
+           // סינון התלמידות
+           filterStudentList();
+       }
+       
+       // סינון רשימת התלמידות
+       function filterStudentList() {
+           const classFilter = document.getElementById('classFilter').value;
+           const attendanceFilter = document.getElementById('attendanceFilter').value;
+           const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
+           
+           // סינון לפי כיתה, סטטוס הגעה וחיפוש חופשי
+           filteredStudents = processedData.studentList.filter(student => {
+               const matchesClass = classFilter === 'all' || student.className === classFilter;
+               const matchesAttendance = attendanceFilter === 'all' || 
+                   (attendanceFilter === 'attending' && student.status === 'מגיעים') ||
+                   (attendanceFilter === 'notAttending' && student.status === 'לא מגיעים');
+               
+               // חיפוש בשם התלמידה, שם משפחה, או במלווים
+               const matchesSearch = searchInput === '' || 
+                   student.name.toLowerCase().includes(searchInput) ||
+                   student.lastName.toLowerCase().includes(searchInput) ||
+                   student.attendees.toLowerCase().includes(searchInput);
+               
+               return matchesClass && matchesAttendance && matchesSearch;
+           });
+           
+           // מיון הרשימה לפי העמודה הנוכחית
+           sortStudentList(currentSortColumn, true);
+           
+           // איפוס העמוד הנוכחי
+           currentPage = 1;
+           
+           // עדכון התצוגה
+           displayCurrentPage();
+       }
+       
+       // מיון רשימת התלמידות
+       function sortStudentList(column, keepDirection = false) {
+           if (!keepDirection && column === currentSortColumn) {
+               // החלף כיוון מיון אם לוחצים שוב על אותה עמודה
+               currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+           } else if (!keepDirection) {
+               currentSortColumn = column;
+               currentSortDirection = 'asc';
+           }
+           
+           // מיון הרשימה
+           filteredStudents.sort((a, b) => {
+               let valueA = a[column];
+               let valueB = b[column];
+               
+               if (column === 'className') {
+                   // מיון מיוחד לכיתות
+                   return sortClassNames(valueA, valueB, currentSortDirection);
+               }
+               
+               // מיון רגיל
+               if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+               if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+               
+               if (valueA < valueB) return currentSortDirection === 'asc' ? -1 : 1;
+               if (valueA > valueB) return currentSortDirection === 'asc' ? 1 : -1;
+               return 0;
+           });
+           
+           // עדכון התצוגה
+           displayCurrentPage();
+           
+           // עדכון סימון עמודת המיון
+           updateSortIndicators('studentList', column);
+       }
+       
+       // מיון שמות כיתות
+       function sortClassNames(a, b, direction) {
+           // פונקציה לחילוץ הכיתה (למשל, 'א', 'ב', 'ג')
+           function extractGrade(className) {
+               const match = className.match(/^([א-ת])/);
+               return match ? match[1] : className;
+           }
+           
+           const gradeA = extractGrade(a);
+           const gradeB = extractGrade(b);
+           
+           // סדר הכיתות לפי א-ב העברי
+           const gradeOrder = {'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6};
+           
+           const orderA = gradeOrder[gradeA] || 100; // אם לא מוכר, שים בסוף
+           const orderB = gradeOrder[gradeB] || 100;
+           
+           if (orderA !== orderB) {
+               return direction === 'asc' ? orderA - orderB : orderB - orderA;
+           }
+           
+           // אם אותה כיתה, מיין לפי הטקסט המלא
+           if (a < b) return direction === 'asc' ? -1 : 1;
+           if (a > b) return direction === 'asc' ? 1 : -1;
+           return 0;
+       }
+       
+       // עדכון סימוני מיון בטבלה
+       function updateSortIndicators(tableId, sortColumn) {
+           const tableHeaders = document.querySelectorAll(`#${tableId} th`);
+           tableHeaders.forEach(header => {
+               header.classList.remove('sorted', 'asc', 'desc');
+           });
+           
+           if (tableId === 'studentList') {
+               // מצא את העמודה המתאימה לפי הטקסט או המאפיינים
+               const headerIndex = {
+                   'name': 0,
+                   'className': 1,
+                   'lastName': 2,
+                   'attendees': 3,
+                   'status': 4
+               }[sortColumn];
+               
+               if (headerIndex !== undefined) {
+                   const header = tableHeaders[headerIndex];
+                   header.classList.add('sorted', currentSortDirection);
+               }
+           }
+       }
+       
+       // הצגת העמוד הנוכחי
+       function displayCurrentPage() {
+           const startIndex = (currentPage - 1) * rowsPerPage;
+           const endIndex = Math.min(startIndex + rowsPerPage, filteredStudents.length);
+           const displayedStudents = filteredStudents.slice(startIndex, endIndex);
+           
+           const tableBody = document.querySelector('#studentList tbody');
+           tableBody.innerHTML = '';
+           
+           if (displayedStudents.length === 0) {
+               const emptyRow = document.createElement('tr');
+               const emptyCell = document.createElement('td');
+               emptyCell.colSpan = 5;
+               emptyCell.textContent = 'לא נמצאו תלמידות';
+               emptyCell.style.textAlign = 'center';
+               emptyCell.style.padding = '20px';
+               emptyRow.appendChild(emptyCell);
+               tableBody.appendChild(emptyRow);
+               return;
+           }
+           
+           displayedStudents.forEach(student => {
+               const row = document.createElement('tr');
+               
+               if (student.status === 'לא מגיעים') {
+                   row.style.backgroundColor = '#ffeded';
+               }
+               
+               const nameCell = document.createElement('td');
+               nameCell.textContent = student.name;
+               
+               const classCell = document.createElement('td');
+               classCell.textContent = student.className;
+               
+               const lastNameCell = document.createElement('td');
+               lastNameCell.textContent = student.lastName;
+               
+               const attendeesCell = document.createElement('td');
+               attendeesCell.textContent = student.attendees;
+               
+               const statusCell = document.createElement('td');
+               statusCell.textContent = student.status;
+               
+               if (student.status === 'לא מגיעים') {
+                   statusCell.style.color = '#dc3545';
+                   statusCell.style.fontWeight = 'bold';
+               } else {
+                   statusCell.style.color = '#28a745';
+               }
+               
+               row.appendChild(nameCell);
+               row.appendChild(classCell);
+               row.appendChild(lastNameCell);
+               row.appendChild(attendeesCell);
+               row.appendChild(statusCell);
+               
+               tableBody.appendChild(row);
+           });
+           
+           // עדכון עמודים
+           updatePagination();
+       }
+        // עדכון כפתורי עמודים
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
+            const paginationContainer = document.getElementById('studentListPagination');
+            paginationContainer.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // כפתור עמוד קודם
+            if (currentPage > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.textContent = 'הקודם';
+                prevButton.onclick = () => {
+                    currentPage--;
+                    displayCurrentPage();
+                };
+                paginationContainer.appendChild(prevButton);
+            }
+            
+            // כפתורי עמודים
+            const maxButtons = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            
+            if (endPage - startPage + 1 < maxButtons) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = i === currentPage ? 'active' : '';
+                pageButton.onclick = () => {
+                    currentPage = i;
+                    displayCurrentPage();
+                };
+                paginationContainer.appendChild(pageButton);
+            }
+            
+            // כפתור עמוד הבא
+            if (currentPage < totalPages) {
+                const nextButton = document.createElement('button');
+                nextButton.textContent = 'הבא';
+                nextButton.onclick = () => {
+                    currentPage++;
+                    displayCurrentPage();
+                };
+                paginationContainer.appendChild(nextButton);
+            }
+        }
+        
+        // ===== מיון טבלה =====
+        
+        // פונקציית מיון כללית לטבלאות
+        function sortTable(tableId, columnIndex) {
+            const table = document.getElementById(tableId);
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+            
+            // בדוק האם זו שורת סיכום (השורה האחרונה עם רקע שונה)
+            const summaryRow = rows.length > 0 && rows[rows.length - 1].style.backgroundColor === 'rgb(245, 242, 255)' ? 
+                rows.pop() : null;
+            
+            // קבע את כיוון המיון
+            const headerCells = table.getElementsByTagName('th');
+            let direction = 'asc';
+            
+            // בדוק האם כבר ממוין לפי העמודה הזו, ואם כן - החלף כיוון
+            if (headerCells[columnIndex].classList.contains('sorted')) {
+                direction = headerCells[columnIndex].classList.contains('asc') ? 'desc' : 'asc';
+            }
+            
+            // נקה את סימון המיון מכל הכותרות
+            Array.from(headerCells).forEach(cell => {
+                cell.classList.remove('sorted', 'asc', 'desc');
+            });
+            
+            // הוסף סימון מיון לעמודה הנוכחית
+            headerCells[columnIndex].classList.add('sorted', direction);
+            
+            // מיין את השורות
+            rows.sort((rowA, rowB) => {
+                const cellA = rowA.getElementsByTagName('td')[columnIndex].textContent.trim();
+                const cellB = rowB.getElementsByTagName('td')[columnIndex].textContent.trim();
+                
+                // בדוק אם זה מספר או טקסט
+                const numA = parseFloat(cellA);
+                const numB = parseFloat(cellB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    // מיון מספרי
+                    return direction === 'asc' ? numA - numB : numB - numA;
+                } else if (columnIndex === 0) {
+                    // מיון מיוחד לשמות כיתות
+                    return sortClassNames(cellA, cellB, direction);
+                } else {
+                    // מיון טקסטואלי רגיל
+                    return direction === 'asc' ? 
+                        cellA.localeCompare(cellB, 'he') : 
+                        cellB.localeCompare(cellA, 'he');
+                }
+            });
+            
+            // בנה מחדש את הטבלה
+            rows.forEach(row => tbody.appendChild(row));
+            
+            // הוסף את שורת הסיכום בסוף
+            if (summaryRow) {
+                tbody.appendChild(summaryRow);
+            }
+        }
+        
+        // ===== פונקציות ייצוא =====
+        
+        // הדפסת טבלה ספציפית
+        function printTable(tableId) {
+            const originalTitle = document.title;
+            const tableName = tableId === 'detailedClassTable' ? 'נתוני השתתפות לפי כיתות' : 'רשימת תלמידות';
+            document.title = tableName + ' - יום סבבא אגף בנות';
+            
+            // יצירת גיליון סגנון לדף להדפסה
+            const style = document.createElement('style');
+            style.id = 'print-style';
+            style.innerHTML = `
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    #${tableId}, #${tableId} * {
+                        visibility: visible;
+                    }
+                    #${tableId} {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .card-header {
+                        background-color: #f0f0f0 !important;
+                        color: black !important;
+                        padding: 10px;
+                        font-size: 16px;
+                        text-align: center;
+                        margin-bottom: 10px;
+                    }
+                    th {
+                        background-color: #f0f0f0 !important;
+                    }
+                    @page {
+                        size: landscape;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // הוסף כותרת להדפסה
+            const printHeader = document.createElement('div');
+            printHeader.className = 'card-header';
+            printHeader.textContent = tableName + ' - ' + new Date().toLocaleDateString();
+            printHeader.id = 'print-header';
+            printHeader.style.display = 'none';
+            document.getElementById(tableId).parentNode.insertBefore(printHeader, document.getElementById(tableId));
+            
+            window.print();
+            
+            // ניקוי אחרי ההדפסה
+            document.title = originalTitle;
+            document.head.removeChild(document.getElementById('print-style'));
+            printHeader.parentNode.removeChild(printHeader);
+        }
+        
+        // ייצוא טבלה ל-CSV
+        function exportTableToCSV(filename, tableId) {
+            const table = document.getElementById(tableId);
+            let csv = [];
+            
+            // הוסף כותרות
+            const headers = Array.from(table.querySelectorAll('th')).map(th => 
+                '"' + th.textContent.replace(/"/g, '""') + '"'
+            );
+            csv.push(headers.join(','));
+            
+            // הוסף שורות
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            rows.forEach(row => {
+                const rowData = Array.from(row.querySelectorAll('td')).map(cell => 
+                    '"' + cell.textContent.replace(/"/g, '""') + '"'
+                );
+                csv.push(rowData.join(','));
+            });
+            
+            // הוסף BOM לתמיכה בעברית ב-Excel
+            const csvContent = '\uFEFF' + csv.join('\n');
+            
+            // הורדת הקובץ
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('הקובץ יורד בהצלחה');
+        }
+        
+        // ===== אתחול האפליקציה =====
+        
+        // טעינת הנתונים בטעינת הדף
+        window.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 </html>
