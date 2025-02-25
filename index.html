@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ניתוח נתוני רישום - יום סבבא אגף בנות</title>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=laCptcXrTBj0nQfsmVob8SZieijOEGgMXaX3HQMGfFoBkUDglSRylRf6ulTSDU_CpYawEtNbExLGWPyFktxiHhOe_4M4JAySOYRENxeKL4E" charset="UTF-8"></script><script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <style>
         :root {
@@ -351,6 +351,20 @@
             gap: 10px;
         }
         
+        .page-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .rows-per-page {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
         @media print {
             body {
                 width: 100%;
@@ -371,7 +385,7 @@
             }
             
             .btn, .pagination, .filter-controls, select, 
-            .export-controls, .notification {
+            .export-controls, .notification, .page-controls {
                 display: none;
             }
             
@@ -565,6 +579,22 @@
                     <button class="btn btn-secondary" onclick="printTable('studentList')">הדפסה</button>
                 </div>
                 
+                <div class="page-controls">
+                    <div class="rows-per-page">
+                        <label for="rowsPerPageSelect">שורות בעמוד:</label>
+                        <select id="rowsPerPageSelect" onchange="changeRowsPerPage()">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="all">הכל</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span id="studentListInfo">מציג <span id="startDisplayIndex">1</span>-<span id="endDisplayIndex">10</span> מתוך <span id="totalFilteredCount">0</span> תלמידות</span>
+                    </div>
+                </div>
+                
                 <div class="table-container">
                     <table id="studentList">
                         <thead>
@@ -623,7 +653,7 @@
         
         // משתנים לתצוגת רשימת התלמידות
         let currentPage = 1;
-        const rowsPerPage = 10;
+        let rowsPerPage = 10;
         let filteredStudents = [];
         let currentSortColumn = 'name';
         let currentSortDirection = 'asc';
@@ -786,6 +816,7 @@
                 // בדיקה האם המשפחה לא מגיעה
                 const notAttending = row["לא מגיעים"] ? true : false;
                 
+                // חיפוש מידע על מלווים
                 // חיפוש מידע על מלווים
                 const hasGrandpa = row["שם סבא מגיע"] ? true : false;
                 const hasGrandma = row["שם סבתא מגיעה"] ? true : false;
@@ -1384,6 +1415,35 @@ function renderClassDistributionChart() {
            }
        }
        
+       // פונקציה לשינוי מספר השורות בעמוד
+       function changeRowsPerPage() {
+           const rowsPerPageSelect = document.getElementById('rowsPerPageSelect');
+           const selectedValue = rowsPerPageSelect.value;
+           
+           if (selectedValue === 'all') {
+               rowsPerPage = filteredStudents.length;
+           } else {
+               rowsPerPage = parseInt(selectedValue);
+           }
+           
+           // איפוס העמוד הנוכחי
+           currentPage = 1;
+           
+           // עדכון התצוגה
+           displayCurrentPage();
+       }
+       
+       // עדכון מידע על הצגת התלמידות
+       function updateStudentListInfo() {
+           const totalFilteredCount = filteredStudents.length;
+           const startIndex = (currentPage - 1) * rowsPerPage + 1;
+           const endIndex = Math.min(startIndex + rowsPerPage - 1, totalFilteredCount);
+           
+           document.getElementById('startDisplayIndex').textContent = totalFilteredCount > 0 ? startIndex : 0;
+           document.getElementById('endDisplayIndex').textContent = endIndex;
+           document.getElementById('totalFilteredCount').textContent = totalFilteredCount;
+       }
+       
        // הצגת העמוד הנוכחי
        function displayCurrentPage() {
            const startIndex = (currentPage - 1) * rowsPerPage;
@@ -1402,6 +1462,12 @@ function renderClassDistributionChart() {
                emptyCell.style.padding = '20px';
                emptyRow.appendChild(emptyCell);
                tableBody.appendChild(emptyRow);
+               
+               // עדכון מידע על הצגת תלמידות
+               updateStudentListInfo();
+               
+               // עדכון כפתורי עמודים
+               updatePagination();
                return;
            }
            
@@ -1443,10 +1509,14 @@ function renderClassDistributionChart() {
                tableBody.appendChild(row);
            });
            
-           // עדכון עמודים
+           // עדכון מידע על הצגת תלמידות
+           updateStudentListInfo();
+           
+           // עדכון כפתורי עמודים
            updatePagination();
        }
         // עדכון כפתורי עמודים
+       // עדכון כפתורי עמודים
         function updatePagination() {
             const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
             const paginationContainer = document.getElementById('studentListPagination');
