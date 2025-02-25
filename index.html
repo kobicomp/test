@@ -3,408 +3,481 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ניתוח נתוני רישום - יום סבבא אגף בנות</title>
-    <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=laCptcXrTBj0nQfsmVob8SZieijOEGgMXaX3HQMGfFoBkUDglSRylRf6ulTSDU_CpYawEtNbExLGWPyFktxiHhOe_4M4JAySOYRENxeKL4E" charset="UTF-8"></script><script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <title>מערכת ניהול משימות ופרויקטים</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4a2c82;
-            --primary-light: #f8f6ff;
-            --secondary-color: #6a41b4;
-            --success-color: #28a745;
-            --warning-color: #fd7e14;
-            --danger-color: #dc3545;
-            --border-radius: 12px;
+            --primary-color: #2196F3;
+            --primary-dark: #1976D2;
+            --secondary-color: #FF9800;
+            --success-color: #4CAF50;
+            --danger-color: #F44336;
+            --warning-color: #FFC107;
+            --info-color: #00BCD4;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gray-color: #6c757d;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f7f6fb;
+            background-color: #f5f5f5;
             color: #333;
             line-height: 1.6;
         }
         
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
         header {
-            text-align: center;
-            margin-bottom: 30px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         
-        h1 {
-            color: var(--primary-color);
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        
-        h2 {
-            color: var(--primary-color);
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-        
-        .logo-container {
-            margin-bottom: 20px;
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .logo {
-            max-width: 200px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav li {
+            margin-right: 1rem;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .active {
+            background-color: rgba(255,255,255,0.2);
         }
         
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
         
         .card {
             background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         .card-header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 20px;
-            font-size: 18px;
-            font-weight: 600;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
         }
         
-        .card-body {
-            padding: 20px;
-            min-height: 300px;
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--dark-color);
         }
         
-        .summary-card {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .summary-item {
-            text-align: center;
-            padding: 15px;
-            background-color: var(--primary-light);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .summary-value {
-            font-size: 32px;
-            font-weight: 700;
+        .card-icon {
+            font-size: 1.5rem;
             color: var(--primary-color);
-            margin: 10px 0;
         }
         
-        .summary-label {
-            font-size: 14px;
-            color: #555;
+        .stat {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 1rem 0;
         }
         
-        .table-container {
-            overflow-x: auto;
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 1rem;
+        }
+        
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--gray-color);
+            transition: all 0.3s;
+        }
+        
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .search-box {
+            display: flex;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 1rem;
+        }
+        
+        .search-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .filter-box {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .filter-select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #388E3C;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #D32F2F;
+        }
+        
+        .btn-icon {
+            margin-right: 0.5rem;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 10px 0;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: right;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background-color: var(--primary-light);
-            font-weight: 600;
-            color: var(--primary-color);
-            cursor: pointer;
-            position: relative;
-        }
-        
-        th:hover {
-            background-color: #ede8ff;
-        }
-        
-        th.sorted::after {
-            content: '';
-            position: absolute;
-            right: 5px;
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-        }
-        
-        th.sorted.asc::after {
-            border-bottom: 5px solid var(--primary-color);
-            top: 45%;
-        }
-        
-        th.sorted.desc::after {
-            border-top: 5px solid var(--primary-color);
-            top: 45%;
-        }
-        
-        tr:hover {
-            background-color: #f9f7ff;
-        }
-        
-        .progress-bar {
-            background-color: #f0ebff;
-            height: 25px;
-            border-radius: 12px;
-            margin: 5px 0;
-            position: relative;
+            margin-bottom: 1rem;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 8px;
             overflow: hidden;
         }
         
-        .progress-fill {
-            height: 100%;
-            border-radius: 12px;
-            transition: width 1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        th, td {
+            padding: 1rem;
+            text-align: right;
+        }
+        
+        th {
+            background-color: var(--primary-color);
             color: white;
-            font-weight: 600;
-            font-size: 12px;
+            font-weight: bold;
         }
         
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
         
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 400px;
+        tr:hover {
+            background-color: #f1f1f1;
         }
         
-        .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
+        .priority {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: bold;
             text-align: center;
-            color: var(--danger-color);
-            background-color: #f8d7da;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
         }
         
-        .success-message {
+        .priority-high {
+            background-color: #FFEBEE;
+            color: #D32F2F;
+        }
+        
+        .priority-medium {
+            background-color: #FFF8E1;
+            color: #FFA000;
+        }
+        
+        .priority-low {
+            background-color: #E8F5E9;
+            color: #388E3C;
+        }
+        
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: bold;
             text-align: center;
-            color: var(--success-color);
-            background-color: #d4edda;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
+        }
+        
+        .status-new {
+            background-color: #E3F2FD;
+            color: #1976D2;
+        }
+        
+        .status-in-progress {
+            background-color: #FFF8E1;
+            color: #FFA000;
+        }
+        
+        .status-completed {
+            background-color: #E8F5E9;
+            color: #388E3C;
+        }
+        
+        .status-delayed {
+            background-color: #FFEBEE;
+            color: #D32F2F;
+        }
+        
+        .modal {
             display: none;
-        }
-        
-        .notification {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background-color: #fd7e14;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
             z-index: 1000;
-            display: none;
-            text-align: center;
-        }
-        
-        .notification.show {
-            display: block;
-            animation: fadeIn 0.3s, fadeOut 0.5s 3.5s forwards;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        
-        .pagination {
-            display: flex;
+            align-items: center;
             justify-content: center;
-            margin-top: 20px;
         }
         
-        .pagination button {
-            background-color: var(--primary-light);
-            border: none;
-            color: var(--primary-color);
-            padding: 8px 16px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .pagination button:hover:not(.active) {
-            background-color: #e2dbff;
-        }
-        
-        .pagination button.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .highlight {
-            background-color: #fff3cd;
-            padding: 3px 5px;
-            border-radius: 3px;
-        }
-        
-        select, .btn {
-            padding: 8px 12px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
+        .modal-content {
             background-color: white;
-            font-size: 14px;
-            margin-right: 5px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 600px;
+            padding: 2rem;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
-        .btn {
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 1.5rem;
+            color: var(--gray-color);
             cursor: pointer;
-            background-color: var(--primary-color);
-            color: white;
             border: none;
+            background: none;
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.25);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-footer {
+            margin-top: 1.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .progress-container {
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            height: 0.5rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            border-radius: 4px;
+            transition: width 0.4s;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+            border-radius: 4px;
             transition: background-color 0.3s;
         }
         
-        .btn:hover {
-            background-color: var(--secondary-color);
+        .action-btn:hover {
+            background-color: rgba(0,0,0,0.05);
         }
         
-        .btn-secondary {
-            background-color: #6c757d;
+        .edit-btn {
+            color: var(--info-color);
         }
         
-        .btn-secondary:hover {
-            background-color: #5a6268;
+        .delete-btn {
+            color: var(--danger-color);
         }
         
-        .btn-success {
-            background-color: var(--success-color);
+        .view-btn {
+            color: var(--primary-color);
         }
         
-        .btn-success:hover {
-            background-color: #218838;
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
         
-        .filter-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 15px;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
-        .export-controls {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .page-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .rows-per-page {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        @media print {
-            body {
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                background-color: white;
-            }
-            
-            .card {
-                break-inside: avoid;
-                box-shadow: none;
-                margin-bottom: 20px;
-                page-break-inside: avoid;
-            }
-            
-            .dashboard {
-                display: block;
-            }
-            
-            .btn, .pagination, .filter-controls, select, 
-            .export-controls, .notification, .page-controls {
-                display: none;
-            }
-            
-            .card-header {
-                background-color: #f0f0f0 !important;
-                color: black !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            
-            .progress-fill {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            
-            @page {
-                size: A4 landscape;
-                margin: 1cm;
-            }
+        .hidden {
+            display: none;
         }
         
         @media (max-width: 768px) {
@@ -412,1326 +485,2077 @@
                 grid-template-columns: 1fr;
             }
             
-            .card-body {
-                padding: 15px;
-            }
-            
-            .summary-value {
-                font-size: 24px;
-            }
-            
-            .filter-controls {
+            .action-bar {
                 flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            th, td {
+                padding: 0.75rem 0.5rem;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo-container">
-            <img src="logo.png" alt="לוגו" class="logo" onerror="this.style.display='none'">
+        <div class="header-content">
+            <div class="logo">מערכת ניהול משימות</div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" data-tab="tasks">משימות</a></li>
+                    <li><a href="#" data-tab="subtasks">תתי-משימות</a></li>
+                    <li><a href="#" data-tab="team">צוות</a></li>
+                    <li><a href="#" data-tab="categories">קטגוריות</a></li>
+                    <li><a href="#" data-tab="logs">היסטוריה</a></li>
+                </ul>
+            </nav>
         </div>
-        <h1>ניתוח נתוני רישום - יום סבבא אגף בנות</h1>
     </header>
     
-    <div id="notification" class="notification"></div>
-    
-    <div id="loading" class="loading-container">
-        <div class="loader"></div>
-        <h2>טוען נתוני רישום...</h2>
-    </div>
-    
-    <div id="error" class="error-message" style="display: none;">
-        <p>אירעה שגיאה בטעינת הנתונים. אנא נסה שוב מאוחר יותר.</p>
-        <p id="errorDetails"></p>
-        <button class="btn" onclick="retryLoading()">נסה שוב</button>
-    </div>
-    
-    <div id="cacheNotice" class="success-message" style="display: none;">
-        <p>הנתונים מוצגים מגיבוי מקומי. תאריך עדכון אחרון: <span id="lastUpdateTime"></span></p>
-        <button class="btn" onclick="loadData()">רענן נתונים</button>
-    </div>
-    
-    <div id="dashboard" class="dashboard" style="display: none;">
-        <!-- כרטיס סיכום נתונים -->
-        <div class="card summary-card">
-            <div class="summary-item">
-                <div class="summary-label">סה"כ תלמידות</div>
-                <div id="totalStudents" class="summary-value">0</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">סה"כ משפחות</div>
-                <div id="totalFamilies" class="summary-value">0</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">אחוז השתתפות</div>
-                <div id="participationRate" class="summary-value">0%</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">סבים</div>
-                <div id="grandpaCount" class="summary-value">0</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">סבתות</div>
-                <div id="grandmaCount" class="summary-value">0</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">מלווים אחרים</div>
-                <div id="otherCount" class="summary-value">0</div>
-            </div>
-        </div>
-        
-        <!-- כרטיס התפלגות לפי כיתות -->
-        <div class="card">
-            <div class="card-header">
-                התפלגות תלמידות לפי כיתה
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="classDistributionChart"></canvas>
+    <div class="container">
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">סך הכל משימות</div>
+                    <div class="card-icon"><i class="fas fa-tasks"></i></div>
                 </div>
+                <div class="stat" id="total-tasks">0</div>
+                <div>מתוכן <span id="completed-tasks">0</span> הושלמו</div>
             </div>
-        </div>
-        
-        <!-- כרטיס אחוזי השתתפות -->
-        <div class="card">
-            <div class="card-header">
-                אחוזי השתתפות לפי כיתה
-            </div>
-            <div class="card-body">
-                <div id="participationRates"></div>
-            </div>
-        </div>
-        
-        <!-- כרטיס סוגי מלווים -->
-        <div class="card">
-            <div class="card-header">
-                התפלגות סוגי מלווים
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="attendeeTypesChart"></canvas>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">משימות פעילות</div>
+                    <div class="card-icon"><i class="fas fa-spinner"></i></div>
                 </div>
+                <div class="stat" id="active-tasks">0</div>
+                <div><span id="delayed-tasks">0</span> משימות באיחור</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">חברי צוות פעילים</div>
+                    <div class="card-icon"><i class="fas fa-users"></i></div>
+                </div>
+                <div class="stat" id="team-count">0</div>
+                <div>עובדים על <span id="categories-count">0</span> פרויקטים</div>
             </div>
         </div>
         
-        <!-- כרטיס נתוני השתתפות מפורטים -->
-        <div class="card">
-            <div class="card-header">
-                נתוני השתתפות מפורטים לפי כיתה
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="tasks">משימות ראשיות</button>
+                <button class="tab-button" data-tab="subtasks">תתי-משימות</button>
+                <button class="tab-button" data-tab="team">צוות</button>
+                <button class="tab-button" data-tab="categories">קטגוריות</button>
+                <button class="tab-button" data-tab="logs">היסטוריה</button>
             </div>
-            <div class="card-body">
-                <div class="export-controls">
-                    <button class="btn" onclick="exportTableToCSV('detailed-class-data.csv', 'detailedClassTable')">ייצא לקובץ CSV</button>
-                    <button class="btn btn-secondary" onclick="printTable('detailedClassTable')">הדפסה</button>
+            
+            <!-- Tasks Tab -->
+            <div class="tab-content active" id="tasks-tab">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="task-search" placeholder="חיפוש משימות...">
+                        <button class="search-button"><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <div class="filter-box">
+                        <select class="filter-select" id="task-status-filter">
+                            <option value="">כל הסטטוסים</option>
+                            <option value="לביצוע">לביצוע</option>
+                            <option value="בתהליך">בתהליך</option>
+                            <option value="הושלם">הושלם</option>
+                            <option value="מעוכב">מעוכב</option>
+                        </select>
+                        
+                        <select class="filter-select" id="task-priority-filter">
+                            <option value="">כל העדיפויות</option>
+                            <option value="גבוהה">גבוהה</option>
+                            <option value="בינונית">בינונית</option>
+                            <option value="נמוכה">נמוכה</option>
+                        </select>
+                        
+                        <select class="filter-select" id="task-category-filter">
+                            <option value="">כל הקטגוריות</option>
+                            <!-- Will be filled dynamically -->
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="add-task-btn">
+                        <i class="fas fa-plus btn-icon"></i>משימה חדשה
+                    </button>
                 </div>
-                <div class="table-container">
-                    <table id="detailedClassTable">
+                
+                <div class="table-responsive">
+                    <table id="tasks-table">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('detailedClassTable', 0)">כיתה</th>
-                                <th onclick="sortTable('detailedClassTable', 1)">מספר תלמידות</th>
-                                <th onclick="sortTable('detailedClassTable', 2)">מגיעים</th>
-                                <th onclick="sortTable('detailedClassTable', 3)">לא מגיעים</th>
-                                <th onclick="sortTable('detailedClassTable', 4)">אחוז השתתפות</th>
-                                <th onclick="sortTable('detailedClassTable', 5)">סה"כ בכיתה</th>
-                                <th onclick="sortTable('detailedClassTable', 6)">% מהכיתה</th>
+                                <th>מזהה</th>
+                                <th>שם המשימה</th>
+                                <th>אחראי</th>
+                                <th>עדיפות</th>
+                                <th>סטטוס</th>
+                                <th>תאריך יעד</th>
+                                <th>התקדמות</th>
+                                <th>פעולות</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- הנתונים יוזנו באמצעות JavaScript -->
+                        <tbody id="tasks-table-body">
+                            <!-- Will be filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Subtasks Tab -->
+            <div class="tab-content" id="subtasks-tab">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="subtask-search" placeholder="חיפוש תתי-משימות...">
+                        <button class="search-button"><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <div class="filter-box">
+                        <select class="filter-select" id="subtask-status-filter">
+                            <option value="">כל הסטטוסים</option>
+                            <option value="לביצוע">לביצוע</option>
+                            <option value="בתהליך">בתהליך</option>
+                            <option value="הושלם">הושלם</option>
+                            <option value="מעוכב">מעוכב</option>
+                        </select>
+                        
+                        <select class="filter-select" id="subtask-parent-filter">
+                            <option value="">כל המשימות הראשיות</option>
+                            <!-- Will be filled dynamically -->
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="add-subtask-btn">
+                        <i class="fas fa-plus btn-icon"></i>תת-משימה חדשה
+                    </button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="subtasks-table">
+                        <thead>
+                            <tr>
+                                <th>מזהה</th>
+                                <th>משימה ראשית</th>
+                                <th>שם תת-משימה</th>
+                                <th>אחראי</th>
+                                <th>סטטוס</th>
+                                <th>תאריך יעד</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subtasks-table-body">
+                            <!-- Will be filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Team Tab -->
+            <div class="tab-content" id="team-tab">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="team-search" placeholder="חיפוש חברי צוות...">
+                        <button class="search-button"><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <div class="filter-box">
+                        <select class="filter-select" id="team-department-filter">
+                            <option value="">כל המחלקות</option>
+                            <!-- Will be filled dynamically -->
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="add-team-member-btn">
+                        <i class="fas fa-user-plus btn-icon"></i>הוסף חבר צוות
+                    </button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="team-table">
+                        <thead>
+                            <tr>
+                                <th>שם מלא</th>
+                                <th>תפקיד</th>
+                                <th>אימייל</th>
+                                <th>טלפון</th>
+                                <th>צוות/מחלקה</th>
+                                <th>משימות פעילות</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-table-body">
+                            <!-- Will be filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Categories Tab -->
+            <div class="tab-content" id="categories-tab">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="category-search" placeholder="חיפוש קטגוריות...">
+                        <button class="search-button"><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="add-category-btn">
+                        <i class="fas fa-folder-plus btn-icon"></i>הוסף קטגוריה
+                    </button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="categories-table">
+                        <thead>
+                            <tr>
+                                <th>שם הקטגוריה</th>
+                                <th>תיאור</th>
+                                <th>צבע</th>
+                                <th>מנהל אחראי</th>
+                                <th>משימות</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categories-table-body">
+                            <!-- Will be filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Logs Tab -->
+            <div class="tab-content" id="logs-tab">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="log-search" placeholder="חיפוש באירועים...">
+                        <button class="search-button"><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <div class="filter-box">
+                        <select class="filter-select" id="log-action-filter">
+                            <option value="">כל סוגי הפעולות</option>
+                            <option value="יצירה">יצירה</option>
+                            <option value="עדכון">עדכון</option>
+                            <option value="מחיקה">מחיקה</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="logs-table">
+                        <thead>
+                            <tr>
+                                <th>זמן</th>
+                                <th>סוג פעולה</th>
+                                <th>מזהה משימה</th>
+                                <th>בוצע ע"י</th>
+                                <th>תיאור</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body">
+                            <!-- Will be filled dynamically -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-        
-        <!-- כרטיס רשימת תלמידות -->
-        <div class="card">
-            <div class="card-header">
-                <span>רשימת תלמידות לפי סטטוס הגעה</span>
+    </div>
+    
+    <!-- Add Task Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title" id="task-modal-title">הוספת משימה חדשה</h3>
             </div>
-            <div class="card-body">
-                <div class="filter-controls">
-                    <div>
-                        <label for="classFilter">סינון לפי כיתה:</label>
-                        <select id="classFilter" onchange="filterStudentList()">
-                            <option value="all">כל הכיתות</option>
-                            <!-- אפשרויות יתווספו דינמית -->
-                        </select>
-                    </div>
-                    <div>
-                        <label for="attendanceFilter">סינון לפי סטטוס:</label>
-                        <select id="attendanceFilter" onchange="filterStudentList()">
-                            <option value="all">כל התלמידות</option>
-                            <option value="attending">מגיעים</option>
-                            <option value="notAttending">לא מגיעים</option>
-                        </select>
-                    </div>
-                    <div>
-                        <input type="text" id="searchInput" placeholder="חיפוש לפי שם/משפחה..." 
-                               oninput="debounce(filterStudentList, 300)()">
+            <form id="task-form">
+                <div class="form-group">
+                    <label class="form-label" for="task-id">מזהה משימה</label>
+                    <input type="text" class="form-control" id="task-id" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-name">שם המשימה</label>
+                    <input type="text" class="form-control" id="task-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-description">תיאור המשימה</label>
+                    <textarea class="form-control" id="task-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-assignee">אחראי ביצוע</label>
+                    <select class="form-control" id="task-assignee" required>
+                        <!-- Will be filled dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-priority">עדיפות</label>
+                    <select class="form-control" id="task-priority" required>
+                        <option value="גבוהה">גבוהה</option>
+                        <option value="בינונית">בינונית</option>
+                        <option value="נמוכה">נמוכה</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-status">סטטוס</label>
+                    <select class="form-control" id="task-status" required>
+                        <option value="לביצוע">לביצוע</option>
+                        <option value="בתהליך">בתהליך</option>
+                        <option value="הושלם">הושלם</option>
+                        <option value="מעוכב">מעוכב</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-start-date">תאריך יצירה</label>
+                    <input type="date" class="form-control" id="task-start-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-due-date">תאריך יעד</label>
+                    <input type="date" class="form-control" id="task-due-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-completion-date">תאריך סיום בפועל</label>
+                    <input type="date" class="form-control" id="task-completion-date">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="task-progress">אחוז התקדמות</label>
+                    <input type="number" class="form-control" id="task-progress" min="0" max="100" value="0">
+                    <div class="progress-container">
+                        <div class="progress-bar" id="task-progress-bar" style="width: 0%"></div>
                     </div>
                 </div>
-                
-                <div class="export-controls">
-                    <button class="btn" onclick="exportTableToCSV('student-list.csv', 'studentList')">ייצא לקובץ CSV</button>
-                    <button class="btn btn-secondary" onclick="printTable('studentList')">הדפסה</button>
+                <div class="form-group">
+                    <label class="form-label" for="task-category">קטגוריה/פרויקט</label>
+                    <select class="form-control" id="task-category" required>
+                        <!-- Will be filled dynamically -->
+                    </select>
                 </div>
-                
-                <div class="page-controls">
-                    <div class="rows-per-page">
-                        <label for="rowsPerPageSelect">שורות בעמוד:</label>
-                        <select id="rowsPerPageSelect" onchange="changeRowsPerPage()">
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="all">הכל</option>
-                        </select>
-                    </div>
-                    <div>
-                        <span id="studentListInfo">מציג <span id="startDisplayIndex">1</span>-<span id="endDisplayIndex">10</span> מתוך <span id="totalFilteredCount">0</span> תלמידות</span>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="cancel-task-btn">ביטול</button>
+                 <button type="submit" class="btn btn-success" id="save-task-btn">
+                        <span class="btn-text">שמור</span>
+                        <span class="loader hidden"></span>
+                    </button>
                 </div>
-                
-                <div class="table-container">
-                    <table id="studentList">
-                        <thead>
-                            <tr>
-                                <th onclick="sortStudentList('name')">שם התלמידה</th>
-                                <th onclick="sortStudentList('className')">כיתה</th>
-                                <th onclick="sortStudentList('lastName')">שם משפחה</th>
-                                <th onclick="sortStudentList('attendees')">מי מגיע</th>
-                                <th onclick="sortStudentList('status')">סטטוס</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- הנתונים יוזנו באמצעות JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="studentListPagination" class="pagination"></div>
-            </div>
+            </form>
         </div>
     </div>
-
+    
+    <!-- Add Subtask Modal -->
+    <div class="modal" id="subtask-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title" id="subtask-modal-title">הוספת תת-משימה חדשה</h3>
+            </div>
+            <form id="subtask-form">
+                <div class="form-group">
+                    <label class="form-label" for="subtask-id">מזהה תת-משימה</label>
+                    <input type="text" class="form-control" id="subtask-id" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-parent">משימה ראשית</label>
+                    <select class="form-control" id="subtask-parent" required>
+                        <!-- Will be filled dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-name">שם תת-המשימה</label>
+                    <input type="text" class="form-control" id="subtask-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-description">תיאור תת-המשימה</label>
+                    <textarea class="form-control" id="subtask-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-assignee">אחראי ביצוע</label>
+                    <select class="form-control" id="subtask-assignee" required>
+                        <!-- Will be filled dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-status">סטטוס</label>
+                    <select class="form-control" id="subtask-status" required>
+                        <option value="לביצוע">לביצוע</option>
+                        <option value="בתהליך">בתהליך</option>
+                        <option value="הושלם">הושלם</option>
+                        <option value="מעוכב">מעוכב</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-start-date">תאריך יצירה</label>
+                    <input type="date" class="form-control" id="subtask-start-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-due-date">תאריך יעד</label>
+                    <input type="date" class="form-control" id="subtask-due-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subtask-completion-date">תאריך סיום בפועל</label>
+                    <input type="date" class="form-control" id="subtask-completion-date">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="cancel-subtask-btn">ביטול</button>
+                    <button type="submit" class="btn btn-success" id="save-subtask-btn">
+                        <span class="btn-text">שמור</span>
+                        <span class="loader hidden"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Team Member Modal -->
+    <div class="modal" id="team-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title" id="team-modal-title">הוספת חבר צוות חדש</h3>
+            </div>
+            <form id="team-form">
+                <div class="form-group">
+                    <label class="form-label" for="team-name">שם מלא</label>
+                    <input type="text" class="form-control" id="team-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="team-role">תפקיד</label>
+                    <input type="text" class="form-control" id="team-role" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="team-email">אימייל</label>
+                    <input type="email" class="form-control" id="team-email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="team-phone">טלפון</label>
+                    <input type="tel" class="form-control" id="team-phone">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="team-department">צוות/מחלקה</label>
+                    <input type="text" class="form-control" id="team-department" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="cancel-team-btn">ביטול</button>
+                    <button type="submit" class="btn btn-success" id="save-team-btn">
+                        <span class="btn-text">שמור</span>
+                        <span class="loader hidden"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Category Modal -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title" id="category-modal-title">הוספת קטגוריה חדשה</h3>
+            </div>
+            <form id="category-form">
+                <div class="form-group">
+                    <label class="form-label" for="category-name">שם הקטגוריה</label>
+                    <input type="text" class="form-control" id="category-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="category-description">תיאור</label>
+                    <textarea class="form-control" id="category-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="category-color">צבע</label>
+                    <input type="color" class="form-control" id="category-color" value="#4285F4">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="category-manager">מנהל אחראי</label>
+                    <select class="form-control" id="category-manager" required>
+                        <!-- Will be filled dynamically -->
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="cancel-category-btn">ביטול</button>
+                    <button type="submit" class="btn btn-success" id="save-category-btn">
+                        <span class="btn-text">שמור</span>
+                        <span class="loader hidden"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Log Activity Modal -->
+    <div class="modal" id="log-modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title">רישום פעולה חדשה</h3>
+            </div>
+            <form id="log-form">
+                <div class="form-group">
+                    <label class="form-label" for="log-time">זמן פעולה</label>
+                    <input type="datetime-local" class="form-control" id="log-time" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="log-type">סוג פעולה</label>
+                    <select class="form-control" id="log-type" required>
+                        <option value="יצירה">יצירה</option>
+                        <option value="עדכון">עדכון</option>
+                        <option value="מחיקה">מחיקה</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="log-task-id">מזהה משימה</label>
+                    <input type="text" class="form-control" id="log-task-id" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="log-user">מבצע הפעולה</label>
+                    <select class="form-control" id="log-user" required>
+                        <!-- Will be filled dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="log-description">תיאור הפעולה</label>
+                    <textarea class="form-control" id="log-description" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="cancel-log-btn">ביטול</button>
+                    <button type="submit" class="btn btn-success" id="save-log-btn">
+                        <span class="btn-text">שמור</span>
+                        <span class="loader hidden"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
-        // ===== הגדרות =====
-        const CONFIG = {
-            // קישור לגליון הנתונים
-            SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS-tw481NC9DzPt3RBOEoiGdeGv6FNRjC28NbKUuvY2bNWIdSqR4BmQTe8-n6RndK4NDOgVFtUirqU4/pub?output=csv',
-            // מידע מעודכן על גודלי כיתות
-             CLASS_SIZES: {
-        'א\' עדי רחמני': 24,
-        'א\' רעות שיף': 23,
-        'ב\' הדר כהן': 30,
-        'ג\' שירה חדאד': 21,
-        'ד\' הדר כחלון': 30,
-        'ו\' ספיר צדוק': 25
-    }
-        };
-        
-        // משתנים גלובליים לניתוח הנתונים
-        let rawData = [];
-        let processedData = {
-            totalStudents: 0,
-            totalFamilies: 0,
-            classCounts: {},
-            classesWithNoShow: {},
-            attendeeTypes: {
-                "סבא": 0,
-                "סבתא": 0,
-                "אחר": 0,
-                "לא מגיעים": 0
+        // הגדרת קישורים לטפסים וטבלאות הנתונים
+        const API_ENDPOINTS = {
+            tasks: {
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vScsHH7dbqbDm5UMWQ2mXDWyET3Z4K6aL4H0xJhgdieKMtSswABYwsmuwfu-ir_ZXUdHLsnkxyaS5_j/pub?output=csv',
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSchW6rJl8w1VP3B41EeHpDEPtt09TLLF1MeHJj4ZgFs93Zerg/viewform',
+                fields: {
+                    "מזהה משימה": "entry.2054280134",
+                    "שם המשימה": "entry.637590758",
+                    "תיאור המשימה": "entry.1017991574",
+                    "אחראי ביצוע": "entry.1499148213",
+                    "עדיפות": "entry.529873824",
+                    "סטטוס": "entry.1453786945",
+                    "תאריך יצירה": "entry.2091948889",
+                    "תאריך יעד": "entry.407689682",
+                    "תאריך סיום בפועל": "entry.1328548372",
+                    "אחוז התקדמות": "entry.1696420532",
+                    "קטגוריה/פרוייקט": "entry.1652595015"
+                }
             },
-            participationRates: {},
-            studentList: [],
-            // מידע חדש: אחוז ההשתתפות מתוך הכיתה המלאה
-            totalClassParticipation: {}
+            subtasks: {
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTo-zRPC6oof_fhmsmpe7f57vZwn-9jCFBnsWr5LZOe3rKmXnN0zS8bs0udNynjZRdh61e3epkxRrCe/pub?output=csv',
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSeLnoQ0KIEhP7Yk48t2CN5FsvihSzrOt0KztoOPUy3naJW46g/viewform',
+                fields: {
+                    "מזהה תת משימה": "entry.1251635009",
+                    "משימה ראשית": "entry.1212702336",
+                    "שם תת משימה": "entry.87549220",
+                    "תיאור תת משימה": "entry.354632529",
+                    "אחראי ביצוע": "entry.1429238734",
+                    "סטטוס": "entry.765500006",
+                    "תאריך יצירה": "entry.1390493653",
+                    "תאריך יעד": "entry.635945244",
+                    "תאריך סיום בפועל": "entry.1663915626"
+                }
+            },
+            team: {
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWhGu69TpNTiE9DE1n5KsiH4iEpqhNy3s-UcwYBe_EIZwO5TvUVVHCs9_ZgAQ-2_J3eQE_ODXjBtPA/pub?output=csv',
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSeFrNrurPveYdK9ApFlgkXu8nOt0HYzerUNH3zDuC7sWIEWBw/viewform',
+                fields: {
+                    "שם מלא": "entry.756360730",
+                    "תפקיד": "entry.723804406",
+                    "אי מייל": "entry.234705934",
+                    "טלפון": "entry.846485915",
+                    "צוות": "entry.2014875962"
+                }
+            },
+            categories: {
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSRkXeBv6QMMSyvvlyR9AC9OJZ4zIFa4FiksFudg7mcUknW3r5zzR_tHcOx8ZdtG0hEYsyg-cL9ci4t/pub?output=csv',
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSfWY_A_fmH7FGrSAe7TMAA6LHSki2NGC9ghKIJxNVlxtxb3Rw/viewform',
+                fields: {
+                    "שם קטגוריה": "entry.249866111",
+                    "תיאר": "entry.587376028",
+                    "צבע": "entry.1256268019",
+                    "מנהל אחראי": "entry.254721129"
+                }
+            },
+            logs: {
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTTXm97I0cyNcdnMvXuBtd6WXVOilxs0whynYGhAJX1AoJBkgV4kiWsVv84HmV35lNvIfVc1kgOv1oe/pub?output=csv',
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSe-C8JXrmv3C7po-rhf5pElpojMLr2juxEqLpBmjRat9E2fOw/viewform',
+                fields: {
+                    "זמן פעולה": "entry.909214407",
+                    "סוג פעולה": "entry.1458162805",
+                    "מזהה משימה": "entry.1550711605",
+                    "מבצע משימה": "entry.626598428",
+                    "תיאר פעולה": "entry.1127735204"
+                }
+            }
         };
         
-        // משתנים לתצוגת רשימת התלמידות
-        let currentPage = 1;
-        let rowsPerPage = 10;
-        let filteredStudents = [];
-        let currentSortColumn = 'name';
-        let currentSortDirection = 'asc';
+        // מידע גלובלי
+        let tasksData = [];
+        let subtasksData = [];
+        let teamData = [];
+        let categoriesData = [];
+        let logsData = [];
         
-        // פונקציית debounce למניעת קריאות תכופות מדי
-        function debounce(func, wait) {
-            let timeout;
-            return function() {
-                const context = this, args = arguments;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    func.apply(context, args);
-                }, wait);
-            };
-        }
-        
-        // הצגת הודעה למשתמש
-        function showNotification(message, duration = 4000) {
-            const notificationEl = document.getElementById('notification');
-            notificationEl.textContent = message;
-            notificationEl.classList.add('show');
+        // אתחול אירועים והצגת נתונים ראשונית בטעינת הדף
+        document.addEventListener('DOMContentLoaded', function() {
+            // טעינת כל הנתונים
+            fetchAllData();
             
-            setTimeout(() => {
-                notificationEl.classList.remove('show');
-            }, duration);
-        }
-        
-        // ===== טעינת נתונים ועיבוד =====
-        
-        // טעינת נתונים מהקישור
-        async function loadData() {
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('cacheNotice').style.display = 'none';
+            // אתחול טאבים
+            setupTabs();
             
+            // כפתורי הוספה
+            setupAddButtons();
+            
+            // חיפוש וסינון
+            setupSearchAndFilters();
+            
+            // יצירת אירועי סגירה למודאלים
+            setupModalCloseEvents();
+            
+            // טפסים
+            setupForms();
+        });
+        
+        // פונקציה לטעינת כל הנתונים
+        async function fetchAllData() {
             try {
-                const response = await fetchWithRetry(CONFIG.SHEET_URL);
-                const csvText = await response.text();
-                parseCSV(csvText);
+                // טעינת כל סוגי הנתונים במקביל
+                const [tasks, subtasks, team, categories, logs] = await Promise.all([
+                    fetchCSV(API_ENDPOINTS.tasks.sheet),
+                    fetchCSV(API_ENDPOINTS.subtasks.sheet),
+                    fetchCSV(API_ENDPOINTS.team.sheet),
+                    fetchCSV(API_ENDPOINTS.categories.sheet),
+                    fetchCSV(API_ENDPOINTS.logs.sheet)
+                ]);
+                
+                tasksData = tasks;
+                subtasksData = subtasks;
+                teamData = team;
+                categoriesData = categories;
+                logsData = logs;
+                
+                // הצגת הנתונים בטבלאות
+                renderTasks();
+                renderSubtasks();
+                renderTeam();
+                renderCategories();
+                renderLogs();
+                
+                // עדכון סלקטים בטפסים
+                updateFormSelects();
+                
+                // עדכון סטטיסטיקות
+                updateStats();
                 
             } catch (error) {
                 console.error('שגיאה בטעינת הנתונים:', error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('errorDetails').textContent = error.message;
-                
-                // נסה לטעון נתונים מהמטמון
-                tryLoadFromCache();
+                alert('שגיאה בטעינת הנתונים. נא לרענן את הדף ולנסות שוב.');
             }
         }
         
-        // פונקציה לטעינה עם ניסיון חוזר
-        async function fetchWithRetry(url, maxRetries = 3, retryDelay = 1000) {
-            let lastError;
-            
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`שגיאת שרת: ${response.status}`);
-                    }
-                    return response;
-                } catch (error) {
-                    console.warn(`ניסיון ${i + 1}/${maxRetries} נכשל:`, error);
-                    lastError = error;
-                    // המתנה לפני ניסיון חוזר עם השהייה הולכת וגדלה
-                    await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, i)));
-                }
-            }
-            
-            throw lastError;
-        }
-        
-        // ניסיון מחדש של טעינת הנתונים
-        function retryLoading() {
-            loadData();
-        }
-        
-        // טעינה מהמטמון המקומי
-        function tryLoadFromCache() {
+        // פונקציה לטעינת קובץ CSV מכתובת URL
+        async function fetchCSV(url) {
             try {
-                const cachedData = localStorage.getItem('studentData');
-                const lastUpdate = localStorage.getItem('lastDataUpdate');
-                
-                if (cachedData && lastUpdate) {
-                    console.log('טוען נתונים מהמטמון המקומי...');
-                    rawData = JSON.parse(cachedData);
-                    analyzeData(rawData);
-                    renderDashboard();
-                    
-                    // הצג הודעה על שימוש בנתונים מהמטמון
-                    document.getElementById('cacheNotice').style.display = 'block';
-                    document.getElementById('lastUpdateTime').textContent = new Date(lastUpdate).toLocaleString();
-                }
-            } catch (e) {
-                console.error('שגיאה בטעינה מהמטמון:', e);
+                const response = await fetch(url);
+                const csvText = await response.text();
+                return parseCSV(csvText);
+            } catch (error) {
+                console.error('שגיאה בטעינת CSV:', error);
+                return [];
             }
         }
         
-        // ניתוח קובץ CSV
+        // פונקציה לפירוק CSV לאובייקטים
         function parseCSV(csvText) {
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                dynamicTyping: true,
-                complete: function(results) {
-                    if (results.errors.length > 0) {
-                        console.error("שגיאות בניתוח הקובץ:", results.errors);
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('error').style.display = 'block';
-                        document.getElementById('errorDetails').textContent = "שגיאה בניתוח הקובץ";
-                        return;
-                    }
+            const lines = csvText.split('\n');
+            if (lines.length < 2) return [];
+            
+            const headers = lines[0].split(',').map(header => header.trim());
+            
+            return lines.slice(1)
+                .filter(line => line.trim() !== '')
+                .map(line => {
+                    const values = line.split(',');
+                    const obj = {};
                     
-                    rawData = results.data;
+                    headers.forEach((header, index) => {
+                        obj[header] = values[index] ? values[index].trim() : '';
+                    });
                     
-                    // שמירה במטמון
-                    try {
-                        localStorage.setItem('studentData', JSON.stringify(rawData));
-                        localStorage.setItem('lastDataUpdate', new Date().toISOString());
-                    } catch (e) {
-                        console.warn('לא ניתן לשמור במטמון המקומי:', e);
-                    }
-                    
-                    analyzeData(rawData);
-                    renderDashboard();
-                },
-                error: function(error) {
-                    console.error("שגיאה בניתוח הקובץ:", error);
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('error').style.display = 'block';
-                    document.getElementById('errorDetails').textContent = "שגיאה בניתוח הקובץ: " + error.message;
-                    tryLoadFromCache();
-                }
+                    return obj;
+                });
+        }
+        // פונקציה לאתחול הטאבים
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const navLinks = document.querySelectorAll('nav a');
+            
+            // אירועי לחיצה על הטאבים
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // אירועי לחיצה על לינקים בניווט
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabId = link.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
             });
         }
         
-        // ניתוח הנתונים
-        function analyzeData(data) {
-            // איפוס הנתונים
-            processedData = {
-                totalStudents: 0,
-                totalFamilies: data.length,
-                classCounts: {},
-                classesWithNoShow: {},
-                attendeeTypes: {
-                    "סבא": 0,
-                    "סבתא": 0,
-                    "אחר": 0,
-                    "לא מגיעים": 0
-                },
-                participationRates: {},
-                studentList: [],
-                totalClassParticipation: {}
-            };
+        // פונקציה למעבר בין טאבים
+        function switchTab(tabId) {
+            // עדכון הטאבים
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+            });
             
-            // מעבר על הנתונים
-            data.forEach((row, rowIndex) => {
-                // בדיקה האם המשפחה לא מגיעה
-                const notAttending = row["לא מגיעים"] ? true : false;
-                
-                // חיפוש מידע על מלווים
-                // חיפוש מידע על מלווים
-                const hasGrandpa = row["שם סבא מגיע"] ? true : false;
-                const hasGrandma = row["שם סבתא מגיעה"] ? true : false;
-                const hasOther = row["אחר - קרבה"] ? true : false;
-                
-                if (hasGrandpa) processedData.attendeeTypes["סבא"]++;
-                if (hasGrandma) processedData.attendeeTypes["סבתא"]++;
-                if (hasOther) processedData.attendeeTypes["אחר"]++;
-                if (notAttending) processedData.attendeeTypes["לא מגיעים"]++;
-                
-                // מידע על מלווים לתצוגה
-                let attendeeInfo = notAttending ? "לא מגיעים" : "";
-                if (!notAttending) {
-                    const attendees = [];
-                    if (hasGrandpa) attendees.push(`סבא ${row["שם סבא מגיע"] || ""}`);
-                    if (hasGrandma) attendees.push(`סבתא ${row["שם סבתא מגיעה"] || ""}`);
-                    if (hasOther) attendees.push(`${row["אחר - קרבה"] || ""} ${row["אחר - שם פרטי"] || ""}`);
-                    attendeeInfo = attendees.join(", ");
-                }
-                
-                // חיפוש תלמידות ברשומה
-                for (let i = 1; i <= 4; i++) {
-                    const nameKey = `שם התלמיד ${i}`;
-                    const classKey = `כיתה ${i}`;
-                    
-                    if (row[nameKey] && row[classKey]) {
-                        const studentName = row[nameKey];
-                        const studentClass = row[classKey];
-                        
-                        processedData.totalStudents++;
-                        
-                        // ספירה לפי כיתה
-                    if (!processedData.classCounts[studentClass]) {
-                           processedData.classCounts[studentClass] = 0;
-                       }
-                       processedData.classCounts[studentClass]++;
-                       
-                       // ספירת לא מגיעים לפי כיתה
-                       if (notAttending) {
-                           if (!processedData.classesWithNoShow[studentClass]) {
-                               processedData.classesWithNoShow[studentClass] = 0;
-                           }
-                           processedData.classesWithNoShow[studentClass]++;
-                       }
-                       
-                       // הוספה לרשימת התלמידות
-                       processedData.studentList.push({
-                           name: studentName,
-                           className: studentClass,
-                           lastName: row["שם משפחה"] || "",
-                           attendees: attendeeInfo,
-                           status: notAttending ? "לא מגיעים" : "מגיעים",
-                           rowId: rowIndex
-                       });
-                   }
-               }
-           });
-           
-           // חישוב אחוזי השתתפות לפי כיתה
-           Object.keys(processedData.classCounts).forEach(className => {
-               const totalInClass = processedData.classCounts[className];
-               const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
-               const attendingInClass = totalInClass - notAttendingInClass;
-               const rate = (attendingInClass / totalInClass) * 100;
-               processedData.participationRates[className] = parseFloat(rate.toFixed(1));
-               
-               // חישוב אחוז ההשתתפות מתוך הכיתה המלאה
-               const totalClassSize = CONFIG.CLASS_SIZES[className] || 0;
-               if (totalClassSize > 0) {
-                   const classParticipationRate = (totalInClass / totalClassSize) * 100;
-                   processedData.totalClassParticipation[className] = {
-                       registered: totalInClass,
-                       totalSize: totalClassSize,
-                       rate: parseFloat(classParticipationRate.toFixed(1))
-                   };
-               }
-           });
-           
-           // חישוב אחוז השתתפות כללי
-           const totalAttending = processedData.totalStudents - 
-               (Object.values(processedData.classesWithNoShow).reduce((a, b) => a + b, 0) || 0);
-           processedData.overallParticipationRate = parseFloat(
-               ((totalAttending / processedData.totalStudents) * 100).toFixed(1)
-           );
-       }
-       
-       // ===== הצגת הדשבורד =====
-       
-       // הצגת הדשבורד
-       function renderDashboard() {
-           document.getElementById('loading').style.display = 'none';
-           document.getElementById('dashboard').style.display = 'grid';
-           
-           updateSummaryCard();
-           renderClassDistributionChart();
-           renderAttendeeTypesChart();
-           renderParticipationRates();
-           renderDetailedClassTable();
-           renderStudentList();
-           
-           // אתחול רשימת הכיתות לסינון
-           populateClassFilter();
-       }
-       
-       // מילוי רשימת הכיתות לסינון
-       function populateClassFilter() {
-           const classFilter = document.getElementById('classFilter');
-           classFilter.innerHTML = '<option value="all">כל הכיתות</option>';
-           
-           const classes = Object.keys(processedData.classCounts).sort();
-           classes.forEach(className => {
-               const option = document.createElement('option');
-               option.value = className;
-               option.textContent = className;
-               classFilter.appendChild(option);
-           });
-       }
-       
-       // עדכון כרטיס הסיכום
-       function updateSummaryCard() {
-           // סה"כ תלמידות
-           document.getElementById('totalStudents').textContent = processedData.totalStudents;
-           
-           // סה"כ משפחות
-           document.getElementById('totalFamilies').textContent = processedData.totalFamilies;
-           
-           // אחוז השתתפות
-           document.getElementById('participationRate').textContent = `${processedData.overallParticipationRate}%`;
-           
-           // ספירת מלווים
-           document.getElementById('grandpaCount').textContent = processedData.attendeeTypes["סבא"];
-           document.getElementById('grandmaCount').textContent = processedData.attendeeTypes["סבתא"];
-           document.getElementById('otherCount').textContent = processedData.attendeeTypes["אחר"];
-       }
-       
-       // יצירת תרשים התפלגות כיתות
-function renderClassDistributionChart() {
-    const ctx = document.getElementById('classDistributionChart').getContext('2d');
-    
-    const labels = Object.keys(processedData.classCounts).sort();
-    
-    // חישוב נתונים מפורטים לכל כיתה
-    const chartData = labels.map(cls => {
-        const totalInClass = CONFIG.CLASS_SIZES[cls] || 0; // גודל כיתה מלא
-        const respondedCount = processedData.classCounts[cls]; // סך העונות
-        const attendingCount = respondedCount - (processedData.classesWithNoShow[cls] || 0); // מאשרות הגעה
-
-        const respondedRate = (respondedCount / totalInClass) * 100;
-        const attendingRate = (attendingCount / respondedCount) * 100;
-
-        return {
-            className: cls,
-            totalStudents: totalInClass,
-            respondedCount: respondedCount,
-            attendingCount: attendingCount,
-            respondedRate: respondedRate.toFixed(1),
-            attendingRate: attendingRate.toFixed(1)
-        };
-    });
-    
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) {
-        existingChart.destroy();
-    }
-    
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'אחוז תגובה מהכיתה',
-                data: chartData.map(item => item.respondedRate),
-                backgroundColor: function(context) {
-                    const item = chartData[context.dataIndex];
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                    gradient.addColorStop(0, '#4a2c82');  // צבע תגובות חיוביות
-                    gradient.addColorStop(item.attendingRate/100, '#4a2c82');  // צבע תגובות חיוביות
-                    gradient.addColorStop(item.attendingRate/100, '#dc3545');  // צבע לא מגיעים
-                    gradient.addColorStop(1, '#dc3545');
-                    return gradient;
-                },
-                barPercentage: 0.7,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const item = chartData[context.dataIndex];
-                            return [
-                                `סה"כ תלמידות: ${item.totalStudents}`,
-                                `אחוז תגובה: ${item.respondedRate}%`,
-                                `מגיעים: ${item.attendingCount}/${item.respondedCount} (${item.attendingRate}%)`
-                            ];
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-       
-       // יצירת תרשים סוגי מלווים
-       function renderAttendeeTypesChart() {
-           const ctx = document.getElementById('attendeeTypesChart').getContext('2d');
-           
-           const data = [
-               processedData.attendeeTypes["סבא"],
-               processedData.attendeeTypes["סבתא"],
-               processedData.attendeeTypes["אחר"]
-           ];
-           
-           const totalAttendees = data.reduce((a, b) => a + b, 0);
-           
-           // קבל תרשים קיים אם יש ועדכן אותו
-           const existingChart = Chart.getChart(ctx);
-           if (existingChart) {
-               existingChart.destroy();
-           }
-           
-           new Chart(ctx, {
-               type: 'doughnut',
-               data: {
-                   labels: ['סבא', 'סבתא', 'אחר'],
-                   datasets: [{
-                       data: data,
-                       backgroundColor: ['#4a2c82', '#e83e8c', '#fd7e14'],
-                       borderWidth: 0
-                   }]
-               },
-               options: {
-                   responsive: true,
-                   maintainAspectRatio: false,
-                   cutout: '65%',
-                   plugins: {
-                       legend: {
-                           position: 'right',
-                           labels: {
-                               usePointStyle: true,
-                               generateLabels: function(chart) {
-                                   const data = chart.data;
-                                   if (data.labels.length && data.datasets.length) {
-                                       return data.labels.map((label, i) => {
-                                           const value = data.datasets[0].data[i];
-                                           const percentage = totalAttendees ? 
-                                               Math.round((value / totalAttendees) * 100) : 0;
-                                           
-                                           return {
-                                               text: `${label}: ${value} (${percentage}%)`,
-                                               fillStyle: data.datasets[0].backgroundColor[i],
-                                               strokeStyle: data.datasets[0].backgroundColor[i],
-                                               lineWidth: 0,
-                                               hidden: isNaN(data.datasets[0].data[i]) || data.datasets[0].data[i] === 0,
-                                               index: i
-                                           };
-                                       });
-                                   }
-                                   return [];
-                               }
-                           }
-                       },
-                       tooltip: {
-                           rtl: true,
-                           textDirection: 'rtl',
-                           callbacks: {
-                               label: function(context) {
-                                   const value = context.raw;
-                                   const percentage = totalAttendees ? 
-                                       Math.round((value / totalAttendees) * 100) : 0;
-                                   return `${context.label}: ${value} (${percentage}%)`;
-                               }
-                           }
-                       }
-                   }
-               }
-           });
-       }
-       
-       // הצגת אחוזי השתתפות לפי כיתה
-   function renderParticipationRates() {
-    const container = document.getElementById('participationRates');
-    container.innerHTML = '';
-    
-    const sortedClasses = Object.keys(processedData.classCounts).sort();
-    
-    sortedClasses.forEach(className => {
-        const totalInClass = CONFIG.CLASS_SIZES[className] || 0;
-        const respondedCount = processedData.classCounts[className];
-        const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
-        const attendingCount = respondedCount - notAttendingInClass;
-
-        const respondedRate = (respondedCount / totalInClass) * 100;
-        const attendingRate = (attendingCount / respondedCount) * 100;
-        
-        const rowDiv = document.createElement('div');
-        rowDiv.style.marginBottom = '20px';
-        
-        const headerDiv = document.createElement('div');
-        headerDiv.style.display = 'flex';
-        headerDiv.style.justifyContent = 'space-between';
-        headerDiv.style.marginBottom = '5px';
-        
-        const classNameSpan = document.createElement('span');
-        classNameSpan.textContent = className;
-        classNameSpan.style.fontWeight = '600';
-        
-        const countRateSpan = document.createElement('span');
-        countRateSpan.textContent = `${respondedCount}/${totalInClass} (${respondedRate.toFixed(1)}%)`;
-        
-        headerDiv.appendChild(classNameSpan);
-        headerDiv.appendChild(countRateSpan);
-        
-        const progressDiv = document.createElement('div');
-        progressDiv.className = 'progress-bar';
-        
-        const fillDiv = document.createElement('div');
-        fillDiv.className = 'progress-fill';
-        
-        // יצירת גרדיאנט עם שני צבעים
-        fillDiv.style.background = `linear-gradient(to right, 
-            #4a2c82 ${(attendingCount/respondedCount)*100}%, 
-            #dc3545 ${(attendingCount/respondedCount)*100}%)`;
-        
-        fillDiv.style.width = `${respondedRate}%`;
-        fillDiv.style.height = '25px';
-        
-        if (respondedCount / totalInClass > 0.15) {
-            fillDiv.textContent = `${respondedCount}/${totalInClass}`;
+            // עדכון הטאב אקטיבי
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabId + '-tab');
+            });
+            
+            // עדכון הניווט
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.toggle('active', link.getAttribute('data-tab') === tabId);
+            });
         }
         
-        progressDiv.appendChild(fillDiv);
-        rowDiv.appendChild(headerDiv);
-        rowDiv.appendChild(progressDiv);
-        
-        // הוספת פירוט על אחוז המאשרים
-        const detailDiv = document.createElement('div');
-        detailDiv.style.fontSize = '13px';
-        detailDiv.style.color = '#666';
-        detailDiv.style.marginTop = '5px';
-        detailDiv.textContent = `מאשרים: ${attendingCount}/${respondedCount} (${attendingRate.toFixed(1)}%)`;
-        
-        rowDiv.appendChild(detailDiv);
-        
-        container.appendChild(rowDiv);
-    });
-}
-       
-       // הצגת טבלת נתונים מפורטת לפי כיתה
-       function renderDetailedClassTable() {
-           const tableBody = document.querySelector('#detailedClassTable tbody');
-           tableBody.innerHTML = '';
-           
-           // מיון הכיתות
-           const sortedClasses = Object.keys(processedData.classCounts).sort();
-           
-           sortedClasses.forEach(className => {
-               const totalInClass = processedData.classCounts[className];
-               const notAttendingInClass = processedData.classesWithNoShow[className] || 0;
-               const attendingInClass = totalInClass - notAttendingInClass;
-               const rate = processedData.participationRates[className];
-               
-               // מידע על גודל הכיתה המלא
-               const classTotalSize = CONFIG.CLASS_SIZES[className] || 0;
-               const classRegistrationRate = classTotalSize > 0 ? 
-                   parseFloat(((totalInClass / classTotalSize) * 100).toFixed(1)) : 0;
-               
-               const row = document.createElement('tr');
-               
-               const classCell = document.createElement('td');
-               classCell.textContent = className;
-               
-               const totalCell = document.createElement('td');
-               totalCell.textContent = totalInClass;
-               
-               const attendingCell = document.createElement('td');
-               attendingCell.textContent = attendingInClass;
-               
-               const notAttendingCell = document.createElement('td');
-               notAttendingCell.textContent = notAttendingInClass;
-               
-               const rateCell = document.createElement('td');
-               rateCell.textContent = `${rate}%`;
-               
-               // הדגשת אחוזים נמוכים
-               if (rate < 50) {
-                   rateCell.classList.add('highlight');
-               }
-               
-               // הוספת תאים חדשים עם מידע על גודל הכיתה המלא
-               const classSizeCell = document.createElement('td');
-               classSizeCell.textContent = classTotalSize > 0 ? classTotalSize : 'לא ידוע';
-               
-               const classRegistrationRateCell = document.createElement('td');
-               if (classTotalSize > 0) {
-                   classRegistrationRateCell.textContent = `${classRegistrationRate}%`;
-                   if (classRegistrationRate < 70) {
-                       classRegistrationRateCell.classList.add('highlight');
-                   }
-               } else {
-                   classRegistrationRateCell.textContent = 'לא ידוע';
-               }
-               
-               row.appendChild(classCell);
-               row.appendChild(totalCell);
-               row.appendChild(attendingCell);
-               row.appendChild(notAttendingCell);
-               row.appendChild(rateCell);
-               row.appendChild(classSizeCell);
-               row.appendChild(classRegistrationRateCell);
-               
-               tableBody.appendChild(row);
-           });
-           
-           // שורת סיכום
-           const totalRow = document.createElement('tr');
-           totalRow.style.fontWeight = 'bold';
-           totalRow.style.backgroundColor = '#f5f2ff';
-           
-           const totalLabelCell = document.createElement('td');
-           totalLabelCell.textContent = 'סה"כ';
-           
-           const totalStudentsCell = document.createElement('td');
-           totalStudentsCell.textContent = processedData.totalStudents;
-           
-           const totalAttending = processedData.totalStudents - 
-               (Object.values(processedData.classesWithNoShow).reduce((a, b) => a + b, 0) || 0);
-           
-           const totalAttendingCell = document.createElement('td');
-           totalAttendingCell.textContent = totalAttending;
-           
-           const totalNotAttendingCell = document.createElement('td');
-           totalNotAttendingCell.textContent = processedData.totalStudents - totalAttending;
-           
-           const totalRateCell = document.createElement('td');
-           totalRateCell.textContent = `${processedData.overallParticipationRate}%`;
-           
-           // חישוב סה"כ תלמידות בכל הכיתות
-           const totalClassSizes = Object.values(CONFIG.CLASS_SIZES).reduce((sum, size) => sum + size, 0);
-           const totalClassSizeCell = document.createElement('td');
-           totalClassSizeCell.textContent = totalClassSizes;
-           
-           // חישוב אחוז ההרשמה הכללי
-           const totalRegistrationRate = parseFloat(((processedData.totalStudents / totalClassSizes) * 100).toFixed(1));
-           const totalRegistrationRateCell = document.createElement('td');
-           totalRegistrationRateCell.textContent = `${totalRegistrationRate}%`;
-           
-           totalRow.appendChild(totalLabelCell);
-           totalRow.appendChild(totalStudentsCell);
-           totalRow.appendChild(totalAttendingCell);
-           totalRow.appendChild(totalNotAttendingCell);
-           totalRow.appendChild(totalRateCell);
-           totalRow.appendChild(totalClassSizeCell);
-           totalRow.appendChild(totalRegistrationRateCell);
-           
-           tableBody.appendChild(totalRow);
-       }
-       
-       // ===== רשימת תלמידות ופעולות =====
-       
-       // הצגת רשימת תלמידות
-       function renderStudentList() {
-           // סינון התלמידות
-           filterStudentList();
-       }
-       
-       // סינון רשימת התלמידות
-       function filterStudentList() {
-           const classFilter = document.getElementById('classFilter').value;
-           const attendanceFilter = document.getElementById('attendanceFilter').value;
-           const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
-           
-           // סינון לפי כיתה, סטטוס הגעה וחיפוש חופשי
-           filteredStudents = processedData.studentList.filter(student => {
-               const matchesClass = classFilter === 'all' || student.className === classFilter;
-               const matchesAttendance = attendanceFilter === 'all' || 
-                   (attendanceFilter === 'attending' && student.status === 'מגיעים') ||
-                   (attendanceFilter === 'notAttending' && student.status === 'לא מגיעים');
-               
-               // חיפוש בשם התלמידה, שם משפחה, או במלווים
-               const matchesSearch = searchInput === '' || 
-                   student.name.toLowerCase().includes(searchInput) ||
-                   student.lastName.toLowerCase().includes(searchInput) ||
-                   student.attendees.toLowerCase().includes(searchInput);
-               
-               return matchesClass && matchesAttendance && matchesSearch;
-           });
-           
-           // מיון הרשימה לפי העמודה הנוכחית
-           sortStudentList(currentSortColumn, true);
-           
-           // איפוס העמוד הנוכחי
-           currentPage = 1;
-           
-           // עדכון התצוגה
-           displayCurrentPage();
-       }
-       
-       // מיון רשימת התלמידות
-       function sortStudentList(column, keepDirection = false) {
-           if (!keepDirection && column === currentSortColumn) {
-               // החלף כיוון מיון אם לוחצים שוב על אותה עמודה
-               currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-           } else if (!keepDirection) {
-               currentSortColumn = column;
-               currentSortDirection = 'asc';
-           }
-           
-           // מיון הרשימה
-           filteredStudents.sort((a, b) => {
-               let valueA = a[column];
-               let valueB = b[column];
-               
-               if (column === 'className') {
-                   // מיון מיוחד לכיתות
-                   return sortClassNames(valueA, valueB, currentSortDirection);
-               }
-               
-               // מיון רגיל
-               if (typeof valueA === 'string') valueA = valueA.toLowerCase();
-               if (typeof valueB === 'string') valueB = valueB.toLowerCase();
-               
-               if (valueA < valueB) return currentSortDirection === 'asc' ? -1 : 1;
-               if (valueA > valueB) return currentSortDirection === 'asc' ? 1 : -1;
-               return 0;
-           });
-           
-           // עדכון התצוגה
-           displayCurrentPage();
-           
-           // עדכון סימון עמודת המיון
-           updateSortIndicators('studentList', column);
-       }
-       
-       // מיון שמות כיתות
-       function sortClassNames(a, b, direction) {
-           // פונקציה לחילוץ הכיתה (למשל, 'א', 'ב', 'ג')
-           function extractGrade(className) {
-               const match = className.match(/^([א-ת])/);
-               return match ? match[1] : className;
-           }
-           
-           const gradeA = extractGrade(a);
-           const gradeB = extractGrade(b);
-           
-           // סדר הכיתות לפי א-ב העברי
-           const gradeOrder = {'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6};
-           
-           const orderA = gradeOrder[gradeA] || 100; // אם לא מוכר, שים בסוף
-           const orderB = gradeOrder[gradeB] || 100;
-           
-           if (orderA !== orderB) {
-               return direction === 'asc' ? orderA - orderB : orderB - orderA;
-           }
-           
-           // אם אותה כיתה, מיין לפי הטקסט המלא
-           if (a < b) return direction === 'asc' ? -1 : 1;
-           if (a > b) return direction === 'asc' ? 1 : -1;
-           return 0;
-       }
-       
-       // עדכון סימוני מיון בטבלה
-       function updateSortIndicators(tableId, sortColumn) {
-           const tableHeaders = document.querySelectorAll(`#${tableId} th`);
-           tableHeaders.forEach(header => {
-               header.classList.remove('sorted', 'asc', 'desc');
-           });
-           
-           if (tableId === 'studentList') {
-               // מצא את העמודה המתאימה לפי הטקסט או המאפיינים
-               const headerIndex = {
-                   'name': 0,
-                   'className': 1,
-                   'lastName': 2,
-                   'attendees': 3,
-                   'status': 4
-               }[sortColumn];
-               
-               if (headerIndex !== undefined) {
-                   const header = tableHeaders[headerIndex];
-                   header.classList.add('sorted', currentSortDirection);
-               }
-           }
-       }
-       
-       // פונקציה לשינוי מספר השורות בעמוד
-       function changeRowsPerPage() {
-           const rowsPerPageSelect = document.getElementById('rowsPerPageSelect');
-           const selectedValue = rowsPerPageSelect.value;
-           
-           if (selectedValue === 'all') {
-               rowsPerPage = filteredStudents.length;
-           } else {
-               rowsPerPage = parseInt(selectedValue);
-           }
-           
-           // איפוס העמוד הנוכחי
-           currentPage = 1;
-           
-           // עדכון התצוגה
-           displayCurrentPage();
-       }
-       
-       // עדכון מידע על הצגת התלמידות
-       function updateStudentListInfo() {
-           const totalFilteredCount = filteredStudents.length;
-           const startIndex = (currentPage - 1) * rowsPerPage + 1;
-           const endIndex = Math.min(startIndex + rowsPerPage - 1, totalFilteredCount);
-           
-           document.getElementById('startDisplayIndex').textContent = totalFilteredCount > 0 ? startIndex : 0;
-           document.getElementById('endDisplayIndex').textContent = endIndex;
-           document.getElementById('totalFilteredCount').textContent = totalFilteredCount;
-       }
-       
-       // הצגת העמוד הנוכחי
-       function displayCurrentPage() {
-           const startIndex = (currentPage - 1) * rowsPerPage;
-           const endIndex = Math.min(startIndex + rowsPerPage, filteredStudents.length);
-           const displayedStudents = filteredStudents.slice(startIndex, endIndex);
-           
-           const tableBody = document.querySelector('#studentList tbody');
-           tableBody.innerHTML = '';
-           
-           if (displayedStudents.length === 0) {
-               const emptyRow = document.createElement('tr');
-               const emptyCell = document.createElement('td');
-               emptyCell.colSpan = 5;
-               emptyCell.textContent = 'לא נמצאו תלמידות';
-               emptyCell.style.textAlign = 'center';
-               emptyCell.style.padding = '20px';
-               emptyRow.appendChild(emptyCell);
-               tableBody.appendChild(emptyRow);
-               
-               // עדכון מידע על הצגת תלמידות
-               updateStudentListInfo();
-               
-               // עדכון כפתורי עמודים
-               updatePagination();
-               return;
-           }
-           
-           displayedStudents.forEach(student => {
-               const row = document.createElement('tr');
-               
-               if (student.status === 'לא מגיעים') {
-                   row.style.backgroundColor = '#ffeded';
-               }
-               
-               const nameCell = document.createElement('td');
-               nameCell.textContent = student.name;
-               
-               const classCell = document.createElement('td');
-               classCell.textContent = student.className;
-               
-               const lastNameCell = document.createElement('td');
-               lastNameCell.textContent = student.lastName;
-               
-               const attendeesCell = document.createElement('td');
-               attendeesCell.textContent = student.attendees;
-               
-               const statusCell = document.createElement('td');
-               statusCell.textContent = student.status;
-               
-               if (student.status === 'לא מגיעים') {
-                   statusCell.style.color = '#dc3545';
-                   statusCell.style.fontWeight = 'bold';
-               } else {
-                   statusCell.style.color = '#28a745';
-               }
-               
-               row.appendChild(nameCell);
-               row.appendChild(classCell);
-               row.appendChild(lastNameCell);
-               row.appendChild(attendeesCell);
-               row.appendChild(statusCell);
-               
-               tableBody.appendChild(row);
-           });
-           
-           // עדכון מידע על הצגת תלמידות
-           updateStudentListInfo();
-           
-           // עדכון כפתורי עמודים
-           updatePagination();
-       }
-        // עדכון כפתורי עמודים
-       // עדכון כפתורי עמודים
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
-            const paginationContainer = document.getElementById('studentListPagination');
-            paginationContainer.innerHTML = '';
+        // פונקציה לאתחול כפתורי הוספה
+        function setupAddButtons() {
+            // הוספת משימה
+            document.getElementById('add-task-btn').addEventListener('click', () => {
+                document.getElementById('task-form').reset();
+                document.getElementById('task-modal-title').textContent = 'הוספת משימה חדשה';
+                document.getElementById('task-id').value = generateUniqueId('task');
+                document.getElementById('task-start-date').value = getCurrentDate();
+                openModal('task-modal');
+            });
             
-            if (totalPages <= 1) {
+            // הוספת תת-משימה
+            document.getElementById('add-subtask-btn').addEventListener('click', () => {
+                document.getElementById('subtask-form').reset();
+                document.getElementById('subtask-modal-title').textContent = 'הוספת תת-משימה חדשה';
+                document.getElementById('subtask-id').value = generateUniqueId('subtask');
+                document.getElementById('subtask-start-date').value = getCurrentDate();
+                openModal('subtask-modal');
+            });
+            
+            // הוספת חבר צוות
+            document.getElementById('add-team-member-btn').addEventListener('click', () => {
+                document.getElementById('team-form').reset();
+                document.getElementById('team-modal-title').textContent = 'הוספת חבר צוות חדש';
+                openModal('team-modal');
+            });
+            
+            // הוספת קטגוריה
+            document.getElementById('add-category-btn').addEventListener('click', () => {
+                document.getElementById('category-form').reset();
+                document.getElementById('category-modal-title').textContent = 'הוספת קטגוריה חדשה';
+                openModal('category-modal');
+            });
+        }
+        
+        // ייצור מזהה ייחודי
+        function generateUniqueId(type) {
+            const timestamp = new Date().getTime();
+            const random = Math.floor(Math.random() * 10000);
+            return `${type}-${timestamp}-${random}`;
+        }
+        
+        // פונקציה לקבלת התאריך הנוכחי בפורמט YYYY-MM-DD
+        function getCurrentDate() {
+            const now = new Date();
+            return now.toISOString().split('T')[0];
+        }
+        
+        // פונקציה לפתיחת מודאל
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        
+        // פונקציה לסגירת מודאל
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // פונקציה לאתחול אירועי סגירה למודאלים
+        function setupModalCloseEvents() {
+            // סגירת כפתורי X
+            document.querySelectorAll('.modal-close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', (e) => {
+                    const modal = e.target.closest('.modal');
+                    modal.style.display = 'none';
+                });
+            });
+            
+            // סגירה בלחיצה על כפתורי ביטול
+            document.getElementById('cancel-task-btn').addEventListener('click', () => closeModal('task-modal'));
+            document.getElementById('cancel-subtask-btn').addEventListener('click', () => closeModal('subtask-modal'));
+            document.getElementById('cancel-team-btn').addEventListener('click', () => closeModal('team-modal'));
+            document.getElementById('cancel-category-btn').addEventListener('click', () => closeModal('category-modal'));
+            document.getElementById('cancel-log-btn').addEventListener('click', () => closeModal('log-modal'));
+            
+            // סגירה בלחיצה מחוץ למודאל
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // פונקציה לאתחול חיפוש וסינון
+        function setupSearchAndFilters() {
+            // חיפוש משימות
+            document.getElementById('task-search').addEventListener('input', filterTasks);
+            document.getElementById('task-status-filter').addEventListener('change', filterTasks);
+            document.getElementById('task-priority-filter').addEventListener('change', filterTasks);
+            document.getElementById('task-category-filter').addEventListener('change', filterTasks);
+            
+            // חיפוש תתי-משימות
+            document.getElementById('subtask-search').addEventListener('input', filterSubtasks);
+            document.getElementById('subtask-status-filter').addEventListener('change', filterSubtasks);
+            document.getElementById('subtask-parent-filter').addEventListener('change', filterSubtasks);
+            
+            // חיפוש צוות
+            document.getElementById('team-search').addEventListener('input', filterTeam);
+            document.getElementById('team-department-filter').addEventListener('change', filterTeam);
+            
+            // חיפוש קטגוריות
+            document.getElementById('category-search').addEventListener('input', filterCategories);
+            
+            // חיפוש לוגים
+            document.getElementById('log-search').addEventListener('input', filterLogs);
+            document.getElementById('log-action-filter').addEventListener('change', filterLogs);
+        }
+        
+        // פונקציה לאתחול טפסים
+        function setupForms() {
+            // טופס משימה
+            document.getElementById('task-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitTaskForm();
+            });
+            
+            // טופס תת-משימה
+            document.getElementById('subtask-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitSubtaskForm();
+            });
+            
+            // טופס חבר צוות
+            document.getElementById('team-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitTeamForm();
+            });
+            
+            // טופס קטגוריה
+            document.getElementById('category-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitCategoryForm();
+            });
+            
+            // טופס לוג
+            document.getElementById('log-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitLogForm();
+            });
+            
+            // עדכון הפרוגרס בר בטופס המשימה
+            document.getElementById('task-progress').addEventListener('input', function() {
+                const progress = this.value;
+                document.getElementById('task-progress-bar').style.width = `${progress}%`;
+            });
+        }
+        // פונקציה לרנדור משימות
+        function renderTasks() {
+            const tableBody = document.getElementById('tasks-table-body');
+            tableBody.innerHTML = '';
+            
+            if (tasksData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">לא נמצאו משימות</td></tr>';
                 return;
             }
             
-            // כפתור עמוד קודם
-            if (currentPage > 1) {
-                const prevButton = document.createElement('button');
-                prevButton.textContent = 'הקודם';
-                prevButton.onclick = () => {
-                    currentPage--;
-                    displayCurrentPage();
-                };
-                paginationContainer.appendChild(prevButton);
-            }
-            
-            // כפתורי עמודים
-            const maxButtons = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-            
-            if (endPage - startPage + 1 < maxButtons) {
-                startPage = Math.max(1, endPage - maxButtons + 1);
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.textContent = i;
-                pageButton.className = i === currentPage ? 'active' : '';
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    displayCurrentPage();
-                };
-                paginationContainer.appendChild(pageButton);
-            }
-            
-            // כפתור עמוד הבא
-            if (currentPage < totalPages) {
-                const nextButton = document.createElement('button');
-                nextButton.textContent = 'הבא';
-                nextButton.onclick = () => {
-                    currentPage++;
-                    displayCurrentPage();
-                };
-                paginationContainer.appendChild(nextButton);
-            }
-        }
-        
-        // ===== מיון טבלה =====
-        
-        // פונקציית מיון כללית לטבלאות
-        function sortTable(tableId, columnIndex) {
-            const table = document.getElementById(tableId);
-            const tbody = table.getElementsByTagName('tbody')[0];
-            const rows = Array.from(tbody.getElementsByTagName('tr'));
-            
-            // בדוק האם זו שורת סיכום (השורה האחרונה עם רקע שונה)
-            const summaryRow = rows.length > 0 && rows[rows.length - 1].style.backgroundColor === 'rgb(245, 242, 255)' ? 
-                rows.pop() : null;
-            
-            // קבע את כיוון המיון
-            const headerCells = table.getElementsByTagName('th');
-            let direction = 'asc';
-            
-            // בדוק האם כבר ממוין לפי העמודה הזו, ואם כן - החלף כיוון
-            if (headerCells[columnIndex].classList.contains('sorted')) {
-                direction = headerCells[columnIndex].classList.contains('asc') ? 'desc' : 'asc';
-            }
-            
-            // נקה את סימון המיון מכל הכותרות
-            Array.from(headerCells).forEach(cell => {
-                cell.classList.remove('sorted', 'asc', 'desc');
-            });
-            
-            // הוסף סימון מיון לעמודה הנוכחית
-            headerCells[columnIndex].classList.add('sorted', direction);
-            
-            // מיין את השורות
-            rows.sort((rowA, rowB) => {
-                const cellA = rowA.getElementsByTagName('td')[columnIndex].textContent.trim();
-                const cellB = rowB.getElementsByTagName('td')[columnIndex].textContent.trim();
+            tasksData.forEach(task => {
+                const row = document.createElement('tr');
                 
-                // בדוק אם זה מספר או טקסט
-                const numA = parseFloat(cellA);
-                const numB = parseFloat(cellB);
-                
-                if (!isNaN(numA) && !isNaN(numB)) {
-                    // מיון מספרי
-                    return direction === 'asc' ? numA - numB : numB - numA;
-                } else if (columnIndex === 0) {
-                    // מיון מיוחד לשמות כיתות
-                    return sortClassNames(cellA, cellB, direction);
+                // קביעת סגנון עדיפות
+                let priorityClass = '';
+                if (task['עדיפות'] === 'גבוהה') {
+                    priorityClass = 'priority-high';
+                } else if (task['עדיפות'] === 'בינונית') {
+                    priorityClass = 'priority-medium';
                 } else {
-                    // מיון טקסטואלי רגיל
-                    return direction === 'asc' ? 
-                        cellA.localeCompare(cellB, 'he') : 
-                        cellB.localeCompare(cellA, 'he');
+                    priorityClass = 'priority-low';
                 }
+                
+                // קביעת סגנון סטטוס
+                let statusClass = '';
+                if (task['סטטוס'] === 'לביצוע') {
+                    statusClass = 'status-new';
+                } else if (task['סטטוס'] === 'בתהליך') {
+                    statusClass = 'status-in-progress';
+                } else if (task['סטטוס'] === 'הושלם') {
+                    statusClass = 'status-completed';
+                } else {
+                    statusClass = 'status-delayed';
+                }
+                
+                // פורמט תאריך
+                const dueDate = task['תאריך יעד'] ? formatDate(task['תאריך יעד']) : '';
+                
+                row.innerHTML = `
+                    <td>${task['מזהה משימה']}</td>
+                    <td>${task['שם המשימה']}</td>
+                    <td>${task['אחראי ביצוע']}</td>
+                    <td><span class="priority ${priorityClass}">${task['עדיפות']}</span></td>
+                    <td><span class="status ${statusClass}">${task['סטטוס']}</span></td>
+                    <td>${dueDate}</td>
+                    <td>
+                      <div class="progress-container">
+                            <div class="progress-bar" style="width: ${task['אחוז התקדמות']}%"></div>
+                        </div>
+                        ${task['אחוז התקדמות']}%
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-btn" title="צפייה" onclick="viewTask('${task['מזהה משימה']}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" title="עריכה" onclick="editTask('${task['מזהה משימה']}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="מחיקה" onclick="deleteTask('${task['מזהה משימה']}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // פונקציה לרנדור תתי-משימות
+        function renderSubtasks() {
+            const tableBody = document.getElementById('subtasks-table-body');
+            tableBody.innerHTML = '';
+            
+            if (subtasksData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">לא נמצאו תתי-משימות</td></tr>';
+                return;
+            }
+            
+            subtasksData.forEach(subtask => {
+                const row = document.createElement('tr');
+                
+                // קביעת סגנון סטטוס
+                let statusClass = '';
+                if (subtask['סטטוס'] === 'לביצוע') {
+                    statusClass = 'status-new';
+                } else if (subtask['סטטוס'] === 'בתהליך') {
+                    statusClass = 'status-in-progress';
+                } else if (subtask['סטטוס'] === 'הושלם') {
+                    statusClass = 'status-completed';
+                } else {
+                    statusClass = 'status-delayed';
+                }
+                
+                // פורמט תאריך
+                const dueDate = subtask['תאריך יעד'] ? formatDate(subtask['תאריך יעד']) : '';
+                
+                row.innerHTML = `
+                    <td>${subtask['מזהה תת משימה']}</td>
+                    <td>${subtask['משימה ראשית']}</td>
+                    <td>${subtask['שם תת משימה']}</td>
+                    <td>${subtask['אחראי ביצוע']}</td>
+                    <td><span class="status ${statusClass}">${subtask['סטטוס']}</span></td>
+                    <td>${dueDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-btn" title="צפייה" onclick="viewSubtask('${subtask['מזהה תת משימה']}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" title="עריכה" onclick="editSubtask('${subtask['מזהה תת משימה']}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="מחיקה" onclick="deleteSubtask('${subtask['מזהה תת משימה']}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // פונקציה לרנדור חברי צוות
+        function renderTeam() {
+            const tableBody = document.getElementById('team-table-body');
+            tableBody.innerHTML = '';
+            
+            if (teamData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">לא נמצאו חברי צוות</td></tr>';
+                return;
+            }
+            
+            teamData.forEach(member => {
+                const row = document.createElement('tr');
+                
+                // ספירת משימות פעילות לחבר צוות
+                const activeTasks = tasksData.filter(task => 
+                    task['אחראי ביצוע'] === member['שם מלא'] && 
+                    task['סטטוס'] !== 'הושלם'
+                ).length;
+                
+                // ספירת תתי-משימות פעילות לחבר צוות
+                const activeSubtasks = subtasksData.filter(subtask => 
+                    subtask['אחראי ביצוע'] === member['שם מלא'] && 
+                    subtask['סטטוס'] !== 'הושלם'
+                ).length;
+                
+                const totalActiveTasks = activeTasks + activeSubtasks;
+                
+                row.innerHTML = `
+                    <td>${member['שם מלא']}</td>
+                    <td>${member['תפקיד']}</td>
+                    <td>${member['אי מייל']}</td>
+                    <td>${member['טלפון']}</td>
+                    <td>${member['צוות']}</td>
+                    <td>${totalActiveTasks}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit-btn" title="עריכה" onclick="editTeamMember('${member['שם מלא']}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="מחיקה" onclick="deleteTeamMember('${member['שם מלא']}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // פונקציה לרנדור קטגוריות
+        function renderCategories() {
+            const tableBody = document.getElementById('categories-table-body');
+            tableBody.innerHTML = '';
+            
+            if (categoriesData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">לא נמצאו קטגוריות</td></tr>';
+                return;
+            }
+            
+            categoriesData.forEach(category => {
+                const row = document.createElement('tr');
+                
+                // ספירת משימות בקטגוריה
+                const tasksInCategory = tasksData.filter(task => 
+                    task['קטגוריה/פרוייקט'] === category['שם קטגוריה']
+                ).length;
+                
+                // יצירת צבע לקטגוריה
+                const categoryColor = category['צבע'] || '#4285F4';
+                
+                row.innerHTML = `
+                    <td>
+                        <span style="display:inline-block; width:10px; height:10px; background-color:${categoryColor}; margin-left:5px; border-radius:50%;"></span>
+                        ${category['שם קטגוריה']}
+                    </td>
+                    <td>${category['תיאר']}</td>
+                    <td>
+                        <input type="color" value="${categoryColor}" disabled style="border:none; background:none;"/>
+                    </td>
+                    <td>${category['מנהל אחראי']}</td>
+                    <td>${tasksInCategory}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit-btn" title="עריכה" onclick="editCategory('${category['שם קטגוריה']}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="מחיקה" onclick="deleteCategory('${category['שם קטגוריה']}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // פונקציה לרנדור לוגים
+        function renderLogs() {
+            const tableBody = document.getElementById('logs-table-body');
+            tableBody.innerHTML = '';
+            
+            if (logsData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">לא נמצאו רישומי היסטוריה</td></tr>';
+                return;
+            }
+            
+            // מיון הלוגים לפי זמן (מהחדש לישן)
+            const sortedLogs = [...logsData].sort((a, b) => {
+                const timeA = new Date(a['זמן פעולה']).getTime();
+                const timeB = new Date(b['זמן פעולה']).getTime();
+                return timeB - timeA;
             });
             
-            // בנה מחדש את הטבלה
-            rows.forEach(row => tbody.appendChild(row));
+            sortedLogs.forEach(log => {
+                const row = document.createElement('tr');
+                
+                // פורמט זמן
+                const formattedTime = formatDateTime(log['זמן פעולה']);
+                
+                // קביעת סגנון סוג פעולה
+                let actionClass = '';
+                if (log['סוג פעולה'] === 'יצירה') {
+                    actionClass = 'status-new';
+                } else if (log['סוג פעולה'] === 'עדכון') {
+                    actionClass = 'status-in-progress';
+                } else if (log['סוג פעולה'] === 'מחיקה') {
+                    actionClass = 'status-delayed';
+                }
+                
+                row.innerHTML = `
+                    <td>${formattedTime}</td>
+                    <td><span class="status ${actionClass}">${log['סוג פעולה']}</span></td>
+                    <td>${log['מזהה משימה']}</td>
+                    <td>${log['מבצע משימה']}</td>
+                    <td>${log['תיאר פעולה']}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // פונקציה לפורמט תאריך
+        function formatDate(dateString) {
+            if (!dateString) return '';
             
-            // הוסף את שורת הסיכום בסוף
-            if (summaryRow) {
-                tbody.appendChild(summaryRow);
+            let date;
+            if (dateString.includes('/')) {
+                // פורמט MM/DD/YYYY
+                const parts = dateString.split('/');
+                date = new Date(parts[2], parts[0] - 1, parts[1]);
+            } else {
+                // פורמט YYYY-MM-DD
+                date = new Date(dateString);
+            }
+            
+            if (isNaN(date.getTime())) return dateString;
+            
+            return date.toLocaleDateString('he-IL', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        
+        // פונקציה לפורמט תאריך ושעה
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return '';
+            
+            const date = new Date(dateTimeString);
+            if (isNaN(date.getTime())) return dateTimeString;
+            
+            return date.toLocaleDateString('he-IL', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // פונקציה לעדכון הסלקטים בטפסים
+        function updateFormSelects() {
+            // סלקט אחראי משימה
+            const taskAssigneeSelect = document.getElementById('task-assignee');
+            const subtaskAssigneeSelect = document.getElementById('subtask-assignee');
+            const logUserSelect = document.getElementById('log-user');
+            
+            // ניקוי הסלקטים
+            taskAssigneeSelect.innerHTML = '';
+            subtaskAssigneeSelect.innerHTML = '';
+            logUserSelect.innerHTML = '';
+            
+            // הוספת חברי צוות לסלקטים
+            teamData.forEach(member => {
+                const name = member['שם מלא'];
+                
+                taskAssigneeSelect.add(new Option(name, name));
+                subtaskAssigneeSelect.add(new Option(name, name));
+                logUserSelect.add(new Option(name, name));
+            });
+            
+            // סלקט משימה ראשית לתת-משימות
+            const parentTaskSelect = document.getElementById('subtask-parent');
+            parentTaskSelect.innerHTML = '';
+            
+            tasksData.forEach(task => {
+                const taskId = task['מזהה משימה'];
+                const taskName = task['שם המשימה'];
+                parentTaskSelect.add(new Option(`${taskName} (${taskId})`, taskId));
+            });
+            
+            // סלקט קטגוריה
+            const taskCategorySelect = document.getElementById('task-category');
+            const categoryFilterSelect = document.getElementById('task-category-filter');
+            
+            taskCategorySelect.innerHTML = '';
+            categoryFilterSelect.innerHTML = '<option value="">כל הקטגוריות</option>';
+            
+            categoriesData.forEach(category => {
+                const name = category['שם קטגוריה'];
+                taskCategorySelect.add(new Option(name, name));
+                categoryFilterSelect.add(new Option(name, name));
+            });
+            
+            // סלקט מנהל אחראי לקטגוריה
+            const categoryManagerSelect = document.getElementById('category-manager');
+            categoryManagerSelect.innerHTML = '';
+            
+            teamData.forEach(member => {
+                const name = member['שם מלא'];
+                categoryManagerSelect.add(new Option(name, name));
+            });
+            
+            // סלקט צוות/מחלקה לסינון
+            const teamDepartmentSelect = document.getElementById('team-department-filter');
+            teamDepartmentSelect.innerHTML = '<option value="">כל המחלקות</option>';
+            
+            // איסוף צוותים ייחודיים
+            const departments = [...new Set(teamData.map(member => member['צוות']))].filter(Boolean);
+            
+            departments.forEach(department => {
+                teamDepartmentSelect.add(new Option(department, department));
+            });
+            
+            // סלקט משימה ראשית לסינון תתי-משימות
+            const subtaskParentFilter = document.getElementById('subtask-parent-filter');
+            subtaskParentFilter.innerHTML = '<option value="">כל המשימות הראשיות</option>';
+            
+            tasksData.forEach(task => {
+                const taskId = task['מזהה משימה'];
+                const taskName = task['שם המשימה'];
+                subtaskParentFilter.add(new Option(`${taskName} (${taskId})`, taskId));
+            });
+        }
+        
+        // פונקציה לעדכון סטטיסטיקות
+        function updateStats() {
+            const totalTasks = tasksData.length;
+            const completedTasks = tasksData.filter(task => task['סטטוס'] === 'הושלם').length;
+            const activeTasks = totalTasks - completedTasks;
+            
+            // חישוב משימות באיחור
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const delayedTasks = tasksData.filter(task => {
+                if (task['סטטוס'] === 'הושלם') return false;
+                
+                const dueDate = new Date(task['תאריך יעד']);
+                return dueDate < today;
+            }).length;
+            
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('completed-tasks').textContent = completedTasks;
+            document.getElementById('active-tasks').textContent = activeTasks;
+            document.getElementById('delayed-tasks').textContent = delayedTasks;
+            document.getElementById('team-count').textContent = teamData.length;
+            document.getElementById('categories-count').textContent = categoriesData.length;
+        }
+        
+        // פונקציות סינון
+        function filterTasks() {
+            const searchTerm = document.getElementById('task-search').value.toLowerCase();
+            const statusFilter = document.getElementById('task-status-filter').value;
+            const priorityFilter = document.getElementById('task-priority-filter').value;
+            const categoryFilter = document.getElementById('task-category-filter').value;
+            
+            const filteredTasks = tasksData.filter(task => {
+                // בדיקת מילות חיפוש
+                const matchesSearch = 
+                    task['מזהה משימה'].toLowerCase().includes(searchTerm) ||
+                    task['שם המשימה'].toLowerCase().includes(searchTerm) ||
+                    task['אחראי ביצוע'].toLowerCase().includes(searchTerm) ||
+                    task['תיאור המשימה'].toLowerCase().includes(searchTerm);
+                
+                // בדיקת סטטוס
+                const matchesStatus = !statusFilter || task['סטטוס'] === statusFilter;
+                
+                // בדיקת עדיפות
+                const matchesPriority = !priorityFilter || task['עדיפות'] === priorityFilter;
+                
+                // בדיקת קטגוריה
+                const matchesCategory = !categoryFilter || task['קטגוריה/פרוייקט'] === categoryFilter;
+                
+                return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
+            });
+            
+            // הצגת משימות מסוננות
+            const tableBody = document.getElementById('tasks-table-body');
+            tableBody.innerHTML = '';
+            
+            if (filteredTasks.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">לא נמצאו משימות התואמות לסינון</td></tr>';
+                return;
+            }
+            
+            // הצגת המשימות המסוננות
+            filteredTasks.forEach(task => {
+                // הקוד זהה לפונקציית renderTasks - להוסיף כאן את אותה לוגיקה להצגת שורה
+                const row = document.createElement('tr');
+                
+                // קביעת סגנון עדיפות
+                let priorityClass = '';
+                if (task['עדיפות'] === 'גבוהה') {
+                    priorityClass = 'priority-high';
+                } else if (task['עדיפות'] === 'בינונית') {
+                    priorityClass = 'priority-medium';
+                } else {
+                    priorityClass = 'priority-low';
+                }
+                
+                // קביעת סגנון סטטוס
+                let statusClass = '';
+                if (task['סטטוס'] === 'לביצוע') {
+                    statusClass = 'status-new';
+                } else if (task['סטטוס'] === 'בתהליך') {
+                    statusClass = 'status-in-progress';
+                } else if (task['סטטוס'] === 'הושלם') {
+                    statusClass = 'status-completed';
+                } else {
+                    statusClass = 'status-delayed';
+                }
+                
+                // פורמט תאריך
+                const dueDate = task['תאריך יעד'] ? formatDate(task['תאריך יעד']) : '';
+                
+                row.innerHTML = `
+                    <td>${task['מזהה משימה']}</td>
+                    <td>${task['שם המשימה']}</td>
+                    <td>${task['אחראי ביצוע']}</td>
+                    <td><span class="priority ${priorityClass}">${task['עדיפות']}</span></td>
+                    <td><span class="status ${statusClass}">${task['סטטוס']}</span></td>
+                    <td>${dueDate}</td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar" style="width: ${task['אחוז התקדמות']}%"></div>
+                        </div>
+                        ${task['אחוז התקדמות']}%
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-btn" title="צפייה" onclick="viewTask('${task['מזהה משימה']}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" title="עריכה" onclick="editTask('${task['מזהה משימה']}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="מחיקה" onclick="deleteTask('${task['מזהה משימה']}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        // פונקציה לשליחת טופס משימה
+        async function submitTaskForm() {
+            const taskId = document.getElementById('task-id').value;
+            const taskName = document.getElementById('task-name').value;
+            const taskDescription = document.getElementById('task-description').value;
+            const taskAssignee = document.getElementById('task-assignee').value;
+            const taskPriority = document.getElementById('task-priority').value;
+            const taskStatus = document.getElementById('task-status').value;
+            const taskStartDate = document.getElementById('task-start-date').value;
+            const taskDueDate = document.getElementById('task-due-date').value;
+            const taskCompletionDate = document.getElementById('task-completion-date').value;
+            const taskProgress = document.getElementById('task-progress').value;
+            const taskCategory = document.getElementById('task-category').value;
+            
+            // הצגת אנימציית טעינה
+            const saveBtn = document.getElementById('save-task-btn');
+            const btnText = saveBtn.querySelector('.btn-text');
+            const loader = saveBtn.querySelector('.loader');
+            
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            
+            try {
+                // יצירת URL לשליחה לטופס גוגל
+                const formUrl = new URL(API_ENDPOINTS.tasks.form);
+                
+                const formData = new FormData();
+                formData.append(API_ENDPOINTS.tasks.fields['מזהה משימה'], taskId);
+                formData.append(API_ENDPOINTS.tasks.fields['שם המשימה'], taskName);
+                formData.append(API_ENDPOINTS.tasks.fields['תיאור המשימה'], taskDescription);
+                formData.append(API_ENDPOINTS.tasks.fields['אחראי ביצוע'], taskAssignee);
+                formData.append(API_ENDPOINTS.tasks.fields['עדיפות'], taskPriority);
+                formData.append(API_ENDPOINTS.tasks.fields['סטטוס'], taskStatus);
+                formData.append(API_ENDPOINTS.tasks.fields['תאריך יצירה'], taskStartDate);
+                formData.append(API_ENDPOINTS.tasks.fields['תאריך יעד'], taskDueDate);
+                formData.append(API_ENDPOINTS.tasks.fields['תאריך סיום בפועל'], taskCompletionDate);
+                formData.append(API_ENDPOINTS.tasks.fields['אחוז התקדמות'], taskProgress);
+                formData.append(API_ENDPOINTS.tasks.fields['קטגוריה/פרוייקט'], taskCategory);
+                
+                // שליחת הטופס
+                const response = await fetch(formUrl.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                // הוספת רישום ללוג
+                await submitLogActivity('יצירה', taskId, taskAssignee, `נוצרה משימה חדשה: ${taskName}`);
+                
+                // עדכון מערך המשימות מקומית (כיוון שלא ניתן לראות את התשובה מהשרת בגלל no-cors)
+                const newTask = {
+                    'מזהה משימה': taskId,
+                    'שם המשימה': taskName,
+                    'תיאור המשימה': taskDescription,
+                    'אחראי ביצוע': taskAssignee,
+                    'עדיפות': taskPriority,
+                    'סטטוס': taskStatus,
+                    'תאריך יצירה': taskStartDate,
+                    'תאריך יעד': taskDueDate,
+                    'תאריך סיום בפועל': taskCompletionDate,
+                    'אחוז התקדמות': taskProgress,
+                    'קטגוריה/פרוייקט': taskCategory
+                };
+                
+                // עדכון ה UI
+                tasksData.push(newTask);
+                renderTasks();
+                updateStats();
+                
+                // סגירת המודאל
+                closeModal('task-modal');
+                
+                // הצגת הודעת הצלחה
+                alert('המשימה נשמרה בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה בשמירת המשימה:', error);
+                alert('שגיאה בשמירת המשימה. נא לנסות שוב.');
+            } finally {
+                // החזרת הכפתור למצב הרגיל
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
             }
         }
         
-        // ===== פונקציות ייצוא =====
-        
-        // הדפסת טבלה ספציפית
-        function printTable(tableId) {
-            const originalTitle = document.title;
-            const tableName = tableId === 'detailedClassTable' ? 'נתוני השתתפות לפי כיתות' : 'רשימת תלמידות';
-            document.title = tableName + ' - יום סבבא אגף בנות';
+        // פונקציה לשליחת טופס תת-משימה
+        async function submitSubtaskForm() {
+            const subtaskId = document.getElementById('subtask-id').value;
+            const parentTaskId = document.getElementById('subtask-parent').value;
+            const subtaskName = document.getElementById('subtask-name').value;
+            const subtaskDescription = document.getElementById('subtask-description').value;
+            const subtaskAssignee = document.getElementById('subtask-assignee').value;
+            const subtaskStatus = document.getElementById('subtask-status').value;
+            const subtaskStartDate = document.getElementById('subtask-start-date').value;
+            const subtaskDueDate = document.getElementById('subtask-due-date').value;
+            const subtaskCompletionDate = document.getElementById('subtask-completion-date').value;
             
-            // יצירת גיליון סגנון לדף להדפסה
-            const style = document.createElement('style');
-            style.id = 'print-style';
-            style.innerHTML = `
-                @media print {
-                    body * {
-                        visibility: hidden;
-                    }
-                    #${tableId}, #${tableId} * {
-                        visibility: visible;
-                    }
-                    #${tableId} {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                    }
-                    .card-header {
-                        background-color: #f0f0f0 !important;
-                        color: black !important;
-                        padding: 10px;
-                        font-size: 16px;
-                        text-align: center;
-                        margin-bottom: 10px;
-                    }
-                    th {
-                        background-color: #f0f0f0 !important;
-                    }
-                    @page {
-                        size: landscape;
+            // הצגת אנימציית טעינה
+            const saveBtn = document.getElementById('save-subtask-btn');
+            const btnText = saveBtn.querySelector('.btn-text');
+            const loader = saveBtn.querySelector('.loader');
+            
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            
+            try {
+                // יצירת URL לשליחה לטופס גוגל
+                const formUrl = new URL(API_ENDPOINTS.subtasks.form);
+                
+                const formData = new FormData();
+                formData.append(API_ENDPOINTS.subtasks.fields['מזהה תת משימה'], subtaskId);
+                formData.append(API_ENDPOINTS.subtasks.fields['משימה ראשית'], parentTaskId);
+                formData.append(API_ENDPOINTS.subtasks.fields['שם תת משימה'], subtaskName);
+                formData.append(API_ENDPOINTS.subtasks.fields['תיאור תת משימה'], subtaskDescription);
+                formData.append(API_ENDPOINTS.subtasks.fields['אחראי ביצוע'], subtaskAssignee);
+                formData.append(API_ENDPOINTS.subtasks.fields['סטטוס'], subtaskStatus);
+                formData.append(API_ENDPOINTS.subtasks.fields['תאריך יצירה'], subtaskStartDate);
+                formData.append(API_ENDPOINTS.subtasks.fields['תאריך יעד'], subtaskDueDate);
+                formData.append(API_ENDPOINTS.subtasks.fields['תאריך סיום בפועל'], subtaskCompletionDate);
+                
+                // שליחת הטופס
+                const response = await fetch(formUrl.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                // הוספת רישום ללוג
+                await submitLogActivity('יצירה', subtaskId, subtaskAssignee, `נוצרה תת-משימה חדשה: ${subtaskName}`);
+                
+                // עדכון מערך תתי-המשימות מקומית
+                const newSubtask = {
+                    'מזהה תת משימה': subtaskId,
+                    'משימה ראשית': parentTaskId,
+                    'שם תת משימה': subtaskName,
+                    'תיאור תת משימה': subtaskDescription,
+                    'אחראי ביצוע': subtaskAssignee,
+                    'סטטוס': subtaskStatus,
+                    'תאריך יצירה': subtaskStartDate,
+                    'תאריך יעד': subtaskDueDate,
+                    'תאריך סיום בפועל': subtaskCompletionDate
+                };
+                
+                // עדכון ה UI
+                subtasksData.push(newSubtask);
+                renderSubtasks();
+                
+                // סגירת המודאל
+                closeModal('subtask-modal');
+                
+                // הצגת הודעת הצלחה
+                alert('תת-המשימה נשמרה בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה בשמירת תת-המשימה:', error);
+                alert('שגיאה בשמירת תת-המשימה. נא לנסות שוב.');
+            } finally {
+                // החזרת הכפתור למצב הרגיל
+                btnText.classList.remove('hidden');
+               loader.classList.add('hidden');
+            }
+        }
+        
+        // פונקציה לשליחת טופס חבר צוות
+        async function submitTeamForm() {
+            const teamName = document.getElementById('team-name').value;
+            const teamRole = document.getElementById('team-role').value;
+            const teamEmail = document.getElementById('team-email').value;
+            const teamPhone = document.getElementById('team-phone').value;
+            const teamDepartment = document.getElementById('team-department').value;
+            
+            // הצגת אנימציית טעינה
+            const saveBtn = document.getElementById('save-team-btn');
+            const btnText = saveBtn.querySelector('.btn-text');
+            const loader = saveBtn.querySelector('.loader');
+            
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            
+            try {
+                // יצירת URL לשליחה לטופס גוגל
+                const formUrl = new URL(API_ENDPOINTS.team.form);
+                
+                const formData = new FormData();
+                formData.append(API_ENDPOINTS.team.fields['שם מלא'], teamName);
+                formData.append(API_ENDPOINTS.team.fields['תפקיד'], teamRole);
+                formData.append(API_ENDPOINTS.team.fields['אי מייל'], teamEmail);
+                formData.append(API_ENDPOINTS.team.fields['טלפון'], teamPhone);
+                formData.append(API_ENDPOINTS.team.fields['צוות'], teamDepartment);
+                
+                // שליחת הטופס
+                const response = await fetch(formUrl.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                // עדכון מערך חברי הצוות מקומית
+                const newTeamMember = {
+                    'שם מלא': teamName,
+                    'תפקיד': teamRole,
+                    'אי מייל': teamEmail,
+                    'טלפון': teamPhone,
+                    'צוות': teamDepartment
+                };
+                
+                // עדכון ה UI
+                teamData.push(newTeamMember);
+                renderTeam();
+                updateFormSelects();
+                updateStats();
+                
+                // סגירת המודאל
+                closeModal('team-modal');
+                
+                // הצגת הודעת הצלחה
+                alert('חבר הצוות נוסף בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה בהוספת חבר צוות:', error);
+                alert('שגיאה בהוספת חבר צוות. נא לנסות שוב.');
+            } finally {
+                // החזרת הכפתור למצב הרגיל
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+        
+        // פונקציה לשליחת טופס קטגוריה
+        async function submitCategoryForm() {
+            const categoryName = document.getElementById('category-name').value;
+            const categoryDescription = document.getElementById('category-description').value;
+            const categoryColor = document.getElementById('category-color').value;
+            const categoryManager = document.getElementById('category-manager').value;
+            
+            // הצגת אנימציית טעינה
+            const saveBtn = document.getElementById('save-category-btn');
+            const btnText = saveBtn.querySelector('.btn-text');
+            const loader = saveBtn.querySelector('.loader');
+            
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            
+            try {
+                // יצירת URL לשליחה לטופס גוגל
+                const formUrl = new URL(API_ENDPOINTS.categories.form);
+                
+                const formData = new FormData();
+                formData.append(API_ENDPOINTS.categories.fields['שם קטגוריה'], categoryName);
+                formData.append(API_ENDPOINTS.categories.fields['תיאר'], categoryDescription);
+                formData.append(API_ENDPOINTS.categories.fields['צבע'], categoryColor);
+                formData.append(API_ENDPOINTS.categories.fields['מנהל אחראי'], categoryManager);
+                
+                // שליחת הטופס
+                const response = await fetch(formUrl.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                // עדכון מערך הקטגוריות מקומית
+                const newCategory = {
+                    'שם קטגוריה': categoryName,
+                    'תיאר': categoryDescription,
+                    'צבע': categoryColor,
+                    'מנהל אחראי': categoryManager
+                };
+                
+                // עדכון ה UI
+                categoriesData.push(newCategory);
+                renderCategories();
+                updateFormSelects();
+                updateStats();
+                
+                // סגירת המודאל
+                closeModal('category-modal');
+                
+                // הצגת הודעת הצלחה
+                alert('הקטגוריה נוספה בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה בהוספת קטגוריה:', error);
+                alert('שגיאה בהוספת קטגוריה. נא לנסות שוב.');
+            } finally {
+                // החזרת הכפתור למצב הרגיל
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+        
+        // פונקציה להוספת פעילות ללוג
+        async function submitLogActivity(actionType, taskId, user, description) {
+            try {
+                // יצירת URL לשליחה לטופס גוגל
+                const formUrl = new URL(API_ENDPOINTS.logs.form);
+                
+                const now = new Date().toISOString();
+                
+                const formData = new FormData();
+                formData.append(API_ENDPOINTS.logs.fields['זמן פעולה'], now);
+                formData.append(API_ENDPOINTS.logs.fields['סוג פעולה'], actionType);
+                formData.append(API_ENDPOINTS.logs.fields['מזהה משימה'], taskId);
+                formData.append(API_ENDPOINTS.logs.fields['מבצע משימה'], user);
+                formData.append(API_ENDPOINTS.logs.fields['תיאר פעולה'], description);
+                
+                // שליחת הטופס
+                const response = await fetch(formUrl.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                // עדכון מערך הלוגים מקומית
+                const newLog = {
+                    'זמן פעולה': now,
+                    'סוג פעולה': actionType,
+                    'מזהה משימה': taskId,
+                    'מבצע משימה': user,
+                    'תיאר פעולה': description
+                };
+                
+                // עדכון ה UI
+                logsData.push(newLog);
+                
+                // רק אם כרגע נמצאים בטאב הלוגים - נרנדר מחדש
+                if (document.getElementById('logs-tab').classList.contains('active')) {
+                    renderLogs();
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('שגיאה בהוספת רישום ללוג:', error);
+                return false;
+            }
+        }
+        
+        // פונקציה לשליחת טופס לוג
+        async function submitLogForm() {
+            const logTime = document.getElementById('log-time').value;
+            const logType = document.getElementById('log-type').value;
+            const logTaskId = document.getElementById('log-task-id').value;
+            const logUser = document.getElementById('log-user').value;
+            const logDescription = document.getElementById('log-description').value;
+            
+            // הצגת אנימציית טעינה
+            const saveBtn = document.getElementById('save-log-btn');
+            const btnText = saveBtn.querySelector('.btn-text');
+            const loader = saveBtn.querySelector('.loader');
+            
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            
+            try {
+                // יצירת URL לשליחה לטופס גוגל
+                const formUrl = new URL(API_ENDPOINTS.logs.form);
+                
+                const formData = new FormData();
+                formData.append(API_ENDPOINTS.logs.fields['זמן פעולה'], logTime);
+                formData.append(API_ENDPOINTS.logs.fields['סוג פעולה'], logType);
+                formData.append(API_ENDPOINTS.logs.fields['מזהה משימה'], logTaskId);
+                formData.append(API_ENDPOINTS.logs.fields['מבצע משימה'], logUser);
+                formData.append(API_ENDPOINTS.logs.fields['תיאר פעולה'], logDescription);
+                
+                // שליחת הטופס
+                const response = await fetch(formUrl.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                // עדכון מערך הלוגים מקומית
+                const newLog = {
+                    'זמן פעולה': logTime,
+                    'סוג פעולה': logType,
+                    'מזהה משימה': logTaskId,
+                    'מבצע משימה': logUser,
+                    'תיאר פעולה': logDescription
+                };
+                
+                // עדכון ה UI
+                logsData.push(newLog);
+                renderLogs();
+                
+                // סגירת המודאל
+                closeModal('log-modal');
+                
+                // הצגת הודעת הצלחה
+                alert('הפעולה נרשמה בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה ברישום פעולה:', error);
+                alert('שגיאה ברישום פעולה. נא לנסות שוב.');
+            } finally {
+                // החזרת הכפתור למצב הרגיל
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+        
+        // פונקציות CRUD למשימות
+        
+        // צפייה במשימה
+        function viewTask(taskId) {
+            const task = tasksData.find(t => t['מזהה משימה'] === taskId);
+            if (!task) {
+                alert('המשימה לא נמצאה');
+                return;
+            }
+            
+            alert(`פרטי המשימה:
+שם: ${task['שם המשימה']}
+תיאור: ${task['תיאור המשימה']}
+אחראי: ${task['אחראי ביצוע']}
+עדיפות: ${task['עדיפות']}
+סטטוס: ${task['סטטוס']}
+תאריך יעד: ${formatDate(task['תאריך יעד'])}
+התקדמות: ${task['אחוז התקדמות']}%
+קטגוריה: ${task['קטגוריה/פרוייקט']}`);
+        }
+        
+        // עריכת משימה
+        function editTask(taskId) {
+            const task = tasksData.find(t => t['מזהה משימה'] === taskId);
+            if (!task) {
+                alert('המשימה לא נמצאה');
+                return;
+            }
+            
+            // מילוי הטופס בנתונים הקיימים
+            document.getElementById('task-id').value = task['מזהה משימה'];
+            document.getElementById('task-name').value = task['שם המשימה'];
+            document.getElementById('task-description').value = task['תיאור המשימה'] || '';
+            document.getElementById('task-assignee').value = task['אחראי ביצוע'];
+            document.getElementById('task-priority').value = task['עדיפות'];
+            document.getElementById('task-status').value = task['סטטוס'];
+            document.getElementById('task-start-date').value = task['תאריך יצירה'];
+            document.getElementById('task-due-date').value = task['תאריך יעד'];
+            document.getElementById('task-completion-date').value = task['תאריך סיום בפועל'] || '';
+            document.getElementById('task-progress').value = task['אחוז התקדמות'] || 0;
+            document.getElementById('task-category').value = task['קטגוריה/פרוייקט'];
+            
+            // עדכון רשימת הקטגוריות והצוות (למקרה שנוספו חדשים)
+            updateFormSelects();
+            
+            // עדכון פרוגרס בר
+            document.getElementById('task-progress-bar').style.width = `${task['אחוז התקדמות']}%`;
+            
+            // עדכון כותרת המודאל
+            document.getElementById('task-modal-title').textContent = 'עריכת משימה';
+            
+            // פתיחת המודאל
+            openModal('task-modal');
+        }
+        
+        // מחיקת משימה
+        async function deleteTask(taskId) {
+            if (!confirm('האם אתה בטוח שברצונך למחוק את המשימה?')) {
+                return;
+            }
+            
+            const task = tasksData.find(t => t['מזהה משימה'] === taskId);
+            if (!task) {
+                alert('המשימה לא נמצאה');
+                return;
+            }
+            
+            try {
+                // בדיקה אם יש תתי-משימות קשורות
+                const relatedSubtasks = subtasksData.filter(st => st['משימה ראשית'] === taskId);
+                if (relatedSubtasks.length > 0) {
+                    if (!confirm(`למשימה זו יש ${relatedSubtasks.length} תתי-משימות קשורות. האם ברצונך למחוק גם אותן?`)) {
+                        return;
                     }
                 }
-            `;
-            document.head.appendChild(style);
-            
-            // הוסף כותרת להדפסה
-            const printHeader = document.createElement('div');
-            printHeader.className = 'card-header';
-            printHeader.textContent = tableName + ' - ' + new Date().toLocaleDateString();
-            printHeader.id = 'print-header';
-            printHeader.style.display = 'none';
-            document.getElementById(tableId).parentNode.insertBefore(printHeader, document.getElementById(tableId));
-            
-            window.print();
-            
-            // ניקוי אחרי ההדפסה
-            document.title = originalTitle;
-            document.head.removeChild(document.getElementById('print-style'));
-            printHeader.parentNode.removeChild(printHeader);
+                
+                // הוספת רישום ללוג
+                await submitLogActivity('מחיקה', taskId, task['אחראי ביצוע'], `נמחקה משימה: ${task['שם המשימה']}`);
+                
+                // עדכון המערך המקומי (מחיקה)
+                tasksData = tasksData.filter(t => t['מזהה משימה'] !== taskId);
+                
+                // מחיקת תתי-משימות קשורות
+                if (relatedSubtasks.length > 0) {
+                    subtasksData = subtasksData.filter(st => st['משימה ראשית'] !== taskId);
+                }
+                
+                // עדכון ממשק המשתמש
+                renderTasks();
+                renderSubtasks();
+                updateStats();
+                
+                alert('המשימה נמחקה בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה במחיקת המשימה:', error);
+                alert('שגיאה במחיקת המשימה. נא לנסות שוב.');
+            }
         }
         
-        // ייצוא טבלה ל-CSV
-        function exportTableToCSV(filename, tableId) {
-            const table = document.getElementById(tableId);
-            let csv = [];
+        // פונקציות CRUD לתתי-משימות
+        
+        // צפייה בתת-משימה
+        function viewSubtask(subtaskId) {
+            const subtask = subtasksData.find(st => st['מזהה תת משימה'] === subtaskId);
+            if (!subtask) {
+                alert('תת-המשימה לא נמצאה');
+                return;
+            }
             
-            // הוסף כותרות
-            const headers = Array.from(table.querySelectorAll('th')).map(th => 
-                '"' + th.textContent.replace(/"/g, '""') + '"'
-            );
-            csv.push(headers.join(','));
+            // מציאת שם המשימה הראשית
+            let parentTaskName = subtask['משימה ראשית'];
+            const parentTask = tasksData.find(t => t['מזהה משימה'] === subtask['משימה ראשית']);
+            if (parentTask) {
+                parentTaskName = `${parentTask['שם המשימה']} (${subtask['משימה ראשית']})`;
+            }
             
-            // הוסף שורות
-            const rows = Array.from(table.querySelectorAll('tbody tr'));
-            rows.forEach(row => {
-                const rowData = Array.from(row.querySelectorAll('td')).map(cell => 
-                    '"' + cell.textContent.replace(/"/g, '""') + '"'
-                );
-                csv.push(rowData.join(','));
+            alert(`פרטי תת-המשימה:
+שם: ${subtask['שם תת משימה']}
+תיאור: ${subtask['תיאור תת משימה']}
+משימה ראשית: ${parentTaskName}
+אחראי: ${subtask['אחראי ביצוע']}
+סטטוס: ${subtask['סטטוס']}
+תאריך יעד: ${formatDate(subtask['תאריך יעד'])}`);
+        }
+        
+        // עריכת תת-משימה
+        function editSubtask(subtaskId) {
+            const subtask = subtasksData.find(st => st['מזהה תת משימה'] === subtaskId);
+            if (!subtask) {
+                alert('תת-המשימה לא נמצאה');
+                return;
+            }
+            
+            // מילוי הטופס בנתונים הקיימים
+            document.getElementById('subtask-id').value = subtask['מזהה תת משימה'];
+            document.getElementById('subtask-parent').value = subtask['משימה ראשית'];
+            document.getElementById('subtask-name').value = subtask['שם תת משימה'];
+            document.getElementById('subtask-description').value = subtask['תיאור תת משימה'] || '';
+            document.getElementById('subtask-assignee').value = subtask['אחראי ביצוע'];
+            document.getElementById('subtask-status').value = subtask['סטטוס'];
+            document.getElementById('subtask-start-date').value = subtask['תאריך יצירה'];
+            document.getElementById('subtask-due-date').value = subtask['תאריך יעד'];
+            document.getElementById('subtask-completion-date').value = subtask['תאריך סיום בפועל'] || '';
+            
+            // עדכון רשימת המשימות והצוות (למקרה שנוספו חדשים)
+            updateFormSelects();
+            
+            // עדכון כותרת המודאל
+            document.getElementById('subtask-modal-title').textContent = 'עריכת תת-משימה';
+            
+            // פתיחת המודאל
+            openModal('subtask-modal');
+        }
+        
+        // מחיקת תת-משימה
+        async function deleteSubtask(subtaskId) {
+            if (!confirm('האם אתה בטוח שברצונך למחוק את תת-המשימה?')) {
+                return;
+            }
+            
+            const subtask = subtasksData.find(st => st['מזהה תת משימה'] === subtaskId);
+            if (!subtask) {
+                alert('תת-המשימה לא נמצאה');
+                return;
+            }
+            
+            try {
+                // הוספת רישום ללוג
+                await submitLogActivity('מחיקה', subtaskId, subtask['אחראי ביצוע'], `נמחקה תת-משימה: ${subtask['שם תת משימה']}`);
+                
+                // עדכון המערך המקומי (מחיקה)
+                subtasksData = subtasksData.filter(st => st['מזהה תת משימה'] !== subtaskId);
+                
+                // עדכון ממשק המשתמש
+                renderSubtasks();
+                
+                alert('תת-המשימה נמחקה בהצלחה!');
+                
+            } catch (error) {
+                console.error('שגיאה במחיקת תת-המשימה:', error);
+                alert('שגיאה במחיקת תת-המשימה. נא לנסות שוב.');
+            }
+        }
+        
+        // פונקציות לסינון תתי-משימות
+        function filterSubtasks() {
+            const searchTerm = document.getElementById('subtask-search').value.toLowerCase();
+            const statusFilter = document.getElementById('subtask-status-filter').value;
+            const parentFilter = document.getElementById('subtask-parent-filter').value;
+            
+            const filteredSubtasks = subtasksData.filter(subtask => {
+                // בדיקת מילות חיפוש
+                const matchesSearch = 
+                    subtask['מזהה תת משימה'].toLowerCase().includes(searchTerm) ||
+                    subtask['שם תת משימה'].toLowerCase().includes(searchTerm) ||
+                    subtask['אחראי ביצוע'].toLowerCase().includes(searchTerm) ||
+                    subtask['תיאור תת משימה'].toLowerCase().includes(searchTerm);
+                
+                // בדיקת סטטוס
+                const matchesStatus = !statusFilter || subtask['סטטוס'] === statusFilter;
+                
+                // בדיקת משימה ראשית
+                const matchesParent = !parentFilter || subtask['משימה ראשית'] === parentFilter;
+                
+                return matchesSearch && matchesStatus && matchesParent;
             });
             
-            // הוסף BOM לתמיכה בעברית ב-Excel
-            const csvContent = '\uFEFF' + csv.join('\n');
+            // הצגת תתי-משימות מסוננות
+            const tableBody = document.getElementById('subtasks-table-body');
+            tableBody.innerHTML = '';
             
-            // הורדת הקובץ
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
+            if (filteredSubtasks.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">לא נמצאו תתי-משימות התואמות לסינון</td></tr>';
+                return;
+            }
             
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('הקובץ יורד בהצלחה');
+            // הצגת תתי-המשימות המסוננות
+            filteredSubtasks.forEach(subtask => {
+                // קוד זהה לפונקציית renderSubtasks
+                const row = document.createElement('tr');
+                
+                // קביעת סגנון סטטוס
+                let statusClass = '';
+                if (subtask['סטטוס'] === 'לביצוע') {
+                    statusClass = 'status-new';
+                } else if (subtask['סטטוס'] === 'בתהליך') {
+                    statusClass = 'status-in-progress';
+                } else if (subtask['סטטוס'] === 'הושלם') {
+                    statusClass = 'status-completed';
+                } else {
+                    statusClass = 'status-delayed';
+                }
+                
+                // פורמט תאריך
+                const dueDate = subtask['תאריך יעד'] ? formatDate(subtask['תאריך יעד']) : '';
+                
+                row.innerHTML = `
+                    <td>${subtask['מזהה תת משימה']}</td>
+                    <td>${subtask['משימה ראשית']}</td>
+                    <td>${subtask['שם תת משימה']}</td>
+                    <td>${subtask['אחראי ביצוע']}</td>
+                    <td><span class="status ${statusClass}">${subtask['סטטוס']}</span></td>
+                    <td>${dueDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-btn" title="צפייה" onclick="viewSubtask('${subtask['מזהה תת משימה']}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" title="עריכה" onclick="editSubtask('${subtask['מזהה תת משימה']}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" title="מחיקה" onclick="deleteSubtask('${subtask['מזהה תת משימה']}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
         }
-        
-        // ===== אתחול האפליקציה =====
-        
-        // טעינת הנתונים בטעינת הדף
-        window.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 </html>
