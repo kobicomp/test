@@ -1960,6 +1960,12 @@
                             <span>תאריך יעד: ${dueDate}</span>
                             <span class="status ${statusClass}">${subtask['סטטוס']}</span>
                         </div>
+                        <div class="subtask-status-buttons">
+                            <button type="button" class="btn-xs btn-primary" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'לביצוע', true)">לביצוע</button>
+                            <button type="button" class="btn-xs btn-warning" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'בתהליך', true)">בתהליך</button>
+                            <button type="button" class="btn-xs btn-success" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'הושלם', true)">הושלם</button>
+                            <button type="button" class="btn-xs btn-danger" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'מעוכב', true)">מעוכב</button>
+                        </div>
                     </div>
                     <div class="subtask-actions">
                         <button type="button" class="action-btn view-btn" title="צפייה" onclick="viewSubtaskFromTask('${subtask['מזהה תת משימה']}')">
@@ -2331,11 +2337,34 @@
                 const dueDate = new Date(task['תאריך יעד']);
                 return dueDate < today;
             });
+
+            // תתי-משימות שלי
+            const todaysSubtasks = mySubtasks.filter(subtask => {
+                if (subtask['סטטוס'] === 'הושלם') return false;
+                const dueDate = new Date(subtask['תאריך יעד']);
+                return dueDate.toDateString() === today.toDateString();
+            });
+            
+            const overdueSubtasks = mySubtasks.filter(subtask => {
+                if (subtask['סטטוס'] === 'הושלם') return false;
+                const dueDate = new Date(subtask['תאריך יעד']);
+                return dueDate < today;
+            });
+            
+            const upcomingSubtasks = mySubtasks.filter(subtask => {
+                if (subtask['סטטוס'] === 'הושלם') return false;
+                const dueDate = new Date(subtask['תאריך יעד']);
+                const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                return diffDays > 0 && diffDays <= 7;
+            }).sort((a, b) => new Date(a['תאריך יעד']) - new Date(b['תאריך יעד']));
             
             // חישוב סטטיסטיקות
             const totalAssignedTasks = myTasks.length;
+            const totalAssignedSubtasks = mySubtasks.length;
             const completedTasks = myTasks.filter(task => task['סטטוס'] === 'הושלם').length;
+            const completedSubtasks = mySubtasks.filter(subtask => subtask['סטטוס'] === 'הושלם').length;
             const progressTasks = myTasks.filter(task => task['סטטוס'] === 'בתהליך').length;
+            const progressSubtasks = mySubtasks.filter(subtask => subtask['סטטוס'] === 'בתהליך').length;
             
             return `
                 <div class="dashboard-header">
@@ -2347,22 +2376,26 @@
                     <div class="summary-card">
                         <div class="card-icon"><i class="fas fa-tasks"></i></div>
                         <div class="card-title">סך הכל משימות</div>
-                        <div class="card-value">${totalAssignedTasks}</div>
+                        <div class="card-value">${totalAssignedTasks + totalAssignedSubtasks}</div>
+                        <div>משימות ראשיות: ${totalAssignedTasks}, תתי-משימות: ${totalAssignedSubtasks}</div>
                     </div>
                     <div class="summary-card">
                         <div class="card-icon"><i class="fas fa-check"></i></div>
                         <div class="card-title">הושלמו</div>
-                        <div class="card-value">${completedTasks}</div>
+                        <div class="card-value">${completedTasks + completedSubtasks}</div>
+                        <div>משימות ראשיות: ${completedTasks}, תתי-משימות: ${completedSubtasks}</div>
                     </div>
                     <div class="summary-card">
                         <div class="card-icon"><i class="fas fa-spinner"></i></div>
                         <div class="card-title">בתהליך</div>
-                        <div class="card-value">${progressTasks}</div>
+                        <div class="card-value">${progressTasks + progressSubtasks}</div>
+                        <div>משימות ראשיות: ${progressTasks}, תתי-משימות: ${progressSubtasks}</div>
                     </div>
-                    <div class="summary-card ${overdueTasks.length > 0 ? 'alert' : ''}">
+                    <div class="summary-card ${(overdueTasks.length + overdueSubtasks.length) > 0 ? 'alert' : ''}">
                         <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="card-title">באיחור</div>
-                        <div class="card-value">${overdueTasks.length}</div>
+                        <div class="card-value">${overdueTasks.length + overdueSubtasks.length}</div>
+                        <div>משימות ראשיות: ${overdueTasks.length}, תתי-משימות: ${overdueSubtasks.length}</div>
                     </div>
                 </div>
                 
@@ -2372,51 +2405,157 @@
                         <div class="task-list">
                             ${todaysTasks.length > 0 ? 
                                 todaysTasks.map(task => `
-                                    <div class="task-item">
-                                        <input type="checkbox" onclick="markTaskComplete('${task['מזהה משימה']}')">
+                                    <div class="task-item" onclick="viewTask('${task['מזהה משימה']}')">
                                         <span class="task-name">${task['שם המשימה']}</span>
                                         <span class="priority ${getPriorityClass(task['עדיפות'])}">${task['עדיפות']}</span>
+                                        <div class="task-status-buttons">
+                                            <button class="btn-xs btn-primary" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'לביצוע')">לביצוע</button>
+                                            <button class="btn-xs btn-warning" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'בתהליך')">בתהליך</button>
+                                            <button class="btn-xs btn-success" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'הושלם')">הושלם</button>
+                                            <button class="btn-xs btn-danger" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'מעוכב')">מעוכב</button>
+                                        </div>
                                     </div>
                                 `).join('') : 
-                                '<div class="empty-state">אין משימות לביצוע היום</div>'
+                                '<div class="empty-state">אין משימות ראשיות לביצוע היום</div>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="section today-subtasks">
+                        <h3>תתי-משימות להיום <span class="count">${todaysSubtasks.length}</span></h3>
+                        <div class="task-list">
+                            ${todaysSubtasks.length > 0 ? 
+                                todaysSubtasks.map(subtask => {
+                                    // מציאת שם המשימה הראשית
+                                    let parentTaskName = subtask['משימה ראשית'];
+                                    const parentTask = tasksData.find(t => t['מזהה משימה'] === subtask['משימה ראשית']);
+                                    if (parentTask) {
+                                        parentTaskName = parentTask['שם המשימה'];
+                                    }
+                                    
+                                    return `
+                                    <div class="task-item" onclick="viewSubtask('${subtask['מזהה תת משימה']}')">
+                                        <span class="task-name">${subtask['שם תת משימה']}</span>
+                                        <span class="task-parent">במשימה: ${parentTaskName}</span>
+                                        <div class="task-status-buttons">
+                                            <button class="btn-xs btn-primary" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'לביצוע')">לביצוע</button>
+                                            <button class="btn-xs btn-warning" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'בתהליך')">בתהליך</button>
+                                            <button class="btn-xs btn-success" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'הושלם')">הושלם</button>
+                                            <button class="btn-xs btn-danger" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'מעוכב')">מעוכב</button>
+                                        </div>
+                                    </div>
+                                `}).join('') : 
+                                '<div class="empty-state">אין תתי-משימות לביצוע היום</div>'
                             }
                         </div>
                     </div>
                     
                     <div class="section overdue-tasks">
-                        <h3>משימות באיחור <span class="count">${overdueTasks.length}</span></h3>
+                        <h3>משימות ראשיות באיחור <span class="count">${overdueTasks.length}</span></h3>
                         <div class="task-list">
                             ${overdueTasks.length > 0 ? 
                                 overdueTasks.map(task => `
-                                    <div class="task-item">
+                                    <div class="task-item" onclick="viewTask('${task['מזהה משימה']}')">
                                         <div class="task-date">${formatDate(new Date(task['תאריך יעד']))}</div>
                                         <span class="task-name">${task['שם המשימה']}</span>
                                         <div class="progress-mini">
                                             <div class="progress-bar" style="width: ${task['אחוז התקדמות']}%"></div>
                                         </div>
+                                        <div class="task-status-buttons">
+                                            <button class="btn-xs btn-primary" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'לביצוע')">לביצוע</button>
+                                            <button class="btn-xs btn-warning" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'בתהליך')">בתהליך</button>
+                                            <button class="btn-xs btn-success" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'הושלם')">הושלם</button>
+                                            <button class="btn-xs btn-danger" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'מעוכב')">מעוכב</button>
+                                        </div>
                                     </div>
                                 `).join('') : 
-                                '<div class="empty-state">אין משימות באיחור</div>'
+                                '<div class="empty-state">אין משימות ראשיות באיחור</div>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="section overdue-subtasks">
+                        <h3>תתי-משימות באיחור <span class="count">${overdueSubtasks.length}</span></h3>
+                        <div class="task-list">
+                            ${overdueSubtasks.length > 0 ? 
+                                overdueSubtasks.map(subtask => {
+                                    // מציאת שם המשימה הראשית
+                                    let parentTaskName = subtask['משימה ראשית'];
+                                    const parentTask = tasksData.find(t => t['מזהה משימה'] === subtask['משימה ראשית']);
+                                    if (parentTask) {
+                                        parentTaskName = parentTask['שם המשימה'];
+                                    }
+                                    
+                                    return `
+                                    <div class="task-item" onclick="viewSubtask('${subtask['מזהה תת משימה']}')">
+                                        <div class="task-date">${formatDate(new Date(subtask['תאריך יעד']))}</div>
+                                        <span class="task-name">${subtask['שם תת משימה']}</span>
+                                        <span class="task-parent">במשימה: ${parentTaskName}</span>
+                                        <div class="task-status-buttons">
+                                            <button class="btn-xs btn-primary" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'לביצוע')">לביצוע</button>
+                                            <button class="btn-xs btn-warning" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'בתהליך')">בתהליך</button>
+                                            <button class="btn-xs btn-success" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'הושלם')">הושלם</button>
+                                            <button class="btn-xs btn-danger" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'מעוכב')">מעוכב</button>
+                                        </div>
+                                    </div>
+                                `}).join('') : 
+                                '<div class="empty-state">אין תתי-משימות באיחור</div>'
                             }
                         </div>
                     </div>
                 </div>
                 
                 <div class="section upcoming-tasks">
-                    <h3>משימות קרובות <span class="count">${upcomingTasks.length}</span></h3>
+                    <h3>משימות ראשיות קרובות <span class="count">${upcomingTasks.length}</span></h3>
                     <div class="task-list">
                         ${upcomingTasks.length > 0 ? 
                             upcomingTasks.map(task => `
-                                <div class="task-item">
+                                <div class="task-item" onclick="viewTask('${task['מזהה משימה']}')">
                                     <div class="task-date">${formatDate(new Date(task['תאריך יעד']))}</div>
                                     <span class="task-name">${task['שם המשימה']}</span>
                                     <span class="priority ${getPriorityClass(task['עדיפות'])}">${task['עדיפות']}</span>
                                     <div class="progress-mini">
                                         <div class="progress-bar" style="width: ${task['אחוז התקדמות']}%"></div>
                                     </div>
+                                    <div class="task-status-buttons">
+                                        <button class="btn-xs btn-primary" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'לביצוע')">לביצוע</button>
+                                        <button class="btn-xs btn-warning" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'בתהליך')">בתהליך</button>
+                                        <button class="btn-xs btn-success" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'הושלם')">הושלם</button>
+                                        <button class="btn-xs btn-danger" onclick="event.stopPropagation(); updateTaskStatus('${task['מזהה משימה']}', 'מעוכב')">מעוכב</button>
+                                    </div>
                                 </div>
                             `).join('') : 
-                            '<div class="empty-state">אין משימות קרובות</div>'
+                            '<div class="empty-state">אין משימות ראשיות קרובות</div>'
+                        }
+                    </div>
+                </div>
+                
+                <div class="section upcoming-subtasks">
+                    <h3>תתי-משימות קרובות <span class="count">${upcomingSubtasks.length}</span></h3>
+                    <div class="task-list">
+                        ${upcomingSubtasks.length > 0 ? 
+                            upcomingSubtasks.map(subtask => {
+                                // מציאת שם המשימה הראשית
+                                let parentTaskName = subtask['משימה ראשית'];
+                                const parentTask = tasksData.find(t => t['מזהה משימה'] === subtask['משימה ראשית']);
+                                if (parentTask) {
+                                    parentTaskName = parentTask['שם המשימה'];
+                                }
+                                
+                                return `
+                                <div class="task-item" onclick="viewSubtask('${subtask['מזהה תת משימה']}')">
+                                    <div class="task-date">${formatDate(new Date(subtask['תאריך יעד']))}</div>
+                                    <span class="task-name">${subtask['שם תת משימה']}</span>
+                                    <span class="task-parent">במשימה: ${parentTaskName}</span>
+                                    <div class="task-status-buttons">
+                                        <button class="btn-xs btn-primary" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'לביצוע')">לביצוע</button>
+                                        <button class="btn-xs btn-warning" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'בתהליך')">בתהליך</button>
+                                        <button class="btn-xs btn-success" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'הושלם')">הושלם</button>
+                                        <button class="btn-xs btn-danger" onclick="event.stopPropagation(); updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'מעוכב')">מעוכב</button>
+                                    </div>
+                                </div>
+                            `}).join('') : 
+                            '<div class="empty-state">אין תתי-משימות קרובות</div>'
                         }
                     </div>
                 </div>
@@ -3619,6 +3758,141 @@
                 return false;
             }
         }
+
+        // עדכון סטטוס תת-משימה ישירות (ללא פתיחת חלון)
+        async function updateSubtaskStatus(subtaskId, newStatus, fromTaskModal = false) {
+            // מניעת המשך האירוע אם נקראנו מתוך המודאל
+            if (fromTaskModal) {
+                event.stopPropagation();
+            }
+            
+            const subtask = subtasksData.find(st => st['מזהה תת משימה'] === subtaskId);
+            if (!subtask) {
+                showNotification('danger', 'תת-המשימה לא נמצאה', 'exclamation-triangle');
+                return;
+            }
+            
+            // יצירת עותק של תת המשימה עם הסטטוס המעודכן
+            const updatedSubtask = {...subtask};
+            updatedSubtask['סטטוס'] = newStatus;
+            
+            // אם הסטטוס הוא "הושלם", נוסיף תאריך סיום
+            if (newStatus === 'הושלם' && !updatedSubtask['תאריך סיום בפועל']) {
+                updatedSubtask['תאריך סיום בפועל'] = getCurrentDate();
+            }
+            
+            // יצירת FormData לשליחה
+            const formData = new FormData();
+            
+            // הוספת כל השדות המעודכנים
+            Object.entries(updatedSubtask).forEach(([key, value]) => {
+                if (CONFIG.FIELDS.subtasks[key]) {
+                    formData.append(CONFIG.FIELDS.subtasks[key], value);
+                }
+            });
+            
+            try {
+                // שליחת הטופס
+                await fetch(CONFIG.FORMS.subtasks, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                
+                // הוספת רישום ללוג
+                await submitLogActivity('עדכון', subtaskId, currentUser.name, `עודכן סטטוס תת-משימה ל-${newStatus}: ${subtask['שם תת משימה']}`);
+                
+                // עדכון המשימה במערך המקומי
+                const index = subtasksData.findIndex(st => st['מזהה תת משימה'] === subtaskId);
+                if (index !== -1) {
+                    subtasksData[index] = updatedSubtask;
+                }
+                
+                // עדכון התקדמות המשימה הראשית
+                await updateTaskProgress(subtask['משימה ראשית']);
+                
+                // עדכון ממשק המשתמש
+                renderTasks();
+                renderSubtasks();
+                renderDashboard();
+                
+                // אם אנחנו בתוך חלון המשימה, נעדכן את רשימת תתי-המשימות
+                if (currentTaskId) {
+                    renderSubtasksInTaskForm(currentTaskId);
+                }
+                
+                // הצגת הודעת הצלחה
+                showNotification('success', `סטטוס תת-המשימה עודכן ל"${newStatus}" בהצלחה`, 'check-circle');
+                
+                return true;
+            } catch (error) {
+                console.error('שגיאה בעדכון סטטוס תת-המשימה:', error);
+                showNotification('danger', 'שגיאה בעדכון תת-המשימה. נא לנסות שוב.', 'exclamation-triangle');
+                return false;
+            }
+        }
+        
+        // עדכון סטטוס משימה ישירות (ללא פתיחת חלון)
+        async function updateTaskStatus(taskId, newStatus) {
+            event.stopPropagation();
+            
+            const task = tasksData.find(t => t['מזהה משימה'] === taskId);
+            if (!task) {
+                showNotification('danger', 'המשימה לא נמצאה', 'exclamation-triangle');
+                return;
+            }
+            
+            // יצירת עותק של המשימה עם הסטטוס המעודכן
+            const updatedTask = {...task};
+            updatedTask['סטטוס'] = newStatus;
+            
+            // אם הסטטוס הוא "הושלם", נוסיף תאריך סיום ונעדכן את אחוז ההתקדמות ל-100%
+            if (newStatus === 'הושלם') {
+                updatedTask['תאריך סיום בפועל'] = getCurrentDate();
+                updatedTask['אחוז התקדמות'] = '100';
+            }
+            
+            // יצירת FormData לשליחה
+            const formData = new FormData();
+            
+            // הוספת כל השדות המעודכנים
+            Object.entries(updatedTask).forEach(([key, value]) => {
+                if (CONFIG.FIELDS.tasks[key]) {
+                    formData.append(CONFIG.FIELDS.tasks[key], value);
+                }
+            });
+            
+            try {
+                // שליחת הטופס
+                await fetch(CONFIG.FORMS.tasks, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                
+                // הוספת רישום ללוג
+                await submitLogActivity('עדכון', taskId, currentUser.name, `עודכן סטטוס משימה ל-${newStatus}: ${task['שם המשימה']}`);
+                
+                // עדכון המשימה במערך המקומי
+                const index = tasksData.findIndex(t => t['מזהה משימה'] === taskId);
+                if (index !== -1) {
+                    tasksData[index] = updatedTask;
+                }
+                
+                // עדכון ממשק המשתמש
+                renderTasks();
+                renderDashboard();
+                
+                // הצגת הודעת הצלחה
+                showNotification('success', `סטטוס המשימה עודכן ל"${newStatus}" בהצלחה`, 'check-circle');
+                
+                return true;
+            } catch (error) {
+                console.error('שגיאה בעדכון סטטוס המשימה:', error);
+                showNotification('danger', 'שגיאה בעדכון המשימה. נא לנסות שוב.', 'exclamation-triangle');
+                return false;
+            }
+        }
         
         // =========================================
         // פונקציות CRUD למשימות
@@ -3946,29 +4220,29 @@
             
             // חישוב אחוז ההתקדמות
             const progressPercentage = Math.round((completedCount / relatedSubtasks.length) * 100);
+            console.log(`עדכון משימה ${taskId}: ${completedCount}/${relatedSubtasks.length} = ${progressPercentage}%`);
             
-            // אם אחוז ההתקדמות שונה מהנוכחי, שולחים עדכון
-            if (parseInt(task['אחוז התקדמות']) !== progressPercentage) {
-                // יצירת עותק של המשימה המקורית עם העדכונים
-                const updatedTask = {...task};
-                updatedTask['אחוז התקדמות'] = progressPercentage.toString();
-                
-                // אם כל תתי-המשימות הושלמו, נעדכן גם את הסטטוס
-                if (progressPercentage === 100 && task['סטטוס'] !== 'הושלם') {
-                    updatedTask['סטטוס'] = 'הושלם';
-                    updatedTask['תאריך סיום בפועל'] = getCurrentDate();
+            // יצירת עותק של המשימה המקורית עם העדכונים
+            const updatedTask = {...task};
+            updatedTask['אחוז התקדמות'] = progressPercentage.toString();
+            
+            // אם כל תתי-המשימות הושלמו, נעדכן גם את הסטטוס
+            if (progressPercentage === 100 && task['סטטוס'] !== 'הושלם') {
+                updatedTask['סטטוס'] = 'הושלם';
+                updatedTask['תאריך סיום בפועל'] = getCurrentDate();
+            }
+            
+            // יצירת FormData לשליחה
+            const formData = new FormData();
+            
+            // הוספת כל השדות המעודכנים
+            Object.entries(updatedTask).forEach(([key, value]) => {
+                if (CONFIG.FIELDS.tasks[key]) {
+                    formData.append(CONFIG.FIELDS.tasks[key], value);
                 }
-                
-                // יצירת FormData לשליחה
-                const formData = new FormData();
-                
-                // הוספת כל השדות המעודכנים
-                Object.entries(updatedTask).forEach(([key, value]) => {
-                    if (CONFIG.FIELDS.tasks[key]) {
-                        formData.append(CONFIG.FIELDS.tasks[key], value);
-                    }
-                });
-                
+            });
+            
+            try {
                 // שליחת הטופס
                 await fetch(CONFIG.FORMS.tasks, {
                     method: 'POST',
@@ -3988,6 +4262,12 @@
                 // עדכון הממשק
                 renderTasks();
                 renderDashboard();
+                
+                return true;
+            } catch (error) {
+                console.error('שגיאה בעדכון המשימה:', error);
+                showNotification('danger', 'שגיאה בעדכון המשימה. נא לנסות שוב.', 'exclamation-triangle');
+                return false;
             }
         }
         
@@ -4286,7 +4566,15 @@
                     <td>${parentTaskName}</td>
                     <td>${subtask['שם תת משימה']}</td>
                     <td>${subtask['אחראי ביצוע']}</td>
-                    <td><span class="status ${statusClass}">${subtask['סטטוס']}</span></td>
+                    <td>
+                        <span class="status ${statusClass}">${subtask['סטטוס']}</span>
+                        <div class="status-action-buttons">
+                            <button class="btn-xs btn-primary" title="לביצוע" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'לביצוע')">לביצוע</button>
+                            <button class="btn-xs btn-warning" title="בתהליך" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'בתהליך')">בתהליך</button>
+                            <button class="btn-xs btn-success" title="הושלם" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'הושלם')">הושלם</button>
+                            <button class="btn-xs btn-danger" title="מעוכב" onclick="updateSubtaskStatus('${subtask['מזהה תת משימה']}', 'מעוכב')">מעוכב</button>
+                        </div>
+                    </td>
                     <td>${dueDate}</td>
                     <td>
                         <div class="action-buttons">
