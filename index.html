@@ -767,6 +767,69 @@
             font-weight: bold;
         }
         
+        /* תתי-משימות בתוך המשימה */
+        .subtasks-section {
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+        
+        .subtasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .subtasks-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .subtasks-list {
+            margin-bottom: 1rem;
+        }
+        
+        .subtask-item {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--light-color);
+        }
+        
+        .subtask-info {
+            flex: 1;
+        }
+        
+        .subtask-name {
+            font-weight: 500;
+        }
+        
+        .subtask-meta {
+            display: flex;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-top: 0.25rem;
+            gap: 1rem;
+        }
+        
+        .subtask-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* תיבת התראה לשדות חובה */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
         /* תצוגה רספונסיבית */
         @media (max-width: 768px) {
             .dashboard {
@@ -1146,6 +1209,7 @@
                 <div class="form-group">
                     <label class="form-label" for="task-completion-date">תאריך סיום בפועל</label>
                     <input type="date" class="form-control" id="task-completion-date">
+                    <div class="error-message" id="completion-date-error">שדה זה הוא חובה כאשר הסטטוס הוא "הושלם"</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="task-progress">אחוז התקדמות</label>
@@ -1160,6 +1224,20 @@
                         <!-- יתמלא דינמית -->
                     </select>
                 </div>
+
+                <!-- תתי-משימות בתוך המשימה -->
+                <div class="subtasks-section" id="task-subtasks-section">
+                    <div class="subtasks-header">
+                        <h3 class="subtasks-title">תתי-משימות</h3>
+                        <button type="button" class="btn btn-primary" id="add-subtask-in-task-btn">
+                            <i class="fas fa-plus btn-icon"></i>הוסף תת-משימה
+                        </button>
+                    </div>
+                    <div class="subtasks-list" id="task-subtasks-list">
+                        <!-- יתמלא דינמית -->
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" id="cancel-task-btn">ביטול</button>
                     <button type="submit" class="btn btn-success" id="save-task-btn">
@@ -1223,6 +1301,7 @@
                 <div class="form-group">
                     <label class="form-label" for="subtask-completion-date">תאריך סיום בפועל</label>
                     <input type="date" class="form-control" id="subtask-completion-date">
+                    <div class="error-message" id="subtask-completion-date-error">שדה זה הוא חובה כאשר הסטטוס הוא "הושלם"</div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" id="cancel-subtask-btn">ביטול</button>
@@ -1437,6 +1516,7 @@
         let logsData = [];
         let currentUser = null;
         let charts = {};
+        let currentTaskId = null; // משתנה גלובלי לשמירת המזהה של המשימה הנוכחית
         
         // =========================================
         // פונקציות אתחול ומנגנון התחברות
@@ -1555,6 +1635,8 @@
             setupSearchAndFilters();
             setupModalCloseEvents();
             setupForms();
+            setupTaskStatusValidation();
+            setupSubtaskStatusValidation();
             
             // הגדרת רענון תקופתי
             setInterval(fetchAllData, CONFIG.REFRESH_INTERVAL);
@@ -1835,6 +1917,64 @@
                 `;
                 
                 tableBody.appendChild(row);
+            });
+        }
+        
+        // פונקציה להצגת תתי-משימות בתוך טופס המשימה
+        function renderSubtasksInTaskForm(taskId) {
+            const subtasksList = document.getElementById('task-subtasks-list');
+            subtasksList.innerHTML = '';
+            
+            // סינון תתי-משימות השייכות למשימה הנוכחית
+            const taskSubtasks = subtasksData.filter(subtask => subtask['משימה ראשית'] === taskId);
+            
+            if (taskSubtasks.length === 0) {
+                subtasksList.innerHTML = '<div class="empty-state">אין תתי-משימות למשימה זו</div>';
+                return;
+            }
+            
+            taskSubtasks.forEach(subtask => {
+                const subtaskItem = document.createElement('div');
+                subtaskItem.className = 'subtask-item';
+                
+                // קביעת סגנון סטטוס
+                let statusClass = '';
+                if (subtask['סטטוס'] === 'לביצוע') {
+                    statusClass = 'status-new';
+                } else if (subtask['סטטוס'] === 'בתהליך') {
+                    statusClass = 'status-in-progress';
+                } else if (subtask['סטטוס'] === 'הושלם') {
+                    statusClass = 'status-completed';
+                } else {
+                    statusClass = 'status-delayed';
+                }
+                
+                // פורמט תאריך
+                const dueDate = subtask['תאריך יעד'] ? formatDate(subtask['תאריך יעד']) : '';
+                
+                subtaskItem.innerHTML = `
+                    <div class="subtask-info">
+                        <div class="subtask-name">${subtask['שם תת משימה']}</div>
+                        <div class="subtask-meta">
+                            <span>אחראי: ${subtask['אחראי ביצוע']}</span>
+                            <span>תאריך יעד: ${dueDate}</span>
+                            <span class="status ${statusClass}">${subtask['סטטוס']}</span>
+                        </div>
+                    </div>
+                    <div class="subtask-actions">
+                        <button type="button" class="action-btn view-btn" title="צפייה" onclick="viewSubtaskFromTask('${subtask['מזהה תת משימה']}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button type="button" class="action-btn edit-btn" title="עריכה" onclick="editSubtaskFromTask('${subtask['מזהה תת משימה']}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="action-btn delete-btn" title="מחיקה" onclick="deleteSubtaskFromTask('${subtask['מזהה תת משימה']}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                subtasksList.appendChild(subtaskItem);
             });
         }
         
@@ -2168,7 +2308,6 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
-            // סינון המשימות של המשתמש הנוכחי
             // סינון המשימות של המשתמש הנוכחי
             const myTasks = tasksData.filter(task => task['אחראי ביצוע'] === currentUser.name);
             const mySubtasks = subtasksData.filter(subtask => subtask['אחראי ביצוע'] === currentUser.name);
@@ -2754,6 +2893,13 @@
                 document.getElementById('task-start-date').value = getCurrentDate();
                 document.getElementById('task-progress').value = 0;
                 document.getElementById('task-progress-bar').style.width = '0%';
+                
+                // איפוס רשימת תתי-המשימות
+                document.getElementById('task-subtasks-list').innerHTML = '<div class="empty-state">אין תתי-משימות למשימה זו</div>';
+                
+                // שמירת מזהה המשימה הנוכחית
+                currentTaskId = document.getElementById('task-id').value;
+                
                 openModal('task-modal');
             });
             
@@ -2763,6 +2909,19 @@
                 document.getElementById('subtask-modal-title').textContent = 'הוספת תת-משימה חדשה';
                 document.getElementById('subtask-id').value = generateUniqueId('subtask');
                 document.getElementById('subtask-start-date').value = getCurrentDate();
+                openModal('subtask-modal');
+            });
+            
+            // הוספת תת-משימה מתוך המשימה
+            document.getElementById('add-subtask-in-task-btn').addEventListener('click', () => {
+                document.getElementById('subtask-form').reset();
+                document.getElementById('subtask-modal-title').textContent = 'הוספת תת-משימה חדשה';
+                document.getElementById('subtask-id').value = generateUniqueId('subtask');
+                document.getElementById('subtask-parent').value = currentTaskId;
+                document.getElementById('subtask-start-date').value = getCurrentDate();
+                
+                // אם אנחנו מוסיפים מתוך חלון המשימה, נסגור אותו זמנית
+                closeModal('task-modal');
                 openModal('subtask-modal');
             });
             
@@ -2778,6 +2937,66 @@
                 document.getElementById('category-form').reset();
                 document.getElementById('category-modal-title').textContent = 'הוספת קטגוריה חדשה';
                 openModal('category-modal');
+            });
+        }
+        
+        // אתחול בדיקת תקינות למשימה עם סטטוס "הושלם"
+        function setupTaskStatusValidation() {
+            const taskStatusSelect = document.getElementById('task-status');
+            const completionDateInput = document.getElementById('task-completion-date');
+            const completionDateError = document.getElementById('completion-date-error');
+            
+            // בדיקה בשינוי הסטטוס
+            taskStatusSelect.addEventListener('change', function() {
+                if (this.value === 'הושלם') {
+                    completionDateInput.setAttribute('required', 'required');
+                    if (!completionDateInput.value) {
+                        completionDateInput.value = getCurrentDate();
+                    }
+                    completionDateError.style.display = 'none';
+                } else {
+                    completionDateInput.removeAttribute('required');
+                    completionDateError.style.display = 'none';
+                }
+            });
+            
+            // בדיקה בעת שליחת הטופס
+            document.getElementById('task-form').addEventListener('submit', function(e) {
+                if (taskStatusSelect.value === 'הושלם' && !completionDateInput.value) {
+                    e.preventDefault();
+                    completionDateError.style.display = 'block';
+                    completionDateInput.focus();
+                }
+            });
+        }
+        
+        // אתחול בדיקת תקינות לתת-משימה עם סטטוס "הושלם"
+        function setupSubtaskStatusValidation() {
+            const subtaskStatusSelect = document.getElementById('subtask-status');
+            const completionDateInput = document.getElementById('subtask-completion-date');
+            const completionDateError = document.getElementById('subtask-completion-date-error');
+            
+            // בדיקה בשינוי הסטטוס
+            subtaskStatusSelect.addEventListener('change', function() {
+                if (this.value === 'הושלם') {
+                    completionDateInput.setAttribute('required', 'required');
+                    if (!completionDateInput.value) {
+                        completionDateInput.value = getCurrentDate();
+                    }
+                    completionDateError.style.display = 'none';
+                } else {
+                    completionDateInput.removeAttribute('required');
+                    completionDateError.style.display = 'none';
+                }
+            });
+            
+            // בדיקה בעת שליחת הטופס
+            document.getElementById('subtask-form').addEventListener('submit', function(e) {
+                if (subtaskStatusSelect.value === 'הושלם' && !completionDateInput.value) {
+                    e.preventDefault();
+                    completionDateError.style.display = 'block';
+                    completionDateInput.focus();
+                }
             });
         }
         
@@ -2815,12 +3034,23 @@
                 closeBtn.addEventListener('click', (e) => {
                     const modal = e.target.closest('.modal');
                     modal.style.display = 'none';
+                    
+                    // אם סגרנו את מודאל תת-המשימה ויש משימה פתוחה, נחזיר אותה
+                    if (modal.id === 'subtask-modal' && currentTaskId) {
+                        openModal('task-modal');
+                    }
                 });
             });
             
             // סגירה בלחיצה על כפתורי ביטול
             document.getElementById('cancel-task-btn').addEventListener('click', () => closeModal('task-modal'));
-            document.getElementById('cancel-subtask-btn').addEventListener('click', () => closeModal('subtask-modal'));
+            document.getElementById('cancel-subtask-btn').addEventListener('click', () => {
+                closeModal('subtask-modal');
+                // אם יצאנו מתת-משימה ויש משימה פתוחה, נחזיר את חלון המשימה
+                if (currentTaskId) {
+                    openModal('task-modal');
+                }
+            });
             document.getElementById('cancel-team-btn').addEventListener('click', () => closeModal('team-modal'));
             document.getElementById('cancel-category-btn').addEventListener('click', () => closeModal('category-modal'));
             document.getElementById('cancel-log-btn').addEventListener('click', () => closeModal('log-modal'));
@@ -2830,6 +3060,11 @@
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
                         modal.style.display = 'none';
+                        
+                        // אם סגרנו את מודאל תת-המשימה ויש משימה פתוחה, נחזיר אותה
+                        if (modal.id === 'subtask-modal' && currentTaskId) {
+                            openModal('task-modal');
+                        }
                     }
                 });
             });
@@ -2986,6 +3221,13 @@
                 return;
             }
             
+            // בדיקה שיש תאריך ביצוע אם הסטטוס הוא "הושלם"
+            if (taskStatus === 'הושלם' && !taskCompletionDate) {
+                document.getElementById('completion-date-error').style.display = 'block';
+                document.getElementById('task-completion-date').focus();
+                return;
+            }
+            
             // הצגת אנימציית טעינה
             const saveBtn = document.getElementById('save-task-btn');
             const btnText = saveBtn.querySelector('.btn-text');
@@ -3050,6 +3292,9 @@
                 renderTasks();
                 renderDashboard();
                 
+                // ניקוי משתנה המשימה הנוכחית
+                currentTaskId = null;
+                
                 // סגירת המודאל
                 closeModal('task-modal');
                 
@@ -3081,6 +3326,13 @@
             
             if (!subtaskId || !parentTaskId || !subtaskName || !subtaskAssignee) {
                 showNotification('danger', 'חובה למלא את כל השדות המסומנים', 'exclamation-triangle');
+                return;
+            }
+            
+            // בדיקה שיש תאריך ביצוע אם הסטטוס הוא "הושלם"
+            if (subtaskStatus === 'הושלם' && !subtaskCompletionDate) {
+                document.getElementById('subtask-completion-date-error').style.display = 'block';
+                document.getElementById('subtask-completion-date').focus();
                 return;
             }
             
@@ -3148,6 +3400,12 @@
                 
                 // סגירת המודאל
                 closeModal('subtask-modal');
+                
+                // אם היינו בתוך חלון משימה ספציפית, נחזור אליו ונעדכן את רשימת תתי-המשימות
+                if (currentTaskId) {
+                    openModal('task-modal');
+                    renderSubtasksInTaskForm(currentTaskId);
+                }
                 
                 // הצגת הודעת הצלחה
                 showNotification('success', `תת-המשימה ${action === 'יצירה' ? 'נוצרה' : 'עודכנה'} בהצלחה!`, 'check-circle');
@@ -3374,6 +3632,9 @@
                 return;
             }
             
+            // שמירת מזהה המשימה הנוכחית
+            currentTaskId = taskId;
+            
             // הצגת פרטי המשימה במודאל
             document.getElementById('task-form').reset();
             document.getElementById('task-modal-title').textContent = 'צפייה במשימה';
@@ -3392,6 +3653,9 @@
             // עדכון פרוגרס בר
             document.getElementById('task-progress-bar').style.width = `${task['אחוז התקדמות']}%`;
             
+            // טעינת תתי-המשימות הקשורות למשימה זו
+            renderSubtasksInTaskForm(taskId);
+            
             // פתיחת המודאל
             openModal('task-modal');
         }
@@ -3403,6 +3667,9 @@
                 showNotification('danger', 'המשימה לא נמצאה', 'exclamation-triangle');
                 return;
             }
+            
+            // שמירת מזהה המשימה הנוכחית
+            currentTaskId = taskId;
             
             // מילוי הטופס בנתונים הקיימים
             document.getElementById('task-form').reset();
@@ -3421,6 +3688,9 @@
             
             // עדכון פרוגרס בר
             document.getElementById('task-progress-bar').style.width = `${task['אחוז התקדמות']}%`;
+            
+            // טעינת תתי-המשימות הקשורות למשימה זו
+            renderSubtasksInTaskForm(taskId);
             
             // פתיחת המודאל
             openModal('task-modal');
@@ -3543,6 +3813,13 @@
             openModal('subtask-modal');
         }
         
+        // צפייה בתת-משימה מתוך חלון המשימה הראשית
+        function viewSubtaskFromTask(subtaskId) {
+            // סגירה זמנית של חלון המשימה
+            closeModal('task-modal');
+            viewSubtask(subtaskId);
+        }
+        
         // עריכת תת-משימה
         function editSubtask(subtaskId) {
             const subtask = subtasksData.find(st => st['מזהה תת משימה'] === subtaskId);
@@ -3566,6 +3843,13 @@
             
             // פתיחת המודאל
             openModal('subtask-modal');
+        }
+        
+        // עריכת תת-משימה מתוך חלון המשימה הראשית
+        function editSubtaskFromTask(subtaskId) {
+            // סגירה זמנית של חלון המשימה
+            closeModal('task-modal');
+            editSubtask(subtaskId);
         }
         
         // מחיקת תת-משימה
@@ -3619,6 +3903,19 @@
                 console.error('שגיאה במחיקת תת-המשימה:', error);
                 showNotification('danger', 'שגיאה במחיקת תת-המשימה. נא לנסות שוב.', 'exclamation-triangle');
             }
+        }
+        
+        // מחיקת תת-משימה מתוך חלון המשימה הראשית
+        async function deleteSubtaskFromTask(subtaskId) {
+            // סגירה זמנית של חלון המשימה
+            closeModal('task-modal');
+            
+            // ביצוע המחיקה
+            await deleteSubtask(subtaskId);
+            
+            // פתיחה מחדש של חלון המשימה ועדכון תתי-המשימות
+            openModal('task-modal');
+            renderSubtasksInTaskForm(currentTaskId);
         }
         
         // =========================================
