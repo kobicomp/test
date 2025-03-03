@@ -1678,11 +1678,10 @@
             <i class="fas fa-eye"></i>
           </button>
           ${task.data.isHelpRequest && !task.data.assigneeId ?
-            `<button class="btn btn-sm btn-warning take-help-task" data-id="${task.id}">
-              <i class="fas fa-hand-holding-heart"></i> קח משימה
-             </button>` : ''}
-        </div>
-      `;
+        '<button class="btn btn-sm btn-warning take-help-task" data-id="' + task.id + '">' +
+        '<i class="fas fa-hand-holding-heart"></i> קח משימה' +
+        '</button>' : ''}
+      </div>
 
       // הוספת אירועים
       taskElement.querySelector('.task-checkbox').addEventListener('change', function() {
@@ -2245,17 +2244,22 @@
     }
 
     function openProject(projectId, userRole, taskIdToShow = null) {
+ console.log('Starting openProject with id:', projectId);
       showLoader();
+      
       currentProjectId = projectId;
 
       // שינוי תצוגה
+       console.log('Changing view');
       document.getElementById('projects-view').style.display = 'none';
       document.getElementById('dashboard-view').style.display = 'none';
       document.getElementById('project-detail-view').style.display = 'block';
 
       // טעינת פרטי הפרויקט
+        console.log('Loading project details');
       db.collection('projects').doc(projectId).get()
         .then(doc => {
+           console.log('Received doc:', doc.exists);
           if (!doc.exists) {
             hideLoader();
             alert('הפרויקט לא נמצא');
@@ -2332,6 +2336,7 @@
           loadTasks(projectId, taskIdToShow);
         })
         .catch(error => {
+           console.error('Error in openProject:', error);
           hideLoader();
           console.error("Error fetching project:", error);
           alert('שגיאה בטעינת פרטי הפרויקט');
