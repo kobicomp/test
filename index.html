@@ -676,12 +676,12 @@
                 'ג\' שירה חדאד': 21,
                 'ד\' הדר כחלון': 30,
                 'ו\' ספיר צדוק': 25,
-                // כיתות בנים
-                'א\' בנים רחל פרידמן': 25,
+                // כיתות בנים - מעודכן
+                'א\' בנים רחל פרידמן': 29,
                 'ב\' בנים הילה אלבה': 28,
-                'ג\' בנים מוריה מימון': 26,
-                'ד\' בנים נוי חנוכה': 29,
-                'הכיתה של גל': 24
+                'ג\' בנים מוריה מימון': 22,
+                'ד\' בנים נוי חנוכה': 25,
+                'הכיתה של גל': 7
             },
             // רשימת כיתות בנים
             BOYS_CLASSES: [
@@ -709,7 +709,9 @@
             participationRates: {},
             studentList: [],
             // מידע חדש: אחוז ההשתתפות מתוך הכיתה המלאה
-            totalClassParticipation: {}
+            totalClassParticipation: {},
+            // מיפוי משפחות לפי כיתות ומגדר לצורך ספירה תקינה
+            familyMapping: {}
         };
         
         // עותק שלם של הנתונים המעובדים לשימוש עם פילטרים
@@ -804,7 +806,8 @@
         function retryLoading() {
             loadData();
         }
-        // טעינה מהמטמון המקומי
+        
+      // טעינה מהמטמון המקומי
         function tryLoadFromCache() {
             try {
                 const cachedData = localStorage.getItem('studentData');
@@ -879,7 +882,8 @@
                 },
                 participationRates: {},
                 studentList: [],
-                totalClassParticipation: {}
+                totalClassParticipation: {},
+                familyMapping: {} // מיפוי משפחות לפי מגדר/כיתה
             };
             
             // מעבר על הנתונים
@@ -907,6 +911,15 @@
                     attendeeInfo = attendees.join(", ");
                 }
                 
+                // פרטי המשפחה לצורך ספירה
+                const familyInfo = {
+                    rowId: rowIndex,
+                    lastName: row["שם משפחה"] || "",
+                    hasBoysClasses: false,
+                    hasGirlsClasses: false,
+                    status: notAttending ? "לא מגיעים" : "מגיעים"
+                };
+                
                 // חיפוש תלמידים ברשומה
                 for (let i = 1; i <= 4; i++) {
                     const nameKey = `שם התלמיד ${i}`;
@@ -916,6 +929,13 @@
                         const studentName = row[nameKey];
                         const studentClass = row[classKey];
                         const gender = isBoysClass(studentClass) ? 'boys' : 'girls';
+                        
+                        // עדכון סוג כיתות במשפחה
+                        if (gender === 'boys') {
+                            familyInfo.hasBoysClasses = true;
+                        } else {
+                            familyInfo.hasGirlsClasses = true;
+                        }
                         
                         processedData.totalStudents++;
                         
@@ -945,6 +965,9 @@
                         });
                     }
                 }
+                
+                // הוספת המשפחה למיפוי
+                processedData.familyMapping[rowIndex] = familyInfo;
             });
            
             // חישוב אחוזי השתתפות לפי כיתה
@@ -1003,7 +1026,7 @@
             // סינון נתונים לפי מגדר
             processedData = {
                 totalStudents: 0,
-                totalFamilies: fullProcessedData.totalFamilies, // משאירים כמות המשפחות ללא שינוי
+                totalFamilies: 0, // יחושב מחדש לפי הפילטר
                 classCounts: {},
                 classesWithNoShow: {},
                 attendeeTypes: {
@@ -1014,7 +1037,8 @@
                 },
                 participationRates: {},
                 studentList: [],
-                totalClassParticipation: {}
+                totalClassParticipation: {},
+                familyMapping: {}
             };
             
             // פילטור רשימת התלמידים
@@ -1025,6 +1049,17 @@
                 
                 return isMatchingGender;
             });
+            
+            // חישוב מחדש של ספירות משפחות מסוננות לפי מגדר
+            const filteredFamilyIds = new Set();
+            
+            // עבור כל הסטודנטים המסוננים, אסוף את כל ה-IDs של המשפחות
+            processedData.studentList.forEach(student => {
+                filteredFamilyIds.add(student.rowId);
+            });
+            
+            // ספירת משפחות מסוננות
+            processedData.totalFamilies = filteredFamilyIds.size;
             
             // חישוב מחדש של ספירות וסטטיסטיקות אחרות
             processedData.totalStudents = processedData.studentList.length;
@@ -1046,18 +1081,22 @@
                     }
                     processedData.classesWithNoShow[className]++;
                 }
+            });
+            
+            // חישוב מחדש של מלווים לפי משפחות מסוננות
+            filteredFamilyIds.forEach(familyId => {
+                const row = rawData[familyId];
+                if (!row) return;
                 
-                // ספירת סוגי מלווים
-                if (student.status === "לא מגיעים") {
-                    processedData.attendeeTypes["לא מגיעים"]++;
-                } else {
-                    if (student.attendees.includes('סבא')) processedData.attendeeTypes["סבא"]++;
-                    if (student.attendees.includes('סבתא')) processedData.attendeeTypes["סבתא"]++;
-                    if (student.attendees.includes('אחר') || 
-                        (student.attendees && !student.attendees.includes('סבא') && !student.attendees.includes('סבתא'))) {
-                        processedData.attendeeTypes["אחר"]++;
-                    }
-                }
+                const notAttending = row["לא מגיעים"] ? true : false;
+                const hasGrandpa = row["שם סבא מגיע"] ? true : false;
+                const hasGrandma = row["שם סבתא מגיעה"] ? true : false;
+                const hasOther = row["אחר - קרבה"] ? true : false;
+                
+                if (hasGrandpa) processedData.attendeeTypes["סבא"]++;
+                if (hasGrandma) processedData.attendeeTypes["סבתא"]++;
+                if (hasOther) processedData.attendeeTypes["אחר"]++;
+                if (notAttending) processedData.attendeeTypes["לא מגיעים"]++;
             });
             
             // חישוב מחדש של אחוזי השתתפות
@@ -1162,9 +1201,8 @@
             // סה"כ תלמידים
             document.getElementById('totalStudents').textContent = processedData.totalStudents;
             
-            // סה"כ משפחות - לא משתנה עם הפילטר
-            const totalFamiliesCount = processedData.totalFamilies;
-            document.getElementById('totalFamilies').textContent = totalFamiliesCount;
+            // סה"כ משפחות - לפי הפילטר הנוכחי
+            document.getElementById('totalFamilies').textContent = processedData.totalFamilies;
             
             // אחוז השתתפות
             document.getElementById('participationRate').textContent = `${processedData.overallParticipationRate}%`;
@@ -1185,7 +1223,7 @@
             const chartData = labels.map(cls => {
                 const totalInClass = CONFIG.CLASS_SIZES[cls] || 0; // גודל כיתה מלא
                 const respondedCount = processedData.classCounts[cls]; // סך העונות
-                const attendingCount = respondedCount - (processedData.classesWithNoShow[cls] || 0); // מאשרות הגעה
+                const attendingCount = respondedCount - (processedData.classesWithNoShow[cls] || 0); // מאשרים הגעה
 
                 const respondedRate = (respondedCount / totalInClass) * 100;
                 const attendingRate = (attendingCount / respondedCount) * 100;
@@ -1332,7 +1370,7 @@
             });
         }
         
-        // הצגת אחוזי השתתפות לפי כיתה
+      // הצגת אחוזי השתתפות לפי כיתה
         function renderParticipationRates() {
             const container = document.getElementById('participationRates');
             container.innerHTML = '';
@@ -1490,7 +1528,7 @@
             const totalRateCell = document.createElement('td');
             totalRateCell.textContent = `${processedData.overallParticipationRate}%`;
             
-           // חישוב סה"כ תלמידים בכל הכיתות
+            // חישוב סה"כ תלמידים בכל הכיתות
             // פילטור לפי הפילטר הנוכחי
             let totalClassSizes = 0;
             if (currentFilter === 'all') {
