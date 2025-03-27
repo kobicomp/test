@@ -935,114 +935,218 @@ MI0OtwOrPB8xdsseN-1RaWV9ARSkW-ZieaYvRTkBQvvjkHeESLHyQW/pub?output=csv');
         }
 
         // פונקציה ליצירת דוח מידות לפי כיתה
-        function createClassSizeReport(ordersList) {
-            // קבלת כל המידות הקיימות ומיונן
-            const allSizes = Array.from(new Set(ordersList.map(order => order.size))).sort((a, b) => {
-                // מיון מידות מספריות
-                const sizeOrder = ['6', '8', '10', '12', '14', '16', '18', 'S', 'M', 'L', 'XL'];
-                return sizeOrder.indexOf(a) - sizeOrder.indexOf(b);
-            });
-            
-            // יצירת מבנה נתונים לספירת מידות לפי כיתה
-            const classSizeCounts = {};
-            const classNames = Object.keys(classData);
-            
-            // אתחול מבנה הנתונים
-            classNames.forEach(className => {
-                classSizeCounts[className] = {};
-                allSizes.forEach(size => {
-                    classSizeCounts[className][size] = 0;
-                });
-                classSizeCounts[className].total = 0;
-            });
-            
-            // ספירת מידות לפי כיתה
-            ordersList.forEach(order => {
-                if (classSizeCounts[order.className] && order.size) {
-                    classSizeCounts[order.className][order.size]++;
-                    classSizeCounts[order.className].total++;
-                }
-            });
-            
-            // חישוב סה"כ לכל מידה
-            const sizeTotals = {};
-            allSizes.forEach(size => {
-                sizeTotals[size] = 0;
-                classNames.forEach(className => {
-                    sizeTotals[size] += classSizeCounts[className][size] || 0;
-                });
-            });
-            
-            // חישוב סה"כ ההזמנות
-            const grandTotal = Object.values(sizeTotals).reduce((sum, count) => sum + count, 0);
-            
-            // יצירת כותרות טבלה
-            const tableHeader = document.querySelector('#classAndSizeReport table thead tr');
-            tableHeader.innerHTML = '<th>כיתה</th>';
-            
-            allSizes.forEach(size => {
-                tableHeader.innerHTML += `<th>מידה ${size}</th>`;
-            });
-            
-            tableHeader.innerHTML += '<th>סה"כ</th>';
-            
-            // יצירת שורות טבלה
-            const tableBody = document.getElementById('classSizeReportTable');
-            tableBody.innerHTML = '';
-            
-            // מיון כיתות לפי הפרמטר שנבחר
-            const sortField = document.getElementById('classSizeSortField')?.value || 'total';
-            const sortDirection = document.getElementById('classSizeSortDirection')?.value || 'desc';
-            
-            let sortedClassNames = [...classNames].sort((a, b) => {
-                let result;
-                if (sortField === 'className') {
-                    result = a.localeCompare(b);
-                } else { // sortField === 'total'
-                    result = classSizeCounts[b].total - classSizeCounts[a].total;
-                }
-                
-                return sortDirection === 'asc' ? -result : result;
-            });
-            
-            // יצירת שורות לכל כיתה
-            sortedClassNames.forEach(className => {
-                if (classSizeCounts[className].total > 0) { // הצגת רק כיתות עם הזמנות
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td>${className}</td>`;
-                    
-                    // הוספת תאים לכל מידה
-                    allSizes.forEach(size => {
-                        const count = classSizeCounts[className][size] || 0;
-                        row.innerHTML += `<td>${count > 0 ? count : '-'}</td>`;
-                    });
-                    
-                    // הוספת תא לסה"כ
-                    row.innerHTML += `<td class="total-cell">${classSizeCounts[className].total}</td>`;
-                    
-                    tableBody.appendChild(row);
-                }
-            });
-            
-            // יצירת שורת סיכום
-            const totalRow = document.getElementById('classSizeTotalRow');
-            totalRow.innerHTML = '<th>סה"כ</th>';
-            
-            // הוספת סיכומים לכל מידה
-            allSizes.forEach(size => {
-                totalRow.innerHTML += `<th>${sizeTotals[size]}</th>`;
-            });
-            
-            // הוספת סיכום כללי
-            totalRow.innerHTML += `<th>${grandTotal}</th>`;
-            
-            // עדכון כפתור הייצוא
-            const exportClassSizeCsvBtn = document.getElementById('exportClassSizeCsvBtn');
-            exportClassSizeCsvBtn.textContent = `ייצוא דוח מידות לפי כיתה (${grandTotal} הזמנות) לקובץ CSV`;
-            
-            // הוספת אירוע לחיצה על כפתור הייצוא
-            exportClassSizeCsvBtn.onclick = () => exportClassSizeReportToCSV(classSizeCounts, allSizes, sizeTotals, grandTotal);
+      // פונקציה ליצירת דוח מידות לפי כיתה
+function createClassSizeReport(ordersList) {
+    // קבלת כל המידות הקיימות ומיונן
+    const allSizes = Array.from(new Set(ordersList.map(order => order.size))).sort((a, b) => {
+        // מיון מידות מספריות
+        const sizeOrder = ['6', '8', '10', '12', '14', '16', '18', 'S', 'M', 'L', 'XL'];
+        return sizeOrder.indexOf(a) - sizeOrder.indexOf(b);
+    });
+    
+    // יצירת מבנה נתונים לספירת מידות לפי כיתה
+    const classSizeCounts = {};
+    const classNames = Object.keys(classData);
+    
+    // אתחול מבנה הנתונים
+    classNames.forEach(className => {
+        classSizeCounts[className] = {};
+        allSizes.forEach(size => {
+            classSizeCounts[className][size] = 0;
+        });
+        classSizeCounts[className].total = 0;
+    });
+    
+    // ספירת מידות לפי כיתה
+    ordersList.forEach(order => {
+        if (classSizeCounts[order.className] && order.size) {
+            classSizeCounts[order.className][order.size]++;
+            classSizeCounts[order.className].total++;
         }
+    });
+    
+    // חישוב סה"כ לכל מידה
+    const sizeTotals = {};
+    allSizes.forEach(size => {
+        sizeTotals[size] = 0;
+        classNames.forEach(className => {
+            sizeTotals[size] += classSizeCounts[className][size] || 0;
+        });
+    });
+    
+    // חישוב סה"כ ההזמנות
+    const grandTotal = Object.values(sizeTotals).reduce((sum, count) => sum + count, 0);
+    
+    // יצירת כותרות טבלה
+    const tableHeader = document.querySelector('#classAndSizeReport table thead tr');
+    tableHeader.innerHTML = '<th>כיתה</th>';
+    
+    allSizes.forEach(size => {
+        tableHeader.innerHTML += `<th>מידה ${size}</th>`;
+    });
+    
+    tableHeader.innerHTML += '<th>סה"כ</th>';
+    
+    // יצירת שורות טבלה
+    const tableBody = document.getElementById('classSizeReportTable');
+    tableBody.innerHTML = '';
+    
+    // מיון כיתות לפי הפרמטר שנבחר
+    const sortField = document.getElementById('classSizeSortField')?.value || 'total';
+    const sortDirection = document.getElementById('classSizeSortDirection')?.value || 'desc';
+    
+    let sortedClassNames = [...classNames].sort((a, b) => {
+        let result;
+        if (sortField === 'className') {
+            result = a.localeCompare(b);
+        } else { // sortField === 'total'
+            result = classSizeCounts[b].total - classSizeCounts[a].total;
+        }
+        
+        return sortDirection === 'asc' ? -result : result;
+    });
+    
+    // יצירת שורות לכל כיתה
+    sortedClassNames.forEach(className => {
+        if (classSizeCounts[className].total > 0) { // הצגת רק כיתות עם הזמנות
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${className}</td>`;
+            
+            // הוספת תאים לכל מידה
+            allSizes.forEach(size => {
+                const count = classSizeCounts[className][size] || 0;
+                row.innerHTML += `<td>${count > 0 ? count : '-'}</td>`;
+            });
+            
+            // הוספת תא לסה"כ
+            row.innerHTML += `<td class="total-cell">${classSizeCounts[className].total}</td>`;
+            
+            tableBody.appendChild(row);
+        }
+    });
+    
+    // יצירת שורת סיכום
+    const totalRow = document.getElementById('classSizeTotalRow');
+    totalRow.innerHTML = '<th>סה"כ</th>';
+    
+    // הוספת סיכומים לכל מידה
+    allSizes.forEach(size => {
+        totalRow.innerHTML += `<th>${sizeTotals[size]}</th>`;
+    });
+    
+    // הוספת סיכום כללי
+    totalRow.innerHTML += `<th>${grandTotal}</th>`;
+    
+    // עדכון כפתור הייצוא
+    const exportClassSizeCsvBtn = document.getElementById('exportClassSizeCsvBtn');
+    exportClassSizeCsvBtn.textContent = `ייצוא דוח מידות לפי כיתה (${grandTotal} הזמנות) לקובץ CSV`;
+    
+    // הוספת אירוע לחיצה על כפתור הייצוא
+    exportClassSizeCsvBtn.onclick = () => exportClassSizeReportToCSV(classSizeCounts, allSizes, sizeTotals, grandTotal);
+}
+
+// פונקציה לייצוא דוח מידות לפי כיתה ל-CSV
+function exportClassSizeReportToCSV(classSizeCounts, allSizes, sizeTotals, grandTotal) {
+    // בדיקה שנבחר לפחות שדה אחד לייצוא
+    const exportFields = {
+        className: document.getElementById('exportClassSizeClass').checked,
+        sizes: document.getElementById('exportClassSizeSizes').checked,
+        total: document.getElementById('exportClassSizeTotal').checked
+    };
+    
+    if (!Object.values(exportFields).some(value => value)) {
+        alert('יש לבחור לפחות שדה אחד לייצוא.');
+        return;
+    }
+    
+    // מיון כיתות
+    const sortField = document.getElementById('classSizeSortField').value;
+    const sortDirection = document.getElementById('classSizeSortDirection').value;
+    
+    const classNames = Object.keys(classSizeCounts).filter(className => classSizeCounts[className].total > 0);
+    
+    let sortedClassNames = [...classNames].sort((a, b) => {
+        let result;
+        if (sortField === 'className') {
+            result = a.localeCompare(b);
+        } else { // sortField === 'total'
+            result = classSizeCounts[b].total - classSizeCounts[a].total;
+        }
+        
+        return sortDirection === 'asc' ? -result : result;
+    });
+    
+    // הכנת כותרות ה-CSV
+    const headers = [];
+    if (exportFields.className) headers.push('כיתה');
+    if (exportFields.sizes) {
+        allSizes.forEach(size => {
+            headers.push(`מידה ${size}`);
+        });
+    }
+    if (exportFields.total) headers.push('סה"כ');
+    
+    // המרת הנתונים לפורמט CSV
+    let csvContent = headers.join(',') + '\n';
+    
+    // הוספת שורות נתונים
+    sortedClassNames.forEach(className => {
+        const row = [];
+        
+        if (exportFields.className) row.push(`"${className.replace(/"/g, '""')}"`);
+        
+        if (exportFields.sizes) {
+            allSizes.forEach(size => {
+                const count = classSizeCounts[className][size] || 0;
+                row.push(count);
+            });
+        }
+        
+        if (exportFields.total) row.push(classSizeCounts[className].total);
+        
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // הוספת שורת סיכום
+    if (sortedClassNames.length > 0) {
+        const totalRow = [];
+        
+        if (exportFields.className) totalRow.push('"סה"כ"');
+        
+        if (exportFields.sizes) {
+            allSizes.forEach(size => {
+                totalRow.push(sizeTotals[size]);
+            });
+        }
+        
+        if (exportFields.total) totalRow.push(grandTotal);
+        
+        csvContent += totalRow.join(',') + '\n';
+    }
+    
+    // הוספת BOM לתמיכה בעברית
+    const BOM = '\uFEFF';
+    csvContent = BOM + csvContent;
+    
+    // יצירת קובץ להורדה
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    // יצירת קישור להורדה והפעלתו
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    
+    // שם הקובץ עם תאריך ושעה נוכחיים
+    const date = new Date();
+    const formattedDate = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+    const formattedTime = `${date.getHours().toString().padStart(2, '0')}-${date.getMinutes().toString().padStart(2, '0')}`;
+    
+    link.setAttribute('download', `דוח-מידות-לפי-כיתה_${formattedDate}_${formattedTime}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
         // פונקציה לייצוא דוח מידות לפי כיתה ל-CSV
         function exportClassSizeReportToCSV(classSizeCounts, allSizes, sizeTotals, grandTotal) {
