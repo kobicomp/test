@@ -51,6 +51,11 @@
             opacity: 0.9;
         }
 
+        .logo {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+
         .product-card {
             background-color: white;
             border-radius: 10px;
@@ -77,6 +82,7 @@
             color: #666;
             margin-bottom: 20px;
             font-size: 1.1em;
+            white-space: pre-line;
         }
 
         .product-details {
@@ -438,6 +444,7 @@
 <body>
     <div class="header">
         <div class="container">
+            <img src="logod.jpg" alt="לוגו" class="logo">
             <h1 id="project-title">אפיית מצות - בית הכנסת דורש טוב</h1>
             <p id="project-subtitle">הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ"ה</p>
         </div>
@@ -451,12 +458,12 @@
         </div>
 
         <div class="product-card">
-            <h2 class="product-title" id="product-name">אפיית מצות מהודרת</h2>
-            <p class="product-description" id="product-description">
-                בית הכנסת דורש טוב שמח להזמין את הקהילה לאפיית מצות מהודרת לקראת חג הפסח. 
-                אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה.
-                המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה.
-            </p>
+            <h2 class="product-title" id="product-name">אפיית מצות - בית הכנסת דורש טוב</h2>
+            <p class="product-description" id="product-description">שלום לכולם!
+פרויקט קהילות של עיריית שדרות שמח להזמין את ציבור הגברים בקהילת "דורש טוב" לאפיית מצות מהודרות ביום שני, ט' בניסן בשעה 19:00 ברחבת בית הכנסת "נאות השקמה".
+שימו לב! מס' המקומות מוגבל, כל הקודם זוכה.
+ההשתתפות בעלות מסובסדת בסך 10 ש"ח.
+הרב יניב וועד בית הכנסת</p>
             
             <div class="product-details">
                 <div class="price-info">עלות: <span id="price-per-person">10</span> ₪ לאדם (מחיר מסובסד)</div>
@@ -466,7 +473,7 @@
 
             <div class="product-stats">
                 <div class="stat-box">
-                    <div class="stat-value" id="total-slots">120</div>
+                    <div class="stat-value" id="total-slots">20</div>
                     <div class="stat-label">סך ההזמנות</div>
                 </div>
                 <div class="stat-box">
@@ -474,7 +481,7 @@
                     <div class="stat-label">הזמנות שבוצעו</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value" id="available-slots">120</div>
+                    <div class="stat-value" id="available-slots">20</div>
                     <div class="stat-label">הזמנות פנויות</div>
                 </div>
             </div>
@@ -545,10 +552,10 @@
         // הגדרות המערכת
         const CONFIG = {
             // מספר הזמנות מקסימלי
-            totalSlots: 120,
+            totalSlots: 20,
             
             // מספר הזמנות מקסימלי להזמנה בודדת
-            maxSlotsPerBooking: 10,
+            maxSlotsPerBooking: 5,
             
             // מחיר ליחידה
             pricePerPerson: 10,
@@ -582,7 +589,7 @@
                 name: "אפיית מצות בבית הכנסת דורש טוב התשפ\"ה",
                 title: "אפיית מצות - בית הכנסת דורש טוב",
                 subtitle: "הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ\"ה",
-                description: "בית הכנסת דורש טוב שמח להזמין את הקהילה לאפיית מצות מהודרת לקראת חג הפסח. אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה. המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה."
+                description: "שלום לכולם!\nפרויקט קהילות של עיריית שדרות שמח להזמין את ציבור הגברים בקהילת \"דורש טוב\" לאפיית מצות מהודרות ביום שני, ט' בניסן בשעה 19:00 ברחבת בית הכנסת \"נאות השקמה\".\nשימו לב! מס' המקומות מוגבל, כל הקודם זוכה.\nההשתתפות בעלות מסובסדת בסך 10 ש\"ח.\nהרב יניב וועד בית הכנסת"
             }
         };
 
@@ -791,7 +798,6 @@
                 document.getElementById('overlay').style.display = 'block';
                 document.getElementById('booking-form').style.display = 'block';
             },
-            
             closeForm() {
                 document.getElementById('overlay').style.display = 'none';
                 document.getElementById('booking-form').style.display = 'none';
@@ -811,6 +817,7 @@
                 
                 let currentValue = parseInt(quantityValueEl.textContent);
                 let newValue = currentValue + delta;
+                
                 // בדיקות תקינות
                 if (newValue < 1) newValue = 1;
                 if (newValue > CONFIG.maxSlotsPerBooking) newValue = CONFIG.maxSlotsPerBooking;
