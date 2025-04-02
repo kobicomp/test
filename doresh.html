@@ -2,6 +2,7 @@
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מערכת הזמנת אפיית מצות - בית הכנסת דורש טוב התשפ"ה</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
@@ -212,6 +213,8 @@
             z-index: 1000;
             width: 90%;
             max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .booking-form h3 {
@@ -421,6 +424,26 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .product-card {
+                padding: 15px;
+            }
+
+            .product-title {
+                font-size: 1.5em;
+            }
+
             .product-stats {
                 flex-direction: column;
             }
@@ -437,6 +460,11 @@
             
             .form-actions button {
                 width: 100%;
+            }
+
+            .booking-form {
+                padding: 20px;
+                width: 95%;
             }
         }
     </style>
@@ -463,19 +491,17 @@
 פרויקט קהילות של עיריית שדרות שמח להזמין את ציבור הגברים בקהילת "דורש טוב" לאפיית מצות מהודרות ביום שני, ט' בניסן בשעה 19:00 ברחבת בית הכנסת "משכן בניה".
 שימו לב! מס' המקומות מוגבל, כל הקודם זוכה.
 ההשתתפות בעלות מסובסדת בסך 10 ש"ח.
-רישום ותשלום בקישור המצורף:
-
-הרב יניב וועד בית הכנסת</p>
+הרב יניב וועד בית הכנסת</p>
             
             <div class="product-details">
                 <div class="price-info">עלות: <span id="price-per-person">10</span> ₪ לאדם (מחיר מסובסד)</div>
-          
+                <div>המחיר כולל חומרים, הדרכה וליווי מקצועי</div>
                 <a href="https://pe4ch.com/ref/2DKFWoG22che?lang=he" class="payment-link" target="_blank">קישור לתשלום</a>
             </div>
 
             <div class="product-stats">
                 <div class="stat-box">
-                    <div class="stat-value" id="total-slots">30</div>
+                    <div class="stat-value" id="total-slots">20</div>
                     <div class="stat-label">סך ההזמנות</div>
                 </div>
                 <div class="stat-box">
@@ -483,7 +509,7 @@
                     <div class="stat-label">הזמנות שבוצעו</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value" id="available-slots">30</div>
+                    <div class="stat-value" id="available-slots">20</div>
                     <div class="stat-label">הזמנות פנויות</div>
                 </div>
             </div>
@@ -554,7 +580,7 @@
         // הגדרות המערכת
         const CONFIG = {
             // מספר הזמנות מקסימלי
-            totalSlots: 30,
+            totalSlots: 20,
             
             // מספר הזמנות מקסימלי להזמנה בודדת
             maxSlotsPerBooking: 5,
@@ -601,7 +627,7 @@
             totalBooked: 0,
             
             tempBookingsManager: {
-                STORAGE_KEY: 'tempProductBookings',
+                STORAGE_KEY: 'tempProductBookings_MatzahEvent2025',
                 
                 getData() {
                     try {
@@ -610,6 +636,10 @@
                     } catch {
                         return {};
                     }
+                },
+                
+                clearAllData() {
+                    localStorage.removeItem(this.STORAGE_KEY);
                 },
                 
                 setData(bookings) {
@@ -661,6 +691,9 @@
             },
             
             async init() {
+                // ניקוי נתונים זמניים ישנים
+                this.tempBookingsManager.clearAllData();
+                
                 this.updateProjectDetails();
                 this.attachEventListeners();
                 await this.loadData();
@@ -732,8 +765,17 @@
                     this.bookingsData = this.parseCSV(csvText);
                     console.log("Parsed bookings data:", this.bookingsData);
                     
-                    // חישוב סך הכל הזמנות - בדיקת כל אפשרויות שמות העמודות
+                    // חישוב סך הכל הזמנות לפרויקט הנוכחי
                     this.totalBooked = this.bookingsData.reduce((total, booking) => {
+                        // בדיקה אם ההזמנה שייכת לפרויקט הנוכחי
+                        const isCurrentProject = 
+                            (booking['שם הפרוייקט'] && booking['שם הפרוייקט'].includes(CONFIG.project.name)) ||
+                            (booking['entry.1414374653'] && booking['entry.1414374653'].includes(CONFIG.project.name));
+                        
+                        if (!isCurrentProject) {
+                            return total;
+                        }
+                        
                         // בדיקת כל האפשרויות של שם העמודה
                         const quantity = 
                             parseInt(booking['הזמן']) || 
@@ -745,7 +787,7 @@
                         return total + quantity;
                     }, 0);
                     
-                    console.log("Total booked:", this.totalBooked);
+                    console.log("Total booked for this project:", this.totalBooked);
                     
                     // אם אין הזמנות בכלל, אפס את הערך במקום NaN
                     if (isNaN(this.totalBooked)) {
@@ -770,7 +812,7 @@
                 const displayAvailableSlots = isNaN(availableSlots) ? CONFIG.totalSlots : availableSlots;
                 const displayProgressPercentage = isNaN(progressPercentage) ? 0 : progressPercentage;
                 
-                // עדכון ערכים בממשק
+              // עדכון ערכים בממשק
                 document.getElementById('total-slots').textContent = CONFIG.totalSlots;
                 document.getElementById('booked-slots').textContent = displayTotalBooked;
                 document.getElementById('available-slots').textContent = displayAvailableSlots;
@@ -800,6 +842,7 @@
                 document.getElementById('overlay').style.display = 'block';
                 document.getElementById('booking-form').style.display = 'block';
             },
+            
             closeForm() {
                 document.getElementById('overlay').style.display = 'none';
                 document.getElementById('booking-form').style.display = 'none';
@@ -897,10 +940,17 @@
                     this.closeForm();
                     document.getElementById('success-message').style.display = 'block';
                     
-                    // הסתרת הודעת הצלחה אחרי 5 שניות
+                    // שמירת ההזמנה לאחר שנשלחה בהצלחה
+                    const totalAmount = parseInt(formData.quantity) * CONFIG.pricePerPerson;
+                    alert(`הזמנתך התקבלה בהצלחה!\nמספר אנשים: ${formData.quantity}\nסכום לתשלום: ${totalAmount} ש"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.`);
+                    
+                    // פתיחת חלון תשלום בלשונית חדשה
+                    window.open(CONFIG.paymentLink, '_blank');
+                    
+                    // הסתרת הודעת הצלחה אחרי 10 שניות
                     setTimeout(() => {
                         document.getElementById('success-message').style.display = 'none';
-                    }, 5000);
+                    }, 10000);
                     
                     // רענון נתונים אחרי הזמנה
                     await this.delay(2000);
@@ -943,7 +993,7 @@
                     
                     console.log("Detected headers:", headers);
                     
-                    // נבדוק אם יש עמודה שקשורה לכמות
+                    // נבדוק אם יש עמודה שקשורה לכמות ולפרויקט
                     const hasQuantityColumn = headers.some(h => 
                         h.includes('הזמן') || 
                         h.includes('כמות') || 
@@ -952,11 +1002,21 @@
                         h.includes('entry.1406108683')
                     );
                     
-                    console.log("Has quantity column:", hasQuantityColumn);
+                    const hasProjectColumn = headers.some(h => 
+                        h.includes('שם הפרוייקט') || 
+                        h.includes('entry.1414374653')
+                    );
                     
-                    // אם אין עמודת כמות, נוסיף עמודה כזו
+                    console.log("Has quantity column:", hasQuantityColumn);
+                    console.log("Has project column:", hasProjectColumn);
+                    
+                    // אם אין עמודות חובה, נוסיף אותן
                     if (!hasQuantityColumn) {
                         headers.push('כמות');
+                    }
+                    
+                    if (!hasProjectColumn) {
+                        headers.push('שם הפרוייקט');
                     }
                     
                     return lines.slice(1)
@@ -984,6 +1044,11 @@
                                 // אם זה עמודת הכמות שהוספנו והיא ריקה, שים 1 כברירת מחדל
                                 if (header === 'כמות' && !entry[header] && !hasQuantityColumn) {
                                     entry[header] = '1';
+                                }
+                                
+                                // אם זה עמודת הפרויקט שהוספנו והיא ריקה, שים שם פרויקט כברירת מחדל
+                                if (header === 'שם הפרוייקט' && !entry[header] && !hasProjectColumn) {
+                                    entry[header] = CONFIG.project.name;
                                 }
                             });
                             
