@@ -370,8 +370,8 @@
 <body>
     <div class="header">
         <div class="container">
-            <h1>אפיית מצות - בית הכנסת דורש טוב</h1>
-            <p>הזמנת משבצות זמן לאפיית מצות לקראת חג הפסח התשפ"ה</p>
+            <h1 id="project-title">אפיית מצות - בית הכנסת דורש טוב</h1>
+            <p id="project-subtitle">הזמנת משבצות זמן לאפיית מצות לקראת חג הפסח התשפ"ה</p>
         </div>
     </div>
 
@@ -381,8 +381,8 @@
         </div>
 
         <div class="product-card">
-            <h2 class="product-title">אפיית מצות מהודרת</h2>
-            <p class="product-description">
+            <h2 class="product-title" id="product-name">אפיית מצות מהודרת</h2>
+            <p class="product-description" id="product-description">
                 בית הכנסת דורש טוב שמח להזמין את הקהילה לאפיית מצות מהודרת לקראת חג הפסח. 
                 אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה.
                 המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה.
@@ -419,7 +419,7 @@
 
     <div class="overlay" id="overlay"></div>
     <div class="booking-form" id="booking-form">
-        <h3>הזמנת אפיית מצות</h3>
+        <h3 id="form-title">הזמנת אפיית מצות</h3>
         <form id="reservation-form">
             <div class="form-group">
                 <label for="firstName">שם פרטי:</label>
@@ -442,6 +442,7 @@
                 </div>
                 <input type="hidden" id="quantity" value="1">
             </div>
+            <input type="hidden" id="projectName" value="">
             <div id="error-message" class="error"></div>
             <div class="form-actions">
                 <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
@@ -481,11 +482,17 @@
                 firstName: "entry.1726269772",
                 lastName: "entry.1766470893",
                 phone: "entry.2028941780",
-                quantity: "entry.1406108683"
+                quantity: "entry.1406108683",
+                projectName: "entry.1414374653"
             },
             
-            // שם מוצר
-            productName: "אפיית מצות בבית הכנסת דורש טוב התשפ\"ה"
+            // פרטי פרויקט
+            project: {
+                name: "אפיית מצות בבית הכנסת דורש טוב התשפ\"ה",
+                title: "אפיית מצות - בית הכנסת דורש טוב",
+                subtitle: "הזמנת משבצות זמן לאפיית מצות לקראת חג הפסח התשפ\"ה",
+                description: "בית הכנסת דורש טוב שמח להזמין את הקהילה לאפיית מצות מהודרת לקראת חג הפסח. אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה. המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה."
+            }
         };
 
         // מערכת הזמנה
@@ -494,7 +501,7 @@
             totalBooked: 0,
             
             tempBookingsManager: {
-                STORAGE_KEY: 'tempMatzahBookings',
+                STORAGE_KEY: 'tempProductBookings',
                 
                 getData() {
                     try {
@@ -511,12 +518,13 @@
                 
                 addBooking(booking) {
                     const bookings = this.getData();
-                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}`;
+                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}_${Date.now()}`;
                     bookings[key] = {
                         ...booking,
                         expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
                     };
                     this.setData(bookings);
+                    return key;
                 },
                 
                 removeBooking(key) {
@@ -544,14 +552,29 @@
                 
                 getTotalTempQuantity() {
                     const bookings = this.getValidBookings();
-                    return Object.values(bookings).reduce((total, booking) => total + parseInt(booking.quantity || 0), 0);
+                    return Object.values(bookings).reduce((total, booking) => {
+                        // וידוא שהכמות היא מספר חיובי
+                        const quantity = parseInt(booking.quantity) || 0;
+                        return total + (quantity > 0 ? quantity : 0);
+                    }, 0);
                 }
             },
             
             async init() {
+                this.updateProjectDetails();
                 this.attachEventListeners();
                 await this.loadData();
                 setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
+            },
+            
+            updateProjectDetails() {
+                // עדכון פרטי הפרויקט בדף
+                document.getElementById('project-title').textContent = CONFIG.project.title;
+                document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
+                document.getElementById('product-name').textContent = CONFIG.project.title;
+                document.getElementById('product-description').textContent = CONFIG.project.description;
+                document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
+                document.getElementById('projectName').value = CONFIG.project.name;
             },
             
             attachEventListeners() {
@@ -667,6 +690,7 @@
             openForm() {
                 document.getElementById('error-message').textContent = '';
                 document.getElementById('reservation-form').reset();
+                document.getElementById('projectName').value = CONFIG.project.name;
                 
                 // איפוס מונה כמות
                 this.updateQuantity(0, true);
@@ -701,8 +725,8 @@
                 const availableSlots = parseInt(document.getElementById('available-slots').textContent);
                 if (newValue > availableSlots) newValue = availableSlots;
                 
-                quantityValueEl.textContent = newValue;
-                quantityInputEl.value = newValue;
+                quantityValueEl.textContent = newValue.toString();
+                quantityInputEl.value = newValue.toString();
             },
             
             async handleSubmit(event) {
@@ -712,7 +736,8 @@
                     firstName: document.getElementById('firstName').value,
                     lastName: document.getElementById('lastName').value,
                     phone: document.getElementById('phone').value,
-                    quantity: document.getElementById('quantity').value
+                    quantity: document.getElementById('quantity').value,
+                    projectName: document.getElementById('projectName').value
                 };
                 
                 // בדיקה שכל השדות מלאים
@@ -729,7 +754,8 @@
                 
                 // בדיקת זמינות בזמן אמת
                 await this.loadBookings();
-                const availableSlots = CONFIG.totalSlots - this.totalBooked - this.tempBookingsManager.getTotalTempQuantity();
+                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
+                const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
                 
                 if (parseInt(formData.quantity) > availableSlots) {
                     document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
@@ -738,7 +764,7 @@
                 
                 try {
                     // יצירת הזמנה זמנית
-                    this.tempBookingsManager.addBooking(formData);
+                    const bookingKey = this.tempBookingsManager.addBooking(formData);
                     this.updateUI();
                     
                     // שליחת נתונים ל-Google Form
@@ -749,6 +775,7 @@
                     googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
                     googleFormData.append(CONFIG.formFields.phone, formData.phone);
                     googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
+                    googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
                     
                     await fetch(CONFIG.urls.form, {
                         method: 'POST',
@@ -875,6 +902,3 @@
         document.addEventListener('DOMContentLoaded', () => {
             bookingSystem.init();
         });
-    </script>
-</body>
-</html>
