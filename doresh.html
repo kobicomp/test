@@ -598,7 +598,17 @@
             bookingsData: [],
             totalBooked: 0,
             
-          
+            tempBookingsManager: {
+                STORAGE_KEY: 'tempProductBookings',
+                
+                getData() {
+                    try {
+                        const stored = localStorage.getItem(this.STORAGE_KEY);
+                        return stored ? JSON.parse(stored) : {};
+                    } catch {
+                        return {};
+                    }
+                },
                 
                 setData(bookings) {
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
@@ -697,75 +707,85 @@
             },
             
             async loadBookings() {
-     try {
-         // מוסיף timestamp כדי למנוע caching
-         const timestamp = Date.now();
-         const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
-         
-         const response = await fetch(url, {
-             cache: 'no-store',
-             headers: {
-                 'Cache-Control': 'no-cache, no-store, must-revalidate',
-                 'Pragma': 'no-cache'
-             }
-         });
-         
-         if (!response.ok) {
-             throw new Error(`HTTP error! status: ${response.status}`);
-         }
-         
-         const csvText = await response.text();
-         console.log("Raw CSV data (first 100 chars):", csvText.substring(0, 100));
-         
-         this.bookingsData = this.parseCSV(csvText);
-         console.log("Parsed bookings data:", this.bookingsData);
-         
-         // חישוב סך הכל הזמנות רק עבור הפרויקט הנוכחי
-         this.totalBooked = this.bookingsData
-             .filter(booking => 
-                 (booking['entry.1414374653'] === CONFIG.project.name || 
-                  booking['projectName'] === CONFIG.project.name)
-             )
-             .reduce((total, booking) => {
-                 const quantity = 
-                     parseInt(booking['הזמן']) || 
-                     parseInt(booking['כמות']) || 
-                     parseInt(booking['entry.1406108683']) ||
-                     parseInt(booking['Quantity']) || 
-                     parseInt(booking['quantity']) || 0;
-                 
-                 return total + quantity;
-             }, 0);
-         
-         console.log("Total booked:", this.totalBooked);
-         
-         // אם אין הזמנות בכלל, אפס את הערך במקום NaN
-         if (isNaN(this.totalBooked)) {
-             console.log("Total is NaN, setting to 0");
-             this.totalBooked = 0;
-         }
-         
-     } catch (error) {
-         console.error('שגיאה בטעינת ההזמנות:', error);
-         this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
-     }
-  },
-  updateUI() {
-   const totalBooked = this.totalBooked;
-   const availableSlots = CONFIG.totalSlots - totalBooked;
-   const progressPercentage = (totalBooked / CONFIG.totalSlots) * 100;
-   
-   document.getElementById('total-slots').textContent = CONFIG.totalSlots;
-   document.getElementById('booked-slots').textContent = totalBooked;
-   document.getElementById('available-slots').textContent = availableSlots;
-   document.getElementById('booking-progress').style.width = `${progressPercentage}%`;
-   
-   const bookingBtn = document.getElementById('booking-btn');
-   bookingBtn.disabled = availableSlots <= 0;
-   bookingBtn.textContent = availableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
-},
+                try {
+                    // מוסיף timestamp כדי למנוע caching
+                    const timestamp = Date.now();
+                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
+                    
+                    const response = await fetch(url, {
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const csvText = await response.text();
+                    console.log("Raw CSV data (first 100 chars):", csvText.substring(0, 100));
+                    
+                    this.bookingsData = this.parseCSV(csvText);
+                    console.log("Parsed bookings data:", this.bookingsData);
+                    
+                    // חישוב סך הכל הזמנות - בדיקת כל אפשרויות שמות העמודות
+                    this.totalBooked = this.bookingsData.reduce((total, booking) => {
+                        // בדיקת כל האפשרויות של שם העמודה
+                        const quantity = 
+                            parseInt(booking['הזמן']) || 
+                            parseInt(booking['כמות']) || 
+                            parseInt(booking['entry.1406108683']) ||
+                            parseInt(booking['Quantity']) || 
+                            parseInt(booking['quantity']) || 0;
+                        
+                        return total + quantity;
+                    }, 0);
+                    
+                    console.log("Total booked:", this.totalBooked);
+                    
+                    // אם אין הזמנות בכלל, אפס את הערך במקום NaN
+                    if (isNaN(this.totalBooked)) {
+                        console.log("Total is NaN, setting to 0");
+                        this.totalBooked = 0;
+                    }
+                    
+                } catch (error) {
+                    console.error('שגיאה בטעינת ההזמנות:', error);
+                    this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
+                }
+            },
             
-          
+            updateUI() {
+                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
+                const totalBooked = this.totalBooked + tempQuantity;
+                const availableSlots = CONFIG.totalSlots - totalBooked;
+                const progressPercentage = (totalBooked / CONFIG.totalSlots) * 100;
+                
+                // וידוא שהערכים הם מספרים תקינים
+                const displayTotalBooked = isNaN(totalBooked) ? 0 : totalBooked;
+                const displayAvailableSlots = isNaN(availableSlots) ? CONFIG.totalSlots : availableSlots;
+                const displayProgressPercentage = isNaN(progressPercentage) ? 0 : progressPercentage;
+                
+                // עדכון ערכים בממשק
+                document.getElementById('total-slots').textContent = CONFIG.totalSlots;
+                document.getElementById('booked-slots').textContent = displayTotalBooked;
+                document.getElementById('available-slots').textContent = displayAvailableSlots;
+                document.getElementById('booking-progress').style.width = `${displayProgressPercentage}%`;
+                
+                console.log("UI updated with:", {
+                    totalSlots: CONFIG.totalSlots,
+                    booked: displayTotalBooked,
+                    available: displayAvailableSlots,
+                    progress: displayProgressPercentage
+                });
+                
+                // כפתור הזמנה מושבת אם אין מקומות פנויים
+                const bookingBtn = document.getElementById('booking-btn');
+                bookingBtn.disabled = displayAvailableSlots <= 0;
+                bookingBtn.textContent = displayAvailableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
+            },
             
             openForm() {
                 document.getElementById('error-message').textContent = '';
@@ -815,77 +835,82 @@
             },
             
             async handleSubmit(event) {
-          event.preventDefault();
-          console.log("Submit form called");
-          
-          const formData = {
-              firstName: document.getElementById('firstName').value,
-              lastName: document.getElementById('lastName').value,
-              phone: document.getElementById('phone').value,
-              quantity: document.getElementById('quantity').value,
-              projectName: document.getElementById('projectName').value
-          };
-          
-          console.log("Form data:", formData);
-          
-          // בדיקה שכל השדות מלאים
-          if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
-              document.getElementById('error-message').textContent = 'יש למלא את כל השדות';
-              return;
-          }
-          
-          // בדיקת תקינות טלפון
-          if (!/^\d{10}$/.test(formData.phone)) {
-              document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות)';
-              return;
-          }
-          
-          // בדיקת זמינות בזמן אמת
-          await this.loadBookings();
-          const availableSlots = CONFIG.totalSlots - this.totalBooked;
-          
-          if (parseInt(formData.quantity) > availableSlots) {
-              document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
-              return;
-          }
-          
-          try {
-              // שליחת נתונים ל-Google Form
-              this.showLoading();
-              
-              const googleFormData = new FormData();
-              googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
-              googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
-              googleFormData.append(CONFIG.formFields.phone, formData.phone);
-              googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
-              googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
-              
-              await fetch(CONFIG.urls.form, {
-                  method: 'POST',
-                  body: googleFormData,
-                  mode: 'no-cors'
-              });
-              
-              // הצגת הודעת הצלחה
-              this.closeForm();
-              document.getElementById('success-message').style.display = 'block';
-              
-              // הסתרת הודעת הצלחה אחרי 5 שניות
-              setTimeout(() => {
-                  document.getElementById('success-message').style.display = 'none';
-              }, 5000);
-              
-              // רענון נתונים אחרי הזמנה
-              await this.delay(2000);
-              await this.loadData();
-              
-          } catch (error) {
-              console.error('שגיאה בשליחת ההזמנה:', error);
-              document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
-          } finally {
-              this.hideLoading();
-          }
-      },
+                event.preventDefault();
+                console.log("Submit form called");
+                
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    quantity: document.getElementById('quantity').value,
+                    projectName: document.getElementById('projectName').value
+                };
+                
+                console.log("Form data:", formData);
+                
+                // בדיקה שכל השדות מלאים
+                if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
+                    document.getElementById('error-message').textContent = 'יש למלא את כל השדות';
+                    return;
+                }
+                
+                // בדיקת תקינות טלפון
+                if (!/^\d{10}$/.test(formData.phone)) {
+                    document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות)';
+                    return;
+                }
+                
+                // בדיקת זמינות בזמן אמת
+                await this.loadBookings();
+                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
+                const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
+                
+                if (parseInt(formData.quantity) > availableSlots) {
+                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
+                    return;
+                }
+                
+                try {
+                    // יצירת הזמנה זמנית
+                    const bookingKey = this.tempBookingsManager.addBooking(formData);
+                    this.updateUI();
+                    
+                    // שליחת נתונים ל-Google Form
+                    this.showLoading();
+                    
+                    const googleFormData = new FormData();
+                    googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
+                    googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
+                    googleFormData.append(CONFIG.formFields.phone, formData.phone);
+                    googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
+                    googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
+                    
+                    await fetch(CONFIG.urls.form, {
+                        method: 'POST',
+                        body: googleFormData,
+                        mode: 'no-cors'
+                    });
+                    
+                    // הצגת הודעת הצלחה
+                    this.closeForm();
+                    document.getElementById('success-message').style.display = 'block';
+                    
+                    // הסתרת הודעת הצלחה אחרי 5 שניות
+                    setTimeout(() => {
+                        document.getElementById('success-message').style.display = 'none';
+                    }, 5000);
+                    
+                    // רענון נתונים אחרי הזמנה
+                    await this.delay(2000);
+                    await this.loadData();
+                    
+                } catch (error) {
+                    console.error('שגיאה בשליחת ההזמנה:', error);
+                    document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
+                } finally {
+                    this.hideLoading();
+                }
+            },
             
             parseCSV(csv) {
                 try {
