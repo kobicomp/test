@@ -79,6 +79,35 @@
             font-size: 1.1em;
         }
 
+        .product-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-right: 4px solid var(--primary-color);
+        }
+
+        .price-info {
+            font-weight: bold;
+            color: var(--dark-color);
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .payment-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--primary-color);
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 1px dotted var(--primary-color);
+            transition: all 0.2s ease;
+        }
+
+        .payment-link:hover {
+            color: var(--secondary-color);
+        }
+
         .product-stats {
             display: flex;
             justify-content: space-between;
@@ -249,6 +278,20 @@
             color: var(--primary-color);
         }
 
+        .price-display {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+
+        .price-amount {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
         .form-actions {
             display: flex;
             justify-content: space-between;
@@ -280,6 +323,31 @@
 
         .cancel-btn:hover {
             background-color: #ddd;
+        }
+
+        .payment-note {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 5px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .payment-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: var(--success-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .payment-btn:hover {
+            background-color: #3d9140;
+            transform: translateY(-2px);
         }
 
         .error {
@@ -371,13 +439,15 @@
     <div class="header">
         <div class="container">
             <h1 id="project-title">אפיית מצות - בית הכנסת דורש טוב</h1>
-            <p id="project-subtitle">הזמנת משבצות זמן לאפיית מצות לקראת חג הפסח התשפ"ה</p>
+            <p id="project-subtitle">הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ"ה</p>
         </div>
     </div>
 
     <div class="container">
         <div class="success-message" id="success-message">
-            ההזמנה שלך התקבלה בהצלחה!
+            ההזמנה שלך התקבלה בהצלחה! נא להשלים את התשלום בקישור שלהלן.
+            <br>
+            <a href="https://pe4ch.com/ref/2DKFWoG22che?lang=he" class="payment-btn" target="_blank">מעבר לתשלום</a>
         </div>
 
         <div class="product-card">
@@ -387,19 +457,25 @@
                 אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה.
                 המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה.
             </p>
+            
+            <div class="product-details">
+                <div class="price-info">עלות: <span id="price-per-person">10</span> ₪ לאדם (מחיר מסובסד)</div>
+                <div>המחיר כולל חומרים, הדרכה וליווי מקצועי</div>
+                <a href="https://pe4ch.com/ref/2DKFWoG22che?lang=he" class="payment-link" target="_blank">קישור לתשלום</a>
+            </div>
 
             <div class="product-stats">
                 <div class="stat-box">
                     <div class="stat-value" id="total-slots">120</div>
-                    <div class="stat-label">סך המשבצות</div>
+                    <div class="stat-label">סך ההזמנות</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="booked-slots">0</div>
-                    <div class="stat-label">משבצות שהוזמנו</div>
+                    <div class="stat-label">הזמנות שבוצעו</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="available-slots">120</div>
-                    <div class="stat-label">משבצות פנויות</div>
+                    <div class="stat-label">הזמנות פנויות</div>
                 </div>
             </div>
 
@@ -434,7 +510,7 @@
                 <input type="tel" id="phone" required pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות">
             </div>
             <div class="form-group">
-                <label for="quantity">כמות משבצות:</label>
+                <label for="quantity">מספר אנשים:</label>
                 <div class="quantity-counter">
                     <button type="button" class="counter-btn" id="decrease-btn">-</button>
                     <span class="counter-value" id="quantity-value">1</span>
@@ -442,6 +518,15 @@
                 </div>
                 <input type="hidden" id="quantity" value="1">
             </div>
+            
+            <div class="price-display">
+                סך הכל לתשלום: <span class="price-amount" id="total-price">10</span> ₪
+            </div>
+            
+            <div class="payment-note">
+                לאחר שליחת טופס ההזמנה, יש להשלים את התשלום בקישור שיופיע.
+            </div>
+            
             <input type="hidden" id="projectName" value="">
             <div id="error-message" class="error"></div>
             <div class="form-actions">
@@ -459,17 +544,23 @@
     <script>
         // הגדרות המערכת
         const CONFIG = {
-            // מספר משבצות הזמן המקסימלי
+            // מספר הזמנות מקסימלי
             totalSlots: 120,
             
-            // מספר משבצות מקסימלי להזמנה בודדת
-            maxSlotsPerBooking: 5,
+            // מספר הזמנות מקסימלי להזמנה בודדת
+            maxSlotsPerBooking: 10,
+            
+            // מחיר ליחידה
+            pricePerPerson: 10,
             
             // זמן עבור הזמנה זמנית (בדקות)
             tempBookingTimeout: 10,
             
             // זמן רענון אוטומטי (בשניות)
             autoRefreshInterval: 60,
+            
+            // קישור לתשלום
+            paymentLink: 'https://pe4ch.com/ref/2DKFWoG22che?lang=he',
             
             // כתובות URL
             urls: {
@@ -490,7 +581,7 @@
             project: {
                 name: "אפיית מצות בבית הכנסת דורש טוב התשפ\"ה",
                 title: "אפיית מצות - בית הכנסת דורש טוב",
-                subtitle: "הזמנת משבצות זמן לאפיית מצות לקראת חג הפסח התשפ\"ה",
+                subtitle: "הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ\"ה",
                 description: "בית הכנסת דורש טוב שמח להזמין את הקהילה לאפיית מצות מהודרת לקראת חג הפסח. אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה. המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה."
             }
         };
@@ -575,6 +666,8 @@
                 document.getElementById('product-description').textContent = CONFIG.project.description;
                 document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
                 document.getElementById('projectName').value = CONFIG.project.name;
+                document.getElementById('price-per-person').textContent = CONFIG.pricePerPerson;
+                document.getElementById('total-price').textContent = CONFIG.pricePerPerson;
             },
             
             attachEventListeners() {
@@ -707,16 +800,17 @@
             updateQuantity(delta, reset = false) {
                 const quantityValueEl = document.getElementById('quantity-value');
                 const quantityInputEl = document.getElementById('quantity');
+                const totalPriceEl = document.getElementById('total-price');
                 
                 if (reset) {
                     quantityValueEl.textContent = '1';
                     quantityInputEl.value = '1';
+                    totalPriceEl.textContent = CONFIG.pricePerPerson;
                     return;
                 }
                 
                 let currentValue = parseInt(quantityValueEl.textContent);
                 let newValue = currentValue + delta;
-                
                 // בדיקות תקינות
                 if (newValue < 1) newValue = 1;
                 if (newValue > CONFIG.maxSlotsPerBooking) newValue = CONFIG.maxSlotsPerBooking;
@@ -727,10 +821,15 @@
                 
                 quantityValueEl.textContent = newValue.toString();
                 quantityInputEl.value = newValue.toString();
+                
+                // עדכון מחיר כולל
+                const totalPrice = newValue * CONFIG.pricePerPerson;
+                totalPriceEl.textContent = totalPrice.toString();
             },
             
             async handleSubmit(event) {
                 event.preventDefault();
+                console.log("Submit form called");
                 
                 const formData = {
                     firstName: document.getElementById('firstName').value,
@@ -739,6 +838,8 @@
                     quantity: document.getElementById('quantity').value,
                     projectName: document.getElementById('projectName').value
                 };
+                
+                console.log("Form data:", formData);
                 
                 // בדיקה שכל השדות מלאים
                 if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
@@ -902,3 +1003,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             bookingSystem.init();
         });
+    </script>
+</body>
+</html>
