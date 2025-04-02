@@ -214,10 +214,10 @@
             // הגדרת מספר המקומות הכולל
             TOTAL_SLOTS: 20,
             
-            // כתובת גליון הנתונים כ-CSV - שים לב לשנות לכתובת הנכונה
-            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-YOUR_SPREADSHEET_ID/pub?output=csv',
+            // כתובת גליון הנתונים כ-CSV - מבוסס על הקוד שסופק
+            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR5uPK7t_NLTPGlZR4sU0owKAwoygzxa_924tiZH3dHDEEl-f72zjw1ra1AxObkbpMpLURv61Rv4a8M/pub?output=csv',
             
-            // כתובת הטופס
+            // כתובת הטופס - לשימוש בהגשת הטופס
             FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse',
             
             // שדות הטופס
@@ -229,7 +229,10 @@
             },
             
             // זמן רענון אוטומטי (בשניות)
-            AUTO_REFRESH_TIME: 60
+            AUTO_REFRESH_TIME: 60,
+            
+            // מספר ניסיונות מקסימלי לטעינת נתונים
+            MAX_RETRY_ATTEMPTS: 3
         };
 
         // מצב המערכת
@@ -239,7 +242,8 @@
             lastUpdate: null,
             isLoading: false,
             refreshTimer: null,
-            countdownValue: CONFIG.AUTO_REFRESH_TIME
+            countdownValue: CONFIG.AUTO_REFRESH_TIME,
+            retryAttempts: 0
         };
 
         // אלמנטים בדף
@@ -286,9 +290,16 @@
             try {
                 // הוספת timestamp כדי למנוע קישור מהמטמון
                 const timestamp = new Date().getTime();
-                const url = `${CONFIG.SPREADSHEET_URL}?t=${timestamp}`;
+                const url = `${CONFIG.SPREADSHEET_URL}&t=${timestamp}`;
                 
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    },
+                    cache: 'no-store'
+                });
+                
                 if (!response.ok) {
                     throw new Error('שגיאה בטעינת הנתונים');
                 }
@@ -297,13 +308,14 @@
                 
                 // ספירת מספר ההזמנות
                 // מחשבים לפי מספר השורות, פחות כותרת
-                const rows = csvData.split('\n');
+                const rows = csvData.trim().split('\n');
                 const reservedCount = Math.max(0, rows.length - 1);
                 
                 // עדכון המצב
                 state.reservedSlots = reservedCount;
                 state.availableSlots = Math.max(0, CONFIG.TOTAL_SLOTS - reservedCount);
                 state.lastUpdate = new Date();
+                state.retryAttempts = 0;
                 
                 // עדכון התצוגה
                 elements.reservedSlots.textContent = state.reservedSlots;
@@ -320,7 +332,15 @@
                 
             } catch (error) {
                 console.error('Error updating stats:', error);
-                showMessage('error', 'שגיאה בטעינת הנתונים, נסו שוב מאוחר יותר');
+                state.retryAttempts++;
+                
+                if (state.retryAttempts < CONFIG.MAX_RETRY_ATTEMPTS) {
+                    showMessage('info', `ניסיון ${state.retryAttempts} מתוך ${CONFIG.MAX_RETRY_ATTEMPTS} לטעינת נתונים...`);
+                    setTimeout(updateStats, 3000);
+                    return;
+                } else {
+                    showMessage('error', 'שגיאה בטעינת הנתונים, נסו שוב מאוחר יותר');
+                }
             } finally {
                 showLoader(false);
                 state.isLoading = false;
@@ -492,6 +512,26 @@
         // עדכון תצוגת הספירה לאחור
         function updateCountdown() {
             elements.countdown.textContent = `רענון אוטומטי בעוד ${state.countdownValue} שניות`;
+        }
+
+        // פונקציה לפירוק וניתוח CSV
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const entry = {};
+                
+                headers.forEach((header, index) => {
+                    entry[header] = values[index] ? values[index].trim() : '';
+                });
+                
+                data.push(entry);
+            }
+            
+            return data;
         }
 
         // אתחול המערכת כשהדף נטען
