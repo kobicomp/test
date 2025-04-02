@@ -214,10 +214,10 @@
             // הגדרת מספר המקומות הכולל
             TOTAL_SLOTS: 20,
             
-            // כתובת הגיליון בפורמט CSV - יש להחליף לכתובת הנכונה של הגיליון שלך
-            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv',
+            // כתובת גליון הנתונים כ-HTML (שים לב: pubhtml במקום csv)
+            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pubhtml?gid=0&single=true',
             
-            // כתובת הטופס - לשימוש בהגשת הטופס
+            // כתובת הטופס לשימוש בהגשת הטופס
             FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse',
             
             // שדות הטופס
@@ -229,13 +229,7 @@
             },
             
             // זמן רענון אוטומטי (בשניות)
-            AUTO_REFRESH_TIME: 60,
-            
-            // מספר ניסיונות מקסימלי לטעינת הנתונים
-            MAX_RETRY_ATTEMPTS: 3,
-            
-            // זמן המתנה בין ניסיונות טעינה (במילישניות)
-            RETRY_DELAY: 2000
+            AUTO_REFRESH_TIME: 60
         };
 
         // מצב המערכת
@@ -246,7 +240,6 @@
             isLoading: false,
             refreshTimer: null,
             countdownValue: CONFIG.AUTO_REFRESH_TIME,
-            retryAttempts: 0,
             dataLoadSuccess: false
         };
 
@@ -285,85 +278,93 @@
         }
 
         // פונקציה לעדכון הנתונים מגוגל שיטס
-        async function updateStats() {
+        function updateStats() {
             if (state.isLoading) return;
             
             showLoader(true);
             state.isLoading = true;
             state.dataLoadSuccess = false;
-            state.retryAttempts = 0;
             
-            try {
-                // ניסיון לטעון את הנתונים עם אפשרות לניסיונות חוזרים
-                await tryLoadData();
-            } finally {
-                showLoader(false);
-                state.isLoading = false;
-                resetCountdown();
-                
-                // אם לא הצלחנו לטעון את הנתונים, נשבית את כפתור השליחה
-                if (!state.dataLoadSuccess) {
-                    elements.reserveBtn.disabled = true;
-                    showMessage('error', 'לא ניתן לטעון את נתוני המערכת. לא ניתן לבצע הזמנות כרגע.');
-                }
-            }
-        }
-
-        // ניסיון לטעון את הנתונים עם אפשרות לניסיונות חוזרים
-        async function tryLoadData() {
-            try {
-                await fetchStatsFromCsv();
-                state.dataLoadSuccess = true;
-                state.retryAttempts = 0;
-            } catch (error) {
-                console.error('Error loading data:', error);
-                state.retryAttempts++;
-                
-                if (state.retryAttempts < CONFIG.MAX_RETRY_ATTEMPTS) {
-                    showMessage('info', `ניסיון ${state.retryAttempts} מתוך ${CONFIG.MAX_RETRY_ATTEMPTS} לטעינת נתונים...`);
-                    await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
-                    return tryLoadData();
-                } else {
+            // שימוש ב-iframe לטעינת נתונים (מתעקף CORS)
+            fetchDataViaIframe()
+                .then(() => {
+                    state.dataLoadSuccess = true;
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
                     showMessage('error', 'לא ניתן לטעון את נתוני המערכת. נסה שוב מאוחר יותר.');
-                    throw new Error('Failed to load data after maximum retry attempts');
-                }
-            }
+                    elements.reserveBtn.disabled = true;
+                })
+                .finally(() => {
+                    showLoader(false);
+                    state.isLoading = false;
+                    resetCountdown();
+                });
         }
 
-        // פונקציה לקריאת הנתונים מקובץ ה-CSV
-        async function fetchStatsFromCsv() {
-            // הוספת חותמת זמן למניעת קישור מטמון
-            const timestamp = new Date().getTime();
-            const url = `${CONFIG.SPREADSHEET_URL}&t=${timestamp}`;
-            
-            const response = await fetch(url, {
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                },
-                cache: 'no-store'
+        // פונקציה לקריאת הנתונים באמצעות iframe (עוקפת CORS)
+        function fetchDataViaIframe() {
+            return new Promise((resolve, reject) => {
+                // הוספת timestamp לשבירת המטמון
+                const timestamp = new Date().getTime();
+                const iframeUrl = `${CONFIG.SPREADSHEET_URL}&rand=${timestamp}`;
+                
+                // יצירת iframe מוסתר
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = iframeUrl;
+                
+                // הגדרת timeout למקרה שהטעינה נתקעת
+                const timeoutId = setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                        reject(new Error('Timeout loading iframe'));
+                    }
+                }, 10000);
+                
+                // טיפול באירועי טעינה
+                iframe.onload = function() {
+                    clearTimeout(timeoutId);
+                    
+                    try {
+                        // ניסיון לגשת לתוכן ה-iframe
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // חיפוש טבלת הנתונים
+                        const tables = iframeDoc.getElementsByTagName('table');
+                        if (tables.length > 0) {
+                            // נניח שהטבלה הראשונה היא הנכונה
+                            const table = tables[0];
+                            const rows = table.getElementsByTagName('tr');
+                            
+                            // שורה ראשונה היא כותרות - לא סופרים אותה
+                            const count = Math.max(0, rows.length - 1);
+                            
+                            // עדכון הנתונים
+                            updateStatsFromCount(count);
+                            resolve();
+                        } else {
+                            throw new Error('No tables found in iframe');
+                        }
+                    } catch (error) {
+                        console.error('Error accessing iframe content:', error);
+                        reject(error);
+                    } finally {
+                        // הסרת ה-iframe
+                        document.body.removeChild(iframe);
+                    }
+                };
+                
+                // טיפול בשגיאות טעינה
+                iframe.onerror = function() {
+                    clearTimeout(timeoutId);
+                    document.body.removeChild(iframe);
+                    reject(new Error('Failed to load iframe'));
+                };
+                
+                // הוספת ה-iframe לדף
+                document.body.appendChild(iframe);
             });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to fetch CSV (${response.status}: ${response.statusText})`);
-            }
-            
-            const csvText = await response.text();
-            
-            // בדיקה שקיבלנו נתונים תקינים
-            if (!csvText || csvText.trim() === '') {
-                throw new Error('Received empty response');
-            }
-            
-            // פירוק הנתונים ל-CSV
-            const rows = csvText.trim().split('\n').filter(row => row.trim());
-            
-            // שורה ראשונה היא כותרות - לא סופרים אותה
-            const count = Math.max(0, rows.length - 1);
-            
-            // עדכון הנתונים
-            updateStatsFromCount(count);
         }
 
         // עדכון הנתונים ממספר ההזמנות
@@ -387,14 +388,8 @@
         }
 
         // פונקציה לשליחת הזמנה
-        async function submitReservation(e) {
+        function submitReservation(e) {
             e.preventDefault();
-            
-            // בדיקה שהצלחנו לטעון את הנתונים
-            if (!state.dataLoadSuccess) {
-                showMessage('error', 'לא ניתן לבצע הזמנה כאשר אין גישה לנתוני המערכת');
-                return;
-            }
             
             // בדיקות תקינות
             const firstName = elements.firstName.value.trim();
@@ -417,38 +412,23 @@
                 return;
             }
             
+            // בדיקה שהצלחנו לטעון את הנתונים
+            if (!state.dataLoadSuccess) {
+                showMessage('error', 'לא ניתן לבצע הזמנה בגלל שגיאה בטעינת נתוני המערכת');
+                return;
+            }
+            
             showLoader(true);
             
-            try {
-                // בדיקה עדכנית של מספר ההזמנות לפני שליחה
-                await updateStats();
-                
-                // בדיקה נוספת אחרי העדכון
-                if (!state.dataLoadSuccess) {
-                    showMessage('error', 'לא ניתן לבצע הזמנה כאשר אין גישה לנתוני המערכת');
-                    return;
-                }
-                
-                if (state.availableSlots <= 0) {
-                    showMessage('error', 'מצטערים, כל המקומות תפוסים כרגע');
-                    return;
-                }
-                
-                // שליחת הנתונים לטופס
-                const formData = new FormData();
-                formData.append(CONFIG.FORM_FIELDS.firstName, firstName);
-                formData.append(CONFIG.FORM_FIELDS.lastName, lastName);
-                formData.append(CONFIG.FORM_FIELDS.phone, phone);
-                formData.append(CONFIG.FORM_FIELDS.status, "הוזמן");
-                
-                // שליחה באמצעות iframe מוסתר
-                submitFormWithIframe(formData);
-                
-            } catch (error) {
-                console.error('Error submitting reservation:', error);
-                showMessage('error', 'שגיאה בשליחת ההזמנה, נסו שוב מאוחר יותר');
-                showLoader(false);
-            }
+            // שליחת הנתונים לטופס
+            const formData = new FormData();
+            formData.append(CONFIG.FORM_FIELDS.firstName, firstName);
+            formData.append(CONFIG.FORM_FIELDS.lastName, lastName);
+            formData.append(CONFIG.FORM_FIELDS.phone, phone);
+            formData.append(CONFIG.FORM_FIELDS.status, "הוזמן");
+            
+            // שליחה באמצעות iframe מוסתר
+            submitFormWithIframe(formData);
         }
 
         // פונקציה לשליחת הטופס באמצעות iframe (עוקפת CORS)
