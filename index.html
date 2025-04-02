@@ -1,126 +1,325 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת הזמנות</title>
+    <title>מערכת הזמנת אפיית מצות - בית הכנסת דורש טוב התשפ"ה</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         :root {
-            --primary-color: #1a73e8;
-            --secondary-color: #34a853;
-            --warning-color: #fbbc05;
-            --error-color: #ea4335;
-            --light-gray: #f8f9fa;
-            --border-color: #dadce0;
+            --primary-color: #2196F3;
+            --secondary-color: #4b6cb7;
+            --success-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --light-color: #f5f5f5;
+            --dark-color: #333;
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa;
             direction: rtl;
+            background-color: var(--light-color);
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 600px;
-            margin: 20px auto;
+            max-width: 1000px;
+            margin: 0 auto;
             padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(to left, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 0 0 10px 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .product-card {
             background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .product-title {
+            font-size: 1.8em;
+            color: var(--dark-color);
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .product-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .product-stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f9f9f9;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        h1, h2 {
-            color: var(--primary-color);
-            margin-top: 0;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input[type="text"],
-        input[type="tel"] {
-            width: 100%;
+        .stat-box {
+            text-align: center;
             padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 100px;
+            margin: 5px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin-right: 10px;
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .progress-container {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            height: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--success-color), var(--primary-color));
+            transition: width 0.5s ease;
+        }
+
+        .actions {
+            text-align: center;
+        }
+
+        .booking-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
 
-        .btn:hover {
-            background-color: #1669d9;
+        .booking-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
         }
 
-        .btn-secondary {
-            background-color: white;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
+        .booking-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        .btn-secondary:hover {
-            background-color: #f1f3f4;
-        }
-
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 4px;
+        .overlay {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            backdrop-filter: blur(3px);
         }
 
-        .success {
-            background-color: #e6f4ea;
-            color: var(--secondary-color);
-            border: 1px solid #ceead6;
+        .booking-form {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .booking-form h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .form-group .input-with-counter {
+            position: relative;
+        }
+
+        .quantity-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 120px;
+            margin: 0 auto;
+        }
+
+        .counter-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background-color: #eee;
+            color: #333;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .counter-btn:hover {
+            background-color: #ddd;
+        }
+
+        .counter-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .form-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background-color: #3d9140;
+        }
+
+        .cancel-btn {
+            background-color: #eee;
+            color: #333;
+        }
+
+        .cancel-btn:hover {
+            background-color: #ddd;
         }
 
         .error {
-            background-color: #fce8e6;
-            color: var(--error-color);
-            border: 1px solid #fdded9;
+            color: var(--danger-color);
+            font-size: 0.9em;
+            margin-top: 5px;
         }
 
-        .info {
-            background-color: #e8f0fe;
-            color: var(--primary-color);
-            border: 1px solid #d2e3fc;
-        }
-
-        .loader {
-            display: none;
+        .success-message {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
             text-align: center;
-            margin: 20px 0;
+            font-weight: bold;
+            display: none;
         }
 
-        .loader-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
         }
 
         @keyframes spin {
@@ -128,424 +327,461 @@
             100% { transform: rotate(360deg); }
         }
 
-        .stats {
-            background-color: var(--light-gray);
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-
-        .stats-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .stats-value {
-            font-weight: bold;
+        .loading-text {
+            margin-top: 15px;
             color: var(--primary-color);
+            font-weight: bold;
         }
 
-        .countdown {
-            font-weight: bold;
-            color: var(--primary-color);
+        .decoration {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .pesach-decoration {
+            font-size: 1.2em;
+            color: #8d6e63;
+            text-align: center;
+            margin: 15px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .product-stats {
+                flex-direction: column;
+            }
+            
+            .stat-box {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-actions button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>מערכת הזמנות</h1>
+    <div class="header">
+        <div class="container">
+            <h1>אפיית מצות - בית הכנסת דורש טוב</h1>
+            <p>הזמנת משבצות זמן לאפיית מצות לקראת חג הפסח התשפ"ה</p>
+        </div>
+    </div>
 
-        <div class="stats" id="stats">
-            <h2>סטטוס הזמנות</h2>
-            <div class="stats-item">
-                <span>מספר המקומות הכולל:</span>
-                <span class="stats-value" id="total-slots">20</span>
-            </div>
-            <div class="stats-item">
-                <span>מקומות שהוזמנו:</span>
-                <span class="stats-value" id="reserved-slots">0</span>
-            </div>
-            <div class="stats-item">
-                <span>מקומות פנויים:</span>
-                <span class="stats-value" id="available-slots">20</span>
-            </div>
-            <div class="stats-item">
-                <span>עדכון אחרון:</span>
-                <span id="last-update">טוען...</span>
-            </div>
-            <div>
-                <button id="refresh-btn" class="btn btn-secondary">רענן נתונים</button>
-                <span id="countdown" class="countdown"></span>
-            </div>
+    <div class="container">
+        <div class="success-message" id="success-message">
+            ההזמנה שלך התקבלה בהצלחה!
         </div>
 
-        <div id="reservation-form">
-            <h2>טופס הזמנה</h2>
+        <div class="product-card">
+            <h2 class="product-title">אפיית מצות מהודרת</h2>
+            <p class="product-description">
+                בית הכנסת דורש טוב שמח להזמין את הקהילה לאפיית מצות מהודרת לקראת חג הפסח. 
+                אפיית המצות תתקיים תחת השגחה מהודרת, עם קמח שמור משעת טחינה.
+                המצות נאפות בתנור מיוחד שהובא במיוחד לצורך זה.
+            </p>
+
+            <div class="product-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="total-slots">120</div>
+                    <div class="stat-label">סך המשבצות</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="booked-slots">0</div>
+                    <div class="stat-label">משבצות שהוזמנו</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="available-slots">120</div>
+                    <div class="stat-label">משבצות פנויות</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="booking-progress" style="width: 0%"></div>
+            </div>
+
+            <div class="pesach-decoration">
+                "הא לחמא עניא די אכלו אבהתנא בארעא דמצרים"
+            </div>
+
+            <div class="actions">
+                <button class="booking-btn" id="booking-btn">הזמן עכשיו</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="booking-form" id="booking-form">
+        <h3>הזמנת אפיית מצות</h3>
+        <form id="reservation-form">
             <div class="form-group">
                 <label for="firstName">שם פרטי:</label>
-                <input type="text" id="firstName" name="firstName" required>
+                <input type="text" id="firstName" required>
             </div>
             <div class="form-group">
                 <label for="lastName">שם משפחה:</label>
-                <input type="text" id="lastName" name="lastName" required>
+                <input type="text" id="lastName" required>
             </div>
             <div class="form-group">
                 <label for="phone">מספר טלפון:</label>
-                <input type="tel" id="phone" name="phone" required>
+                <input type="tel" id="phone" required pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות">
             </div>
-            
-            <button id="reserve-btn" class="btn">שלח הזמנה</button>
-        </div>
+            <div class="form-group">
+                <label for="quantity">כמות משבצות:</label>
+                <div class="quantity-counter">
+                    <button type="button" class="counter-btn" id="decrease-btn">-</button>
+                    <span class="counter-value" id="quantity-value">1</span>
+                    <button type="button" class="counter-btn" id="increase-btn">+</button>
+                </div>
+                <input type="hidden" id="quantity" value="1">
+            </div>
+            <div id="error-message" class="error"></div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
+                <button type="submit" class="submit-btn">שלח הזמנה</button>
+            </div>
+        </form>
+    </div>
 
-        <div class="loader" id="loader">
-            <div class="loader-spinner"></div>
-            <p>מבצע פעולה...</p>
-        </div>
-
-        <div class="status success" id="success-message"></div>
-        <div class="status error" id="error-message"></div>
-        <div class="status info" id="info-message"></div>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">טוען נתונים...</div>
     </div>
 
     <script>
         // הגדרות המערכת
         const CONFIG = {
-            // הגדרת מספר המקומות הכולל
-            TOTAL_SLOTS: 20,
+            // מספר משבצות הזמן המקסימלי
+            totalSlots: 120,
             
-            // כתובת גליון הנתונים כ-HTML (שים לב: pubhtml במקום csv)
-            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pubhtml?gid=0&single=true',
+            // מספר משבצות מקסימלי להזמנה בודדת
+            maxSlotsPerBooking: 5,
             
-            // כתובת הטופס לשימוש בהגשת הטופס
-            FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse',
+            // זמן עבור הזמנה זמנית (בדקות)
+            tempBookingTimeout: 10,
             
-            // שדות הטופס
-            FORM_FIELDS: {
+            // זמן רענון אוטומטי (בשניות)
+            autoRefreshInterval: 60,
+            
+            // כתובות URL
+            urls: {
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse',
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv'
+            },
+            
+            // שדות טופס Google
+            formFields: {
                 firstName: "entry.1726269772",
                 lastName: "entry.1766470893",
                 phone: "entry.2028941780",
-                status: "entry.1406108683"
+                quantity: "entry.1406108683"
             },
             
-            // זמן רענון אוטומטי (בשניות)
-            AUTO_REFRESH_TIME: 60
+            // שם מוצר
+            productName: "אפיית מצות בבית הכנסת דורש טוב התשפ\"ה"
         };
 
-        // מצב המערכת
-        const state = {
-            reservedSlots: 0,
-            availableSlots: CONFIG.TOTAL_SLOTS,
-            lastUpdate: null,
-            isLoading: false,
-            refreshTimer: null,
-            countdownValue: CONFIG.AUTO_REFRESH_TIME,
-            dataLoadSuccess: false
-        };
-
-        // אלמנטים בדף
-        const elements = {
-            totalSlots: document.getElementById('total-slots'),
-            reservedSlots: document.getElementById('reserved-slots'),
-            availableSlots: document.getElementById('available-slots'),
-            lastUpdate: document.getElementById('last-update'),
-            refreshBtn: document.getElementById('refresh-btn'),
-            reserveBtn: document.getElementById('reserve-btn'),
-            loader: document.getElementById('loader'),
-            successMessage: document.getElementById('success-message'),
-            errorMessage: document.getElementById('error-message'),
-            infoMessage: document.getElementById('info-message'),
-            countdown: document.getElementById('countdown'),
-            firstName: document.getElementById('firstName'),
-            lastName: document.getElementById('lastName'),
-            phone: document.getElementById('phone')
-        };
-
-        // אתחול המערכת
-        function init() {
-            // עדכון הנתונים הראשוני
-            updateStats();
+        // מערכת הזמנה
+        const bookingSystem = {
+            bookingsData: [],
+            totalBooked: 0,
             
-            // הגדרת אירועים
-            elements.refreshBtn.addEventListener('click', updateStats);
-            elements.reserveBtn.addEventListener('click', submitReservation);
-            
-            // התחלת טיימר רענון אוטומטי
-            startAutoRefresh();
-            
-            // עדכון מספר המקומות הכולל
-            elements.totalSlots.textContent = CONFIG.TOTAL_SLOTS;
-        }
-
-        // פונקציה לעדכון הנתונים מגוגל שיטס
-        function updateStats() {
-            if (state.isLoading) return;
-            
-            showLoader(true);
-            state.isLoading = true;
-            state.dataLoadSuccess = false;
-            
-            // שימוש ב-iframe לטעינת נתונים (מתעקף CORS)
-            fetchDataViaIframe()
-                .then(() => {
-                    state.dataLoadSuccess = true;
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                    showMessage('error', 'לא ניתן לטעון את נתוני המערכת. נסה שוב מאוחר יותר.');
-                    elements.reserveBtn.disabled = true;
-                })
-                .finally(() => {
-                    showLoader(false);
-                    state.isLoading = false;
-                    resetCountdown();
-                });
-        }
-
-        // פונקציה לקריאת הנתונים באמצעות iframe (עוקפת CORS)
-        function fetchDataViaIframe() {
-            return new Promise((resolve, reject) => {
-                // הוספת timestamp לשבירת המטמון
-                const timestamp = new Date().getTime();
-                const iframeUrl = `${CONFIG.SPREADSHEET_URL}&rand=${timestamp}`;
+            tempBookingsManager: {
+                STORAGE_KEY: 'tempMatzahBookings',
                 
-                // יצירת iframe מוסתר
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = iframeUrl;
-                
-                // הגדרת timeout למקרה שהטעינה נתקעת
-                const timeoutId = setTimeout(() => {
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                        reject(new Error('Timeout loading iframe'));
-                    }
-                }, 10000);
-                
-                // טיפול באירועי טעינה
-                iframe.onload = function() {
-                    clearTimeout(timeoutId);
-                    
+                getData() {
                     try {
-                        // ניסיון לגשת לתוכן ה-iframe
-                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        
-                        // חיפוש טבלת הנתונים
-                        const tables = iframeDoc.getElementsByTagName('table');
-                        if (tables.length > 0) {
-                            // נניח שהטבלה הראשונה היא הנכונה
-                            const table = tables[0];
-                            const rows = table.getElementsByTagName('tr');
-                            
-                            // שורה ראשונה היא כותרות - לא סופרים אותה
-                            const count = Math.max(0, rows.length - 1);
-                            
-                            // עדכון הנתונים
-                            updateStatsFromCount(count);
-                            resolve();
-                        } else {
-                            throw new Error('No tables found in iframe');
-                        }
-                    } catch (error) {
-                        console.error('Error accessing iframe content:', error);
-                        reject(error);
-                    } finally {
-                        // הסרת ה-iframe
-                        document.body.removeChild(iframe);
+                        const stored = localStorage.getItem(this.STORAGE_KEY);
+                        return stored ? JSON.parse(stored) : {};
+                    } catch {
+                        return {};
                     }
-                };
+                },
                 
-                // טיפול בשגיאות טעינה
-                iframe.onerror = function() {
-                    clearTimeout(timeoutId);
-                    document.body.removeChild(iframe);
-                    reject(new Error('Failed to load iframe'));
-                };
+                setData(bookings) {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
+                },
                 
-                // הוספת ה-iframe לדף
-                document.body.appendChild(iframe);
-            });
-        }
-
-        // עדכון הנתונים ממספר ההזמנות
-        function updateStatsFromCount(count) {
-            state.reservedSlots = count;
-            state.availableSlots = Math.max(0, CONFIG.TOTAL_SLOTS - count);
-            state.lastUpdate = new Date();
-            
-            // עדכון התצוגה
-            elements.reservedSlots.textContent = state.reservedSlots;
-            elements.availableSlots.textContent = state.availableSlots;
-            elements.lastUpdate.textContent = state.lastUpdate.toLocaleTimeString();
-            
-            // בדיקה אם נגמרו המקומות
-            if (state.availableSlots <= 0) {
-                showMessage('info', 'כל המקומות תפוסים כרגע');
-                elements.reserveBtn.disabled = true;
-            } else {
-                elements.reserveBtn.disabled = false;
-            }
-        }
-
-        // פונקציה לשליחת הזמנה
-        function submitReservation(e) {
-            e.preventDefault();
-            
-            // בדיקות תקינות
-            const firstName = elements.firstName.value.trim();
-            const lastName = elements.lastName.value.trim();
-            const phone = elements.phone.value.trim();
-            
-            if (!firstName || !lastName || !phone) {
-                showMessage('error', 'נא למלא את כל השדות הנדרשים');
-                return;
-            }
-            
-            if (phone.length < 9 || !/^\d+$/.test(phone)) {
-                showMessage('error', 'מספר טלפון לא תקין');
-                return;
-            }
-            
-            // בדיקה אם יש מקומות פנויים
-            if (state.availableSlots <= 0) {
-                showMessage('error', 'מצטערים, כל המקומות תפוסים כרגע');
-                return;
-            }
-            
-            // בדיקה שהצלחנו לטעון את הנתונים
-            if (!state.dataLoadSuccess) {
-                showMessage('error', 'לא ניתן לבצע הזמנה בגלל שגיאה בטעינת נתוני המערכת');
-                return;
-            }
-            
-            showLoader(true);
-            
-            // שליחת הנתונים לטופס
-            const formData = new FormData();
-            formData.append(CONFIG.FORM_FIELDS.firstName, firstName);
-            formData.append(CONFIG.FORM_FIELDS.lastName, lastName);
-            formData.append(CONFIG.FORM_FIELDS.phone, phone);
-            formData.append(CONFIG.FORM_FIELDS.status, "הוזמן");
-            
-            // שליחה באמצעות iframe מוסתר
-            submitFormWithIframe(formData);
-        }
-
-        // פונקציה לשליחת הטופס באמצעות iframe (עוקפת CORS)
-        function submitFormWithIframe(formData) {
-            // יצירת טופס זמני
-            const form = document.createElement('form');
-            form.action = CONFIG.FORM_URL;
-            form.method = 'POST';
-            form.target = 'submission-frame';
-            form.style.display = 'none';
-            
-            // הוספת השדות לטופס
-            for (const [key, value] of formData.entries()) {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.name = key;
-                input.value = value;
-                form.appendChild(input);
-            }
-            
-            // יצירת iframe להגשה
-            const iframe = document.createElement('iframe');
-            iframe.name = 'submission-frame';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            
-            // טיפול באירועי הגשה
-            iframe.addEventListener('load', function() {
-                // עדכון התצוגה
-                elements.firstName.value = '';
-                elements.lastName.value = '';
-                elements.phone.value = '';
+                addBooking(booking) {
+                    const bookings = this.getData();
+                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}`;
+                    bookings[key] = {
+                        ...booking,
+                        expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
+                    };
+                    this.setData(bookings);
+                },
                 
-                showLoader(false);
-                showMessage('success', 'ההזמנה נשלחה בהצלחה!');
+                removeBooking(key) {
+                    const bookings = this.getData();
+                    if (bookings[key]) {
+                        delete bookings[key];
+                        this.setData(bookings);
+                    }
+                },
                 
-                // עדכון הנתונים מחדש
-                setTimeout(updateStats, 1000);
+                getValidBookings() {
+                    const bookings = this.getData();
+                    const now = Date.now();
+                    const validBookings = {};
+                    
+                    Object.entries(bookings).forEach(([key, booking]) => {
+                        if (booking.expiryTime > now) {
+                            validBookings[key] = booking;
+                        }
+                    });
+                    
+                    this.setData(validBookings);
+                    return validBookings;
+                },
                 
-                // הסרת הטופס והאייפריים
-                setTimeout(() => {
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                }, 1000);
-            });
-            
-            // הוספת הטופס לעמוד ושליחתו
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        // פונקציה להצגת הודעות
-        function showMessage(type, message) {
-            // ניקוי הודעות קודמות
-            elements.successMessage.style.display = 'none';
-            elements.errorMessage.style.display = 'none';
-            elements.infoMessage.style.display = 'none';
-            
-            // הצגת ההודעה המתאימה
-            if (type === 'success') {
-                elements.successMessage.textContent = message;
-                elements.successMessage.style.display = 'block';
-            } else if (type === 'error') {
-                elements.errorMessage.textContent = message;
-                elements.errorMessage.style.display = 'block';
-            } else if (type === 'info') {
-                elements.infoMessage.textContent = message;
-                elements.infoMessage.style.display = 'block';
-            }
-            
-            // הסתרת ההודעה אחרי 5 שניות
-            setTimeout(() => {
-                if (type === 'success') elements.successMessage.style.display = 'none';
-                if (type === 'error') elements.errorMessage.style.display = 'none';
-                if (type === 'info') elements.infoMessage.style.display = 'none';
-            }, 5000);
-        }
-
-        // פונקציה להצגת מסך טעינה
-        function showLoader(show) {
-            elements.loader.style.display = show ? 'block' : 'none';
-        }
-
-        // פונקציה להתחלת רענון אוטומטי
-        function startAutoRefresh() {
-            // ניקוי טיימר קודם אם קיים
-            if (state.refreshTimer) {
-                clearInterval(state.refreshTimer);
-            }
-            
-            resetCountdown();
-            
-            // הגדרת טיימר חדש
-            state.refreshTimer = setInterval(() => {
-                state.countdownValue--;
-                
-                if (state.countdownValue <= 0) {
-                    updateStats();
-                } else {
-                    updateCountdown();
+                getTotalTempQuantity() {
+                    const bookings = this.getValidBookings();
+                    return Object.values(bookings).reduce((total, booking) => total + parseInt(booking.quantity || 0), 0);
                 }
-            }, 1000);
-        }
-
-        // איפוס הספירה לאחור
-        function resetCountdown() {
-            state.countdownValue = CONFIG.AUTO_REFRESH_TIME;
-            updateCountdown();
-        }
-
-        // עדכון תצוגת הספירה לאחור
-        function updateCountdown() {
-            elements.countdown.textContent = `רענון אוטומטי בעוד ${state.countdownValue} שניות`;
-        }
-
-        // אתחול המערכת כשהדף נטען
-        document.addEventListener('DOMContentLoaded', init);
+            },
+            
+            async init() {
+                this.attachEventListeners();
+                await this.loadData();
+                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
+            },
+            
+            attachEventListeners() {
+                // אתחול לחצני טופס
+                document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
+                document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
+                document.getElementById('reservation-form').addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                // אתחול מונה כמות
+                document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
+                document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
+            },
+            
+            async loadData(showLoading = true) {
+                if (showLoading) this.showLoading();
+                
+                try {
+                    await this.loadBookings();
+                    this.updateUI();
+                    await this.delay(500);
+                } catch (error) {
+                    console.error('שגיאה בטעינת הנתונים:', error);
+                } finally {
+                    if (showLoading) this.hideLoading();
+                }
+            },
+            
+            async refreshData() {
+                await this.loadData(false);
+            },
+            
+            async loadBookings() {
+                try {
+                    // מוסיף timestamp כדי למנוע caching
+                    const timestamp = Date.now();
+                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
+                    
+                    const response = await fetch(url, {
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const csvText = await response.text();
+                    this.bookingsData = this.parseCSV(csvText);
+                    
+                    // חישוב סך הכל הזמנות
+                    this.totalBooked = this.bookingsData.reduce((total, booking) => {
+                        return total + parseInt(booking['הזמן'] || 0);
+                    }, 0);
+                    
+                } catch (error) {
+                    console.error('שגיאה בטעינת ההזמנות:', error);
+                }
+            },
+            
+            updateUI() {
+                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
+                const totalBooked = this.totalBooked + tempQuantity;
+                const availableSlots = CONFIG.totalSlots - totalBooked;
+                const progressPercentage = (totalBooked / CONFIG.totalSlots) * 100;
+                
+                // עדכון ערכים בממשק
+                document.getElementById('total-slots').textContent = CONFIG.totalSlots;
+                document.getElementById('booked-slots').textContent = totalBooked;
+                document.getElementById('available-slots').textContent = availableSlots;
+                document.getElementById('booking-progress').style.width = `${progressPercentage}%`;
+                
+                // כפתור הזמנה מושבת אם אין מקומות פנויים
+                const bookingBtn = document.getElementById('booking-btn');
+                bookingBtn.disabled = availableSlots <= 0;
+                bookingBtn.textContent = availableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
+            },
+            
+            openForm() {
+                document.getElementById('error-message').textContent = '';
+                document.getElementById('reservation-form').reset();
+                
+                // איפוס מונה כמות
+                this.updateQuantity(0, true);
+                
+                document.getElementById('overlay').style.display = 'block';
+                document.getElementById('booking-form').style.display = 'block';
+            },
+            
+            closeForm() {
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('booking-form').style.display = 'none';
+            },
+            
+            updateQuantity(delta, reset = false) {
+                const quantityValueEl = document.getElementById('quantity-value');
+                const quantityInputEl = document.getElementById('quantity');
+                
+                if (reset) {
+                    quantityValueEl.textContent = '1';
+                    quantityInputEl.value = '1';
+                    return;
+                }
+                
+                let currentValue = parseInt(quantityValueEl.textContent);
+                let newValue = currentValue + delta;
+                
+                // בדיקות תקינות
+                if (newValue < 1) newValue = 1;
+                if (newValue > CONFIG.maxSlotsPerBooking) newValue = CONFIG.maxSlotsPerBooking;
+                
+                // בדיקה שלא חורג ממספר המקומות הפנויים
+                const availableSlots = parseInt(document.getElementById('available-slots').textContent);
+                if (newValue > availableSlots) newValue = availableSlots;
+                
+                quantityValueEl.textContent = newValue;
+                quantityInputEl.value = newValue;
+            },
+            
+            async handleSubmit(event) {
+                event.preventDefault();
+                
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    quantity: document.getElementById('quantity').value
+                };
+                
+                // בדיקה שכל השדות מלאים
+                if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
+                    document.getElementById('error-message').textContent = 'יש למלא את כל השדות';
+                    return;
+                }
+                
+                // בדיקת תקינות טלפון
+                if (!/^\d{10}$/.test(formData.phone)) {
+                    document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות)';
+                    return;
+                }
+                
+                // בדיקת זמינות בזמן אמת
+                await this.loadBookings();
+                const availableSlots = CONFIG.totalSlots - this.totalBooked - this.tempBookingsManager.getTotalTempQuantity();
+                
+                if (parseInt(formData.quantity) > availableSlots) {
+                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
+                    return;
+                }
+                
+                try {
+                    // יצירת הזמנה זמנית
+                    this.tempBookingsManager.addBooking(formData);
+                    this.updateUI();
+                    
+                    // שליחת נתונים ל-Google Form
+                    this.showLoading();
+                    
+                    const googleFormData = new FormData();
+                    googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
+                    googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
+                    googleFormData.append(CONFIG.formFields.phone, formData.phone);
+                    googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
+                    
+                    await fetch(CONFIG.urls.form, {
+                        method: 'POST',
+                        body: googleFormData,
+                        mode: 'no-cors'
+                    });
+                    
+                    // הצגת הודעת הצלחה
+                    this.closeForm();
+                    document.getElementById('success-message').style.display = 'block';
+                    
+                    // הסתרת הודעת הצלחה אחרי 5 שניות
+                    setTimeout(() => {
+                        document.getElementById('success-message').style.display = 'none';
+                    }, 5000);
+                    
+                    // רענון נתונים אחרי הזמנה
+                    await this.delay(2000);
+                    await this.loadData();
+                    
+                } catch (error) {
+                    console.error('שגיאה בשליחת ההזמנה:', error);
+                    document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
+                } finally {
+                    this.hideLoading();
+                }
+            },
+            
+            parseCSV(csv) {
+                const lines = csv.split('\n');
+                if (lines.length <= 1) return [];
+                
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                return lines.slice(1)
+                    .filter(line => line.trim() !== '')
+                    .map(line => {
+                        const values = line.split(',');
+                        const entry = {};
+                        
+                        headers.forEach((header, i) => {
+                            entry[header] = values[i] ? values[i].trim() : '';
+                        });
+                        
+                        return entry;
+                    });
+            },
+            
+            showLoading() {
+                document.getElementById('loading-overlay').style.display = 'flex';
+            },
+            
+            hideLoading() {
+                document.getElementById('loading-overlay').style.display = 'none';
+            },
+            
+            async delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        };
+        
+        // אתחול המערכת
+        document.addEventListener('DOMContentLoaded', () => {
+            bookingSystem.init();
+        });
     </script>
 </body>
 </html>
