@@ -214,9 +214,8 @@
             // הגדרת מספר המקומות הכולל
             TOTAL_SLOTS: 20,
             
-            // כתובת גליון הנתונים כ-JSONP
-            // שימוש ב-sheetdb.io כשירות ביניים לגישה לגיליון
-            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pubhtml',
+            // כתובת הגיליון בפורמט CSV - יש להחליף לכתובת הנכונה של הגיליון שלך
+            SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv',
             
             // כתובת הטופס - לשימוש בהגשת הטופס
             FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse',
@@ -232,11 +231,11 @@
             // זמן רענון אוטומטי (בשניות)
             AUTO_REFRESH_TIME: 60,
             
-            // שם הסוכן המשתמש לצורך הבקשה לשרת
-            USER_AGENT: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            // מספר ניסיונות מקסימלי לטעינת הנתונים
+            MAX_RETRY_ATTEMPTS: 3,
             
-            // CORS Proxy - לעקיפת מגבלות CORS
-            CORS_PROXY: 'https://cors-anywhere.herokuapp.com/'
+            // זמן המתנה בין ניסיונות טעינה (במילישניות)
+            RETRY_DELAY: 2000
         };
 
         // מצב המערכת
@@ -247,7 +246,8 @@
             isLoading: false,
             refreshTimer: null,
             countdownValue: CONFIG.AUTO_REFRESH_TIME,
-            fallbackMode: false  // מצב גיבוי למקרה של בעיות בגישה לנתונים
+            retryAttempts: 0,
+            dataLoadSuccess: false
         };
 
         // אלמנטים בדף
@@ -290,118 +290,84 @@
             
             showLoader(true);
             state.isLoading = true;
+            state.dataLoadSuccess = false;
+            state.retryAttempts = 0;
             
             try {
-                // שימוש בשיטה 1: ניסיון לקרוא באמצעות Google Sheets API
-                await fetchStatsMethod1();
-            } catch (error) {
-                console.warn('Method 1 failed, trying method 2', error);
-                
-                try {
-                    // שיטה 2: שימוש בגישה ישירה לקובץ CSV
-                    await fetchStatsMethod2();
-                } catch (error2) {
-                    console.warn('Method 2 failed, trying method 3', error2);
-                    
-                    try {
-                        // שיטה 3: שימוש ב-CORS Proxy
-                        await fetchStatsMethod3();
-                    } catch (error3) {
-                        console.error('All methods failed:', error3);
-                        
-                        // מעבר למצב גיבוי - שימוש בנתונים מקומיים
-                        if (!state.fallbackMode) {
-                            state.fallbackMode = true;
-                            showMessage('warning', 'לא ניתן להתחבר לשרת הנתונים. המערכת פועלת במצב מקומי.');
-                        }
-                        
-                        // שימוש בנתונים מקומיים (localStorage)
-                        useLocalFallback();
-                    }
-                }
+                // ניסיון לטעון את הנתונים עם אפשרות לניסיונות חוזרים
+                await tryLoadData();
             } finally {
                 showLoader(false);
                 state.isLoading = false;
                 resetCountdown();
+                
+                // אם לא הצלחנו לטעון את הנתונים, נשבית את כפתור השליחה
+                if (!state.dataLoadSuccess) {
+                    elements.reserveBtn.disabled = true;
+                    showMessage('error', 'לא ניתן לטעון את נתוני המערכת. לא ניתן לבצע הזמנות כרגע.');
+                }
             }
         }
 
-        // שיטה 1: ניסיון גישה דרך Sheetdb.io (שירות שמאפשר גישה לגיליונות Google כ-API)
-        async function fetchStatsMethod1() {
-            // שים לב: דורש רישום בשירות sheetdb.io והקמת קישור לגיליון שלך
-            const url = CONFIG.SPREADSHEET_URL;
-            
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error('Failed to fetch data from SheetDB');
+        // ניסיון לטעון את הנתונים עם אפשרות לניסיונות חוזרים
+        async function tryLoadData() {
+            try {
+                await fetchStatsFromCsv();
+                state.dataLoadSuccess = true;
+                state.retryAttempts = 0;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                state.retryAttempts++;
+                
+                if (state.retryAttempts < CONFIG.MAX_RETRY_ATTEMPTS) {
+                    showMessage('info', `ניסיון ${state.retryAttempts} מתוך ${CONFIG.MAX_RETRY_ATTEMPTS} לטעינת נתונים...`);
+                    await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
+                    return tryLoadData();
+                } else {
+                    showMessage('error', 'לא ניתן לטעון את נתוני המערכת. נסה שוב מאוחר יותר.');
+                    throw new Error('Failed to load data after maximum retry attempts');
+                }
             }
-            
-            const data = await response.json();
-            updateStatsFromData(data.length);
         }
 
-        // שיטה 2: ניסיון גישה ישירה לקובץ CSV
-        async function fetchStatsMethod2() {
-            // כתובת ישירה של גיליון ה-CSV - צריך להחליף עם הכתובת האמיתית
-            const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv';
+        // פונקציה לקריאת הנתונים מקובץ ה-CSV
+        async function fetchStatsFromCsv() {
+            // הוספת חותמת זמן למניעת קישור מטמון
+            const timestamp = new Date().getTime();
+            const url = `${CONFIG.SPREADSHEET_URL}&t=${timestamp}`;
             
-            const response = await fetch(url + '&cachebust=' + new Date().getTime(), {
+            const response = await fetch(url, {
                 headers: {
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 },
                 cache: 'no-store'
             });
             
             if (!response.ok) {
-                throw new Error('Failed to fetch CSV');
+                throw new Error(`Failed to fetch CSV (${response.status}: ${response.statusText})`);
             }
             
             const csvText = await response.text();
+            
+            // בדיקה שקיבלנו נתונים תקינים
+            if (!csvText || csvText.trim() === '') {
+                throw new Error('Received empty response');
+            }
+            
+            // פירוק הנתונים ל-CSV
             const rows = csvText.trim().split('\n').filter(row => row.trim());
             
             // שורה ראשונה היא כותרות - לא סופרים אותה
             const count = Math.max(0, rows.length - 1);
-            updateStatsFromData(count);
-        }
-
-        // שיטה 3: שימוש ב-CORS Proxy
-        async function fetchStatsMethod3() {
-            // שימוש ב-CORS Proxy לעקיפת הגבלות אבטחה
-            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv';
-            const proxyUrl = CONFIG.CORS_PROXY + csvUrl;
             
-            const response = await fetch(proxyUrl, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'User-Agent': CONFIG.USER_AGENT,
-                    'Origin': window.location.origin
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to fetch via proxy');
-            }
-            
-            const csvText = await response.text();
-            const rows = csvText.trim().split('\n').filter(row => row.trim());
-            
-            // שורה ראשונה היא כותרות - לא סופרים אותה
-            const count = Math.max(0, rows.length - 1);
-            updateStatsFromData(count);
-        }
-
-        // שימוש בנתונים מקומיים כאשר אין גישה לשרת
-        function useLocalFallback() {
-            // בדיקה אם יש כבר נתונים ב-localStorage
-            const localCount = localStorage.getItem('reservationCount');
-            const count = localCount ? parseInt(localCount) : 0;
-            
-            updateStatsFromData(count);
+            // עדכון הנתונים
+            updateStatsFromCount(count);
         }
 
         // עדכון הנתונים ממספר ההזמנות
-        function updateStatsFromData(count) {
+        function updateStatsFromCount(count) {
             state.reservedSlots = count;
             state.availableSlots = Math.max(0, CONFIG.TOTAL_SLOTS - count);
             state.lastUpdate = new Date();
@@ -423,6 +389,12 @@
         // פונקציה לשליחת הזמנה
         async function submitReservation(e) {
             e.preventDefault();
+            
+            // בדיקה שהצלחנו לטעון את הנתונים
+            if (!state.dataLoadSuccess) {
+                showMessage('error', 'לא ניתן לבצע הזמנה כאשר אין גישה לנתוני המערכת');
+                return;
+            }
             
             // בדיקות תקינות
             const firstName = elements.firstName.value.trim();
@@ -450,6 +422,12 @@
             try {
                 // בדיקה עדכנית של מספר ההזמנות לפני שליחה
                 await updateStats();
+                
+                // בדיקה נוספת אחרי העדכון
+                if (!state.dataLoadSuccess) {
+                    showMessage('error', 'לא ניתן לבצע הזמנה כאשר אין גישה לנתוני המערכת');
+                    return;
+                }
                 
                 if (state.availableSlots <= 0) {
                     showMessage('error', 'מצטערים, כל המקומות תפוסים כרגע');
@@ -503,12 +481,6 @@
                 elements.firstName.value = '';
                 elements.lastName.value = '';
                 elements.phone.value = '';
-                
-                // אם אנחנו במצב גיבוי, נעדכן את המונה המקומי
-                if (state.fallbackMode) {
-                    const localCount = localStorage.getItem('reservationCount') || '0';
-                    localStorage.setItem('reservationCount', (parseInt(localCount) + 1).toString());
-                }
                 
                 showLoader(false);
                 showMessage('success', 'ההזמנה נשלחה בהצלחה!');
