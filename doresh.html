@@ -423,6 +423,20 @@
             font-style: italic;
         }
 
+        .debug-btn {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 999;
+            padding: 8px 12px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -576,6 +590,8 @@
         <div class="loading-text">טוען נתונים...</div>
     </div>
 
+    <button class="debug-btn" id="debug-btn">בדוק נתונים</button>
+
     <script>
         // הגדרות המערכת
         const CONFIG = {
@@ -721,6 +737,9 @@
                 // אתחול מונה כמות
                 document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
                 document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
+                
+                // כפתור דיבוג
+                document.getElementById('debug-btn').addEventListener('click', () => this.debugData());
             },
             
             async loadData(showLoading = true) {
@@ -743,61 +762,186 @@
             
             async loadBookings() {
                 try {
+                    // נתחיל עם 0 הזמנות
+                    this.totalBooked = 0;
+                    
                     // מוסיף timestamp כדי למנוע caching
                     const timestamp = Date.now();
                     const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
                     
-                    const response = await fetch(url, {
-                        cache: 'no-store',
-                        headers: {
-                            'Cache-Control': 'no-cache, no-store, must-revalidate',
-                            'Pragma': 'no-cache'
+                    try {
+                        // ניסיון לקרוא את הנתונים מהגיליון עם תמיכה בתפיסת שגיאות
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 10000); // timeout של 10 שניות
+                        
+                        const response = await fetch(url, {
+                            cache: 'no-store',
+                            headers: {
+                                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                'Pragma': 'no-cache'
+                            },
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        
+                        const csvText = await response.text();
+                        
+                        // בדיקה שיש תוכן בקובץ
+                        if (csvText.trim().length === 0) {
+                            console.log("CSV file is empty");
+                            this.bookingsData = [];
+                            return;
+                        }
+                        
+                        console.log("Raw CSV data retrieved successfully");
+                        this.bookingsData = this.parseCSV(csvText);
+                        
+                        if (!Array.isArray(this.bookingsData) || this.bookingsData.length === 0) {
+                            console.log("No bookings data found or parsing failed");
+                            this.bookingsData = [];
+                            return;
+                        }
+                        
+                        console.log(`Parsed ${this.bookingsData.length} bookings`);
+                        
+                        // שמירת הנתונים בזכרון מקומי למקרה של כשל בחיבור בעתיד
+                        localStorage.setItem('bookingsDataCache', JSON.stringify(this.bookingsData));
+                    } catch (fetchError) {
+                        console.warn("Could not fetch data from Google Sheets:", fetchError);
+                        
+                        // ניסיון לקרוא מהמטמון המקומי
+                        const cachedData = localStorage.getItem('bookingsDataCache');
+                        if (cachedData) {
+                            console.log("Using cached bookings data");
+                            this.bookingsData = JSON.parse(cachedData);
+                        } else {
+                            console.log("No cached data available, starting with empty bookings");
+                            this.bookingsData = [];
+                        }
                     }
                     
-                    const csvText = await response.text();
-                    console.log("Raw CSV data (first 100 chars):", csvText.substring(0, 100));
-                    
-                    this.bookingsData = this.parseCSV(csvText);
-                    console.log("Parsed bookings data:", this.bookingsData);
-                    
                     // חישוב סך הכל הזמנות לפרויקט הנוכחי
-                    this.totalBooked = this.bookingsData.reduce((total, booking) => {
-                        // בדיקה אם ההזמנה שייכת לפרויקט הנוכחי
-                        const isCurrentProject = 
-                            (booking['שם הפרוייקט'] && booking['שם הפרוייקט'].includes(CONFIG.project.name)) ||
-                            (booking['entry.1414374653'] && booking['entry.1414374653'].includes(CONFIG.project.name));
+                    if (this.bookingsData.length > 0) {
+                        console.log("Computing total booked - all bookings:", this.bookingsData);
                         
-                        if (!isCurrentProject) {
-                            return total;
+                        // בדיקה אם נמצאו הזמנות לפרויקט הנוכחי
+                        this.totalBooked = 0;
+                        
+                        for (let i = 0; i < this.bookingsData.length; i++) {
+                            const booking = this.bookingsData[i];
+                            
+                            // הצגת נתוני ההזמנה לצורך דיבוג
+                            console.log(`Booking ${i+1}:`, booking);
+                            
+                            // בדיקת שם הפרויקט (אין צורך לסנן לפי פרויקט ספציפי בשלב זה)
+                            const projectField = booking['שם הפרוייקט'] || booking['entry.1414374653'] || '';
+                            
+                            // בדיקת הכמות
+                            let quantity = 0;
+                            
+                            try {
+                                quantity = parseInt(booking['הזמן']) || 
+                                    parseInt(booking['כמות']) || 
+                                    parseInt(booking['entry.1406108683']) ||
+                                    parseInt(booking['Quantity']) || 
+                                    parseInt(booking['quantity']) || 0;
+                            } catch (parseError) {
+                                console.error("Error parsing quantity:", parseError);
+                                quantity = 0;
+                            }
+                            
+                            if (quantity > 0) {
+                                console.log(`Adding ${quantity} from booking with project: ${projectField}`);
+                                this.totalBooked += quantity;
+                            }
                         }
                         
-                        // בדיקת כל האפשרויות של שם העמודה
-                        const quantity = 
-                            parseInt(booking['הזמן']) || 
-                            parseInt(booking['כמות']) || 
-                            parseInt(booking['entry.1406108683']) ||
-                            parseInt(booking['Quantity']) || 
-                            parseInt(booking['quantity']) || 0;
-                        
-                        return total + quantity;
-                    }, 0);
-                    
-                    console.log("Total booked for this project:", this.totalBooked);
-                    
-                    // אם אין הזמנות בכלל, אפס את הערך במקום NaN
-                    if (isNaN(this.totalBooked)) {
-                        console.log("Total is NaN, setting to 0");
-                        this.totalBooked = 0;
+                        console.log("Total booked (all projects):", this.totalBooked);
                     }
                     
                 } catch (error) {
-                    console.error('שגיאה בטעינת ההזמנות:', error);
+                    console.error('שגיאה כללית בטעינת ההזמנות:', error);
                     this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
+                }
+            },
+            
+            parseCSV(csv) {
+                try {
+                    // נקה סיומת שורה ותווים מיוחדים
+                    const cleanCsv = csv.replace(/\r/g, '').trim();
+                    const lines = cleanCsv.split('\n');
+                    
+                    console.log(`Found ${lines.length} lines in CSV`);
+                    
+                    if (lines.length <= 1) {
+                        console.log("CSV is empty or has only headers");
+                        return [];
+                    }
+                    
+                    // קריאת כותרות
+                    const headerLine = lines[0].trim();
+                    console.log("Header line:", headerLine);
+                    
+                    let headers;
+                    if (headerLine.includes(',')) {
+                        headers = headerLine.split(',').map(h => h.trim());
+                    } else if (headerLine.includes('\t')) {
+                        headers = headerLine.split('\t').map(h => h.trim());
+                    } else {
+                        // אם אין מפריד ברור, ננסה לפצל לפי רווח
+                        headers = headerLine.split(/\s+/).map(h => h.trim());
+                    }
+                    
+                    console.log("Detected headers:", headers);
+                    
+                    // בדיקת שדות חובה
+                    const hasQuantityColumn = headers.some(h => 
+                        h.includes('הזמן') || 
+                        h.includes('כמות') || 
+                        h.includes('entry.1406108683')
+                    );
+                    
+                    if (!hasQuantityColumn) {
+                        headers.push('כמות');
+                        console.log("Added missing quantity column");
+                    }
+                    
+                    return lines.slice(1)
+                        .filter(line => line.trim() !== '')
+                        .map((line, index) => {
+                            let values;
+                            
+                            // בדוק איזה מפריד יש בשורה
+                            if (line.includes(',')) {
+                                values = line.split(',');
+                            } else if (line.includes('\t')) {
+                                values = line.split('\t');
+                            } else {
+                                values = line.split(/\s+/);
+                            }
+                            
+                            const entry = {};
+                            
+                            headers.forEach((header, i) => {
+                                // אם אין מספיק ערכים, השתמש בערך ריק
+                                entry[header] = i < values.length && values[i] ? values[i].trim() : '';
+                                
+                                // אם זה עמודת כמות והיא ריקה, שים ערך ברירת מחדל
+                                if ((header === 'כמות' || header === 'הזמן' || header.includes('quantity')) && !entry[header]) {
+                                    entry[header] = '1';
+                                }
+                            });
+                            
+                            return entry;
+                        });
+                } catch (error) {
+                    console.error("Error parsing CSV:", error);
+                    return [];
                 }
             },
             
@@ -809,10 +953,10 @@
                 
                 // וידוא שהערכים הם מספרים תקינים
                 const displayTotalBooked = isNaN(totalBooked) ? 0 : totalBooked;
-                const displayAvailableSlots = isNaN(availableSlots) ? CONFIG.totalSlots : availableSlots;
-                const displayProgressPercentage = isNaN(progressPercentage) ? 0 : progressPercentage;
+                const displayAvailableSlots = isNaN(availableSlots) || availableSlots < 0 ? 0 : availableSlots;
+                const displayProgressPercentage = isNaN(progressPercentage) ? 0 : Math.min(progressPercentage, 100);
                 
-              // עדכון ערכים בממשק
+                // עדכון ערכים בממשק
                 document.getElementById('total-slots').textContent = CONFIG.totalSlots;
                 document.getElementById('booked-slots').textContent = displayTotalBooked;
                 document.getElementById('available-slots').textContent = displayAvailableSlots;
@@ -964,100 +1108,31 @@
                 }
             },
             
-            parseCSV(csv) {
-                try {
-                    // נקה סיומת שורה ותווים מיוחדים
-                    const cleanCsv = csv.replace(/\\r/g, '').trim();
-                    const lines = cleanCsv.split('\n');
-                    
-                    console.log(`Found ${lines.length} lines in CSV`);
-                    
-                    if (lines.length <= 1) {
-                        console.log("CSV is empty or has only headers");
-                        return [];
-                    }
-                    
-                    // קריאת כותרות - נסה פיצול לפי פסיק או טאב
-                    const headerLine = lines[0];
-                    console.log("Header line:", headerLine);
-                    
-                    let headers;
-                    if (headerLine.includes(',')) {
-                        headers = headerLine.split(',').map(h => h.trim());
-                    } else if (headerLine.includes('\t')) {
-                        headers = headerLine.split('\t').map(h => h.trim());
-                    } else {
-                        // אם אין מפריד ברור, ננסה לפצל לפי רווח
-                        headers = headerLine.split(/\s+/).map(h => h.trim());
-                    }
-                    
-                    console.log("Detected headers:", headers);
-                    
-                    // נבדוק אם יש עמודה שקשורה לכמות ולפרויקט
-                    const hasQuantityColumn = headers.some(h => 
-                        h.includes('הזמן') || 
-                        h.includes('כמות') || 
-                        h.includes('Quantity') || 
-                        h.includes('quantity') || 
-                        h.includes('entry.1406108683')
-                    );
-                    
-                    const hasProjectColumn = headers.some(h => 
-                        h.includes('שם הפרוייקט') || 
-                        h.includes('entry.1414374653')
-                    );
-                    
-                    console.log("Has quantity column:", hasQuantityColumn);
-                    console.log("Has project column:", hasProjectColumn);
-                    
-                    // אם אין עמודות חובה, נוסיף אותן
-                    if (!hasQuantityColumn) {
-                        headers.push('כמות');
-                    }
-                    
-                    if (!hasProjectColumn) {
-                        headers.push('שם הפרוייקט');
-                    }
-                    
-                    return lines.slice(1)
-                        .filter(line => line.trim() !== '')
-                        .map((line, index) => {
-                            let values;
-                            
-                            // בדוק איזה מפריד יש בשורה
-                            if (line.includes(',')) {
-                                values = line.split(',');
-                            } else if (line.includes('\t')) {
-                                values = line.split('\t');
-                            } else {
-                                values = line.split(/\s+/);
-                            }
-                            
-                            console.log(`Line ${index+1} values:`, values);
-                            
-                            const entry = {};
-                            
-                            headers.forEach((header, i) => {
-                                // אם אין מספיק ערכים, השתמש בערך ריק
-                                entry[header] = i < values.length && values[i] ? values[i].trim() : '';
-                                
-                                // אם זה עמודת הכמות שהוספנו והיא ריקה, שים 1 כברירת מחדל
-                                if (header === 'כמות' && !entry[header] && !hasQuantityColumn) {
-                                    entry[header] = '1';
-                                }
-                                
-                                // אם זה עמודת הפרויקט שהוספנו והיא ריקה, שים שם פרויקט כברירת מחדל
-                                if (header === 'שם הפרוייקט' && !entry[header] && !hasProjectColumn) {
-                                    entry[header] = CONFIG.project.name;
-                                }
-                            });
-                            
-                            return entry;
-                        });
-                } catch (error) {
-                    console.error("Error parsing CSV:", error);
-                    return [];
-                }
+            debugData() {
+                console.clear();
+                console.log("----- DEBUG INFO -----");
+                console.log("Project name:", CONFIG.project.name);
+                console.log("Total bookings data rows:", this.bookingsData.length);
+                console.log("Raw bookings data:", this.bookingsData);
+                console.log("Current total booked:", this.totalBooked);
+                console.log("Temp bookings:", this.tempBookingsManager.getValidBookings());
+                
+                // הצגת נתונים
+                const projectCounts = {};
+                this.bookingsData.forEach(booking => {
+                    const projectName = booking['שם הפרוייקט'] || booking['entry.1414374653'] || 'לא ידוע';
+                    if (!projectCounts[projectName]) projectCounts[projectName] = 0;
+                    projectCounts[projectName]++;
+                });
+                
+                console.log("Projects in data:", projectCounts);
+                
+                const totalCount = this.bookingsData.reduce((sum, booking) => {
+                    const quantity = parseInt(booking['הזמן']) || parseInt(booking['כמות']) || 0;
+                    return sum + quantity;
+                }, 0);
+                
+                alert(`מידע דיבוג:\n- נמצאו ${this.bookingsData.length} רשומות בסה"כ\n- סה"כ כמות: ${this.totalBooked}\n- כמויות זמניות: ${this.tempBookingsManager.getTotalTempQuantity()}\n\nמידע מפורט נמצא בקונסול (F12)`);
             },
             
             showLoading() {
