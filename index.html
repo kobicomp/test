@@ -1,1015 +1,1308 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>מערכת הזמנת אפיית מצות - בית הכנסת דורש טוב התשפ"ה</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק מסלול טריוויה</title>
     <style>
         :root {
-            --primary-color: #2196F3;
-            --secondary-color: #4b6cb7;
-            --success-color: #4CAF50;
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-            --light-color: #f5f5f5;
-            --dark-color: #333;
+            --primary-color: #3b82f6;
+            --primary-dark: #2563eb;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background-gradient);
             margin: 0;
-            padding: 0;
-            direction: rtl;
-            background-color: var(--light-color);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
             padding: 20px;
-        }
-
-        .header {
-            background: linear-gradient(to left, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-radius: 0 0 10px 10px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 2.2em;
-        }
-
-        .header p {
-            margin: 10px 0 0;
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .logo {
-            max-width: 150px;
-            margin-bottom: 15px;
-        }
-
-        .product-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            padding: 25px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-        }
-
-        .product-title {
-            font-size: 1.8em;
-            color: var(--dark-color);
-            margin: 0 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .product-description {
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-            white-space: pre-line;
-        }
-
-        .product-details {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-right: 4px solid var(--primary-color);
-        }
-
-        .price-info {
-            font-weight: bold;
-            color: var(--dark-color);
-            font-size: 1.1em;
-            margin-bottom: 5px;
-        }
-
-        .payment-link {
-            display: inline-block;
-            margin-top: 10px;
-            color: var(--primary-color);
-            font-weight: bold;
-            text-decoration: none;
-            border-bottom: 1px dotted var(--primary-color);
-            transition: all 0.2s ease;
-        }
-
-        .payment-link:hover {
-            color: var(--secondary-color);
-        }
-
-        .product-stats {
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
         }
 
-        .stat-box {
-            text-align: center;
-            padding: 10px;
-            border-radius: 5px;
-            flex: 1;
-            min-width: 100px;
-            margin: 5px;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        button {
+            cursor: pointer;
         }
 
-        .stat-value {
-            font-size: 1.6em;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.9em;
-            color: #777;
-        }
-
-        .progress-container {
-            background-color: #e0e0e0;
-            border-radius: 5px;
-            height: 10px;
-            margin-bottom: 25px;
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 900px;
+            width: 95%;
+            position: relative;
             overflow: hidden;
         }
 
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(to right, var(--success-color), var(--primary-color));
-            transition: width 0.5s ease;
+        .welcome-screen, .category-selection, .name-input, .game-screen, .summary-screen {
+            transition: opacity 0.5s, transform 0.5s;
         }
 
-        .actions {
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            transform: translateY(20px);
+        }
+
+        .logo-container {
             text-align: center;
+            margin-bottom: 20px;
         }
 
-        .booking-btn {
-            background-color: var(--primary-color);
+        .logo-container img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        .welcome-screen, .category-selection, .name-input {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            background: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 1.1em;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 8px;
+            margin: 10px;
             transition: all 0.3s ease;
         }
 
-        .booking-btn:hover {
-            background-color: var(--secondary-color);
-            transform: scale(1.05);
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .booking-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            transform: none;
+        .btn.large {
+            font-size: 20px;
+            padding: 15px 30px;
         }
 
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 999;
-            backdrop-filter: blur(3px);
+        .name-input-container {
+            margin: 20px 0;
         }
 
-        .booking-form {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 90%;
-            max-width: 500px;
-        }
-
-        .booking-form h3 {
-            margin-top: 0;
-            color: var(--primary-color);
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .form-group input {
+        .name-input-container input {
+            padding: 12px 15px;
+            font-size: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border 0.3s ease;
+            max-width: 300px;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        .form-group input:focus {
+        .name-input-container input:focus {
             border-color: var(--primary-color);
             outline: none;
         }
 
-        .form-group .input-with-counter {
-            position: relative;
-        }
-
-        .quantity-counter {
+        .avatar-selection {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 120px;
-            margin: 0 auto;
-        }
-
-        .counter-btn {
-            width: 30px;
-            height: 30px;
-            border: none;
-            background-color: #eee;
-            color: #333;
-            font-size: 1.2em;
-            cursor: pointer;
-            border-radius: 50%;
-            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .counter-btn:hover {
-            background-color: #ddd;
-        }
-
-        .counter-value {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .price-display {
-            text-align: center;
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-            font-size: 1.1em;
-        }
-
-        .price-amount {
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-
-        .form-actions button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .submit-btn {
-            background-color: var(--success-color);
-            color: white;
-        }
-
-        .submit-btn:hover {
-            background-color: #3d9140;
-        }
-
-        .cancel-btn {
-            background-color: #eee;
-            color: #333;
-        }
-
-        .cancel-btn:hover {
-            background-color: #ddd;
-        }
-
-        .payment-note {
-            margin-top: 15px;
-            padding: 10px;
-            background-color: #e8f5e9;
-            border-radius: 5px;
-            font-size: 0.9em;
-            text-align: center;
-        }
-
-        .payment-btn {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 15px;
-            background-color: var(--success-color);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .payment-btn:hover {
-            background-color: #3d9140;
-            transform: translateY(-2px);
-        }
-
-        .error {
-            color: var(--danger-color);
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        .success-message {
-            background-color: #e8f5e9;
-            color: var(--success-color);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-            display: none;
-        }
-
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255,255,255,0.9);
-            z-index: 1001;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            margin-top: 15px;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .decoration {
-            text-align: center;
+            gap: 15px;
             margin: 20px 0;
         }
 
-        .pesach-decoration {
-            font-size: 1.2em;
-            color: #8d6e63;
-            text-align: center;
-            margin: 15px 0;
-            font-style: italic;
+        .avatar-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 3px;
         }
 
-        @media (max-width: 768px) {
-            .product-stats {
-                flex-direction: column;
+        .avatar-option img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .avatar-option.selected {
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .category-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover, .category-btn.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .game-board {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .game-board img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            display: block;
+        }
+
+        .player-avatar {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 10;
+            top: 75%;
+            left: 15%;
+            overflow: hidden;
+        }
+
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .checkpoint {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #1e293b;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .checkpoint.active {
+            background: var(--primary-color);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .checkpoint.completed {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        /* Checkpoint positions - approximate based on the path in the image */
+        .checkpoint[data-question="1"] { top: 75%; left: 15%; }
+        .checkpoint[data-question="2"] { top: 60%; left: 35%; }
+        .checkpoint[data-question="3"] { top: 45%; left: 55%; }
+        .checkpoint[data-question="4"] { top: 30%; left: 40%; }
+        .checkpoint[data-question="5"] { top: 15%; left: 60%; }
+        
+        .beit-midrash {
+            position: absolute;
+            top: 5%;
+            left: 80%;
+            width: 60px;
+            height: 60px;
+            background: #f8f4e3;
+            border: 3px solid #8b4513;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .beit-midrash.completed {
+            animation: glow 2s infinite alternate;
+        }
+
+        .beit-midrash::before {
+            content: '🕍';
+            font-size: 24px;
+        }
+
+        .beit-midrash::after {
+            content: 'בית מדרש';
+            font-size: 10px;
+            font-weight: bold;
+            color: #8b4513;
+        }
+
+        .game-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 10px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-info img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+        }
+
+        .score-display {
+            background: #f3f4f6;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .timer-container {
+            width: 100%;
+            background: #e5e7eb;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: var(--warning-color);
+            width: 100%;
+            transition: width linear;
+        }
+
+        .question-container {
+            text-align: center;
+            margin-bottom: 30px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .question-number {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .question {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 10px;
+        }
+
+        .answer-btn {
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 2px solid var(--primary-color);
+            background: white;
+            color: var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-btn:hover {
+            background: #f0f9ff;
+            transform: translateY(-2px);
+        }
+
+        .answer-btn.correct {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .answer-btn.incorrect {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            transform: scale(0);
+        }
+
+        .result-message.show {
+            transform: scale(1);
+        }
+
+        .result-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .result-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .certificate {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(45deg, #ffd700, #ffea00);
+            border-radius: 20px;
+            border: 5px solid #b8860b;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="none" stroke="rgba(139, 69, 19, 0.1)" stroke-width="2" d="M25,2 L2,2 L2,25 M75,2 L98,2 L98,25 M25,98 L2,98 L2,75 M75,98 L98,98 L98,75"/></svg>');
+            background-repeat: repeat;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .certificate h2 {
+            font-size: 36px;
+            color: #8b4513;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .certificate .player-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #5c3d1e;
+            margin: 15px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .certificate-text {
+            font-size: 22px;
+            color: #654321;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .certificate-details {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .certificate-detail {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .certificate-detail-label {
+            font-size: 14px;
+            color: #8b4513;
+        }
+
+        .certificate-detail-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #5c3d1e;
+        }
+
+        .certificate-date {
+            font-size: 18px;
+            color: #8b4513;
+            margin-top: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .certificate-stamp {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 100px;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="rgba(139, 69, 19, 0.5)" stroke-width="2"/><path d="M50 10 L54 22 L67 22 L56 30 L60 42 L50 35 L40 42 L44 30 L33 22 L46 22 Z" fill="rgba(139, 69, 19, 0.5)"/></svg>');
+            opacity: 0.7;
+            transform: rotate(-15deg);
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .summary-table th, .summary-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .summary-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #4b5563;
+        }
+
+        .correct-answer {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .wrong-answer {
+            color: var(--error-color);
+            text-decoration: line-through;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            top: -10px;
+            animation: fall linear forwards;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px 2px rgba(255, 215, 0, 0.5); }
+            to { box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.8); }
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive design */
+        @media (min-width: 640px) {
+            .answers {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .game-container {
+                padding: 30px;
             }
             
-            .stat-box {
-                margin-bottom: 10px;
-                width: 100%;
+            .logo-container img {
+                max-width: 200px;
+            }
+
+            .checkpoint {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
             }
             
-            .form-actions {
-                flex-direction: column;
-                gap: 10px;
+            .beit-midrash {
+                width: 80px;
+                height: 80px;
             }
             
-            .form-actions button {
-                width: 100%;
+            .beit-midrash::before {
+                font-size: 30px;
+            }
+            
+            .beit-midrash::after {
+                font-size: 12px;
+            }
+
+            .player-avatar {
+                width: 50px;
+                height: 50px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <img src="logod.jpg" alt="לוגו" class="logo">
-            <h1 id="project-title">אפיית מצות - בית הכנסת דורש טוב</h1>
-            <p id="project-subtitle">הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ"ה</p>
+    <div class="game-container">
+        <div class="logo-container">
+            <img src="logo.png" alt="לוגו" />
         </div>
-    </div>
-
-    <div class="container">
-        <div class="success-message" id="success-message">
-            ההזמנה שלך התקבלה בהצלחה! נא להשלים את התשלום בקישור שלהלן.
-            <br>
-            <a href="https://pe4ch.com/ref/2DKFWoG22che?lang=he" class="payment-btn" target="_blank">מעבר לתשלום</a>
+        
+        <!-- Welcome Screen -->
+        <div class="welcome-screen">
+            <h1 class="welcome-title">ברוכים הבאים למשחק מסלול הטריוויה!</h1>
+            <p class="welcome-text">
+                מוכנים לאתגר? ענו נכון על 5 שאלות טריוויה והגיעו לבית המדרש!<br>
+                תשובות נכונות יקדמו אתכם במסלול, אך שגיאה תחזיר אתכם להתחלה.
+            </p>
+            <button class="btn large" id="start-btn">בואו נתחיל!</button>
         </div>
 
-        <div class="product-card">
-            <h2 class="product-title" id="product-name">אפיית מצות - בית הכנסת דורש טוב</h2>
-            <p class="product-description" id="product-description">שלום לכולם!
-פרויקט קהילות של עיריית שדרות שמח להזמין את ציבור הגברים בקהילת "דורש טוב" לאפיית מצות מהודרות ביום שני, ט' בניסן בשעה 19:00 ברחבת בית הכנסת "נאות השקמה".
-שימו לב! מס' המקומות מוגבל, כל הקודם זוכה.
-ההשתתפות בעלות מסובסדת בסך 10 ש"ח.
-הרב יניב וועד בית הכנסת</p>
+        <!-- Name Input Screen -->
+        <div class="name-input hidden">
+            <h2 class="welcome-title">הכירו את עצמכם</h2>
+            <div class="name-input-container">
+                <label for="player-name">מה השם שלך?</label>
+                <input type="text" id="player-name" placeholder="הכנס את שמך כאן" />
+            </div>
             
-            <div class="product-details">
-                <div class="price-info">עלות: <span id="price-per-person">10</span> ₪ לאדם (מחיר מסובסד)</div>
-                <div>המחיר כולל חומרים, הדרכה וליווי מקצועי</div>
-                <a href="https://pe4ch.com/ref/2DKFWoG22che?lang=he" class="payment-link" target="_blank">קישור לתשלום</a>
-            </div>
-
-            <div class="product-stats">
-                <div class="stat-box">
-                    <div class="stat-value" id="total-slots">20</div>
-                    <div class="stat-label">סך ההזמנות</div>
+            <h3>בחר אווטאר:</h3>
+            <div class="avatar-selection">
+                <div class="avatar-option selected" data-avatar="avatar1">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="אווטאר 1" />
                 </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="booked-slots">0</div>
-                    <div class="stat-label">הזמנות שבוצעו</div>
+                <div class="avatar-option" data-avatar="avatar2">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2322c55e'/><rect x='35' y='35' width='30' height='30' fill='white'/><circle cx='50' cy='65' r='10' fill='white'/></svg>" alt="אווטאר 2" />
                 </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="available-slots">20</div>
-                    <div class="stat-label">הזמנות פנויות</div>
+                <div class="avatar-option" data-avatar="avatar3">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23f59e0b'/><polygon points='50,30 35,60 65,60' fill='white'/><rect x='40' y='60' width='20' height='15' fill='white'/></svg>" alt="אווטאר 3" />
+                </div>
+                <div class="avatar-option" data-avatar="avatar4">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ef4444'/><circle cx='35' cy='40' r='10' fill='white'/><circle cx='65' cy='40' r='10' fill='white'/><path d='M30,60 Q50,80 70,60' fill='none' stroke='white' stroke-width='5'/></svg>" alt="אווטאר 4" />
                 </div>
             </div>
+            
+            <button class="btn" id="continue-to-category">המשך</button>
+        </div>
 
-            <div class="progress-container">
-                <div class="progress-bar" id="booking-progress" style="width: 0%"></div>
+        <!-- Category Selection Screen -->
+        <div class="category-selection hidden">
+            <h2 class="welcome-title">בחר קטגוריה</h2>
+            <div class="categories">
+                <button class="category-btn selected" data-category="general">ידע כללי</button>
+                <button class="category-btn" data-category="science">מדע</button>
+                <button class="category-btn" data-category="history">היסטוריה</button>
+                <button class="category-btn" data-category="judaism">יהדות</button>
+            </div>
+            <button class="btn" id="start-game">התחל משחק</button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div class="game-screen hidden">
+            <div class="game-board">
+                <img src="map.jpg" alt="מסלול המשחק" />
+                
+                <!-- Player Avatar -->
+                <div class="player-avatar">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="שחקן" />
+                </div>
+                
+                <!-- Checkpoints -->
+                <div class="checkpoint active" data-question="1">1</div>
+                <div class="checkpoint" data-question="2">2</div>
+                <div class="checkpoint" data-question="3">3</div>
+                <div class="checkpoint" data-question="4">4</div>
+                <div class="checkpoint" data-question="5">5</div>
+                
+                <!-- Beit Midrash -->
+                <div class="beit-midrash"></div>
             </div>
 
-            <div class="pesach-decoration">
-                "הא לחמא עניא די אכלו אבהתנא בארעא דמצרים"
+            <div class="game-status">
+                <div class="player-info">
+                    <img id="player-avatar-small" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="שחקן" />
+                    <span id="player-name-display">שחקן</span>
+                </div>
+                <div class="score-display">
+                    ניקוד: <span id="score">0</span>
+                </div>
             </div>
 
-            <div class="actions">
-                <button class="booking-btn" id="booking-btn">הזמן עכשיו</button>
+            <div class="timer-container">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+
+            <div class="question-container">
+                <div class="question-number">שאלה <span id="question-number">1</span> מתוך 5</div>
+                <div class="question">מה בירת צרפת?</div>
+                <div class="answers">
+                    <button class="answer-btn" data-index="0">פריז</button>
+                    <button class="answer-btn" data-index="1">לונדון</button>
+                    <button class="answer-btn" data-index="2">ברלין</button>
+                    <button class="answer-btn" data-index="3">מדריד</button>
+                </div>
+            </div>
+
+            <div class="result-message" id="result-message"></div>
+        </div>
+
+        <!-- Summary Screen -->
+        <div class="summary-screen hidden">
+            <h2 class="welcome-title">סיכום המשחק</h2>
+            <div class="player-info" style="justify-content: center; margin-bottom: 20px;">
+                <img id="summary-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="שחקן" style="width: 50px; height: 50px;" />
+                <span id="summary-name" style="font-size: 24px; margin-right: 10px;">שחקן</span>
+            </div>
+            
+            <div class="score-display" style="text-align: center; font-size: 24px; margin-bottom: 20px;">
+                הניקוד הסופי: <span id="final-score">0</span>
+            </div>
+            
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>שאלה</th>
+                        <th>תשובתך</th>
+                        <th>תשובה נכונה</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-table-body">
+                    <!-- Filled dynamically -->
+                </tbody>
+            </table>
+            
+            <div class="btn-container">
+                <button class="btn" id="show-certificate">הצג תעודה</button>
+                <button class="btn" id="play-again">שחק שוב</button>
             </div>
         </div>
-    </div>
 
-    <div class="overlay" id="overlay"></div>
-    <div class="booking-form" id="booking-form">
-        <h3 id="form-title">הזמנת אפיית מצות</h3>
-        <form id="reservation-form">
-            <div class="form-group">
-                <label for="firstName">שם פרטי:</label>
-                <input type="text" id="firstName" required>
+        <!-- Certificate -->
+        <div class="certificate hidden" id="certificate">
+            <div class="certificate-stamp"></div>
+            <h2>תעודת הצטיינות</h2>
+            <div class="player-name" id="certificate-name">ישראל ישראלי</div>
+            <div class="certificate-text">
+                הצליח לסיים בהצלחה את מסלול הטריוויה<br>
+                וענה נכון על כל חמש השאלות!
             </div>
-            <div class="form-group">
-                <label for="lastName">שם משפחה:</label>
-                <input type="text" id="lastName" required>
-            </div>
-            <div class="form-group">
-                <label for="phone">מספר טלפון:</label>
-                <input type="tel" id="phone" required pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות">
-            </div>
-            <div class="form-group">
-                <label for="quantity">מספר אנשים:</label>
-                <div class="quantity-counter">
-                    <button type="button" class="counter-btn" id="decrease-btn">-</button>
-                    <span class="counter-value" id="quantity-value">1</span>
-                    <button type="button" class="counter-btn" id="increase-btn">+</button>
+            <div class="certificate-details">
+                <div class="certificate-detail">
+                    <div class="certificate-detail-label">ניקוד</div>
+                    <div class="certificate-detail-value" id="certificate-score">1000</div>
                 </div>
-                <input type="hidden" id="quantity" value="1">
+                <div class="certificate-detail">
+                    <div class="certificate-detail-label">קטגוריה</div>
+                    <div class="certificate-detail-value" id="certificate-category">ידע כללי</div>
+                </div>
             </div>
+            <div class="certificate-date" id="certificate-date">הוענק בתאריך: 10/05/2025</div>
             
-            <div class="price-display">
-                סך הכל לתשלום: <span class="price-amount" id="total-price">10</span> ₪
+            <div class="btn-container">
+                <button class="btn" id="play-again-cert">שחק שוב</button>
             </div>
-            
-            <div class="payment-note">
-                לאחר שליחת טופס ההזמנה, יש להשלים את התשלום בקישור שיופיע.
-            </div>
-            
-            <input type="hidden" id="projectName" value="">
-            <div id="error-message" class="error"></div>
-            <div class="form-actions">
-                <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
-                <button type="submit" class="submit-btn">שלח הזמנה</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="spinner"></div>
-        <div class="loading-text">טוען נתונים...</div>
+        </div>
     </div>
 
     <script>
-        // הגדרות המערכת
-        const CONFIG = {
-            // מספר הזמנות מקסימלי
-            totalSlots: 20,
-            
-            // מספר הזמנות מקסימלי להזמנה בודדת
-            maxSlotsPerBooking: 5,
-            
-            // מחיר ליחידה
-            pricePerPerson: 10,
-            
-            // זמן עבור הזמנה זמנית (בדקות)
-            tempBookingTimeout: 10,
-            
-            // זמן רענון אוטומטי (בשניות)
-            autoRefreshInterval: 60,
-            
-            // קישור לתשלום
-            paymentLink: 'https://pe4ch.com/ref/2DKFWoG22che?lang=he',
-            
-            // כתובות URL
-            urls: {
-                form: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse',
-                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv'
-            },
-            
-            // שדות טופס Google
-            formFields: {
-                firstName: "entry.1726269772",
-                lastName: "entry.1766470893",
-                phone: "entry.2028941780",
-                quantity: "entry.1406108683",
-                projectName: "entry.1414374653"
-            },
-            
-            // פרטי פרויקט
-            project: {
-                name: "אפיית מצות בבית הכנסת דורש טוב התשפ\"ה",
-                title: "אפיית מצות - בית הכנסת דורש טוב",
-                subtitle: "הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ\"ה",
-                description: "שלום לכולם!\nפרויקט קהילות של עיריית שדרות שמח להזמין את ציבור הגברים בקהילת \"דורש טוב\" לאפיית מצות מהודרות ביום שני, ט' בניסן בשעה 19:00 ברחבת בית הכנסת \"נאות השקמה\".\nשימו לב! מס' המקומות מוגבל, כל הקודם זוכה.\nההשתתפות בעלות מסובסדת בסך 10 ש\"ח.\nהרב יניב וועד בית הכנסת"
-            }
-        };
+        // המאגר שאלות לפי קטגוריות
+       // המאגר שאלות לפי קטגוריות
+const questionsDatabase = {
+    general: [
+        {
+            question: "מה בירת צרפת?",
+            answers: ["פריז", "לונדון", "ברלין", "מדריד"],
+            correct: 0
+        },
+        {
+            question: "מי צייר את המונה ליזה?",
+            answers: ["לאונרדו דה וינצ'י", "פבלו פיקאסו", "וינסנט ואן גוך", "מיכלאנג'לו"],
+            correct: 0
+        },
+        {
+            question: "מהו כוכב הלכת הגדול ביותר במערכת השמש?",
+            answers: ["מאדים", "שבתאי", "צדק", "נוגה"],
+            correct: 2
+        },
+        {
+            question: "איזו מדינה היא הגדולה ביותר בעולם?",
+            answers: ["קנדה", "סין", "ארצות הברית", "רוסיה"],
+            correct: 3
+        },
+        {
+            question: "מי כתב את 'רומיאו ויוליה'?",
+            answers: ["צ'ארלס דיקנס", "ויליאם שייקספיר", "מארק טוויין", "ג'יין אוסטן"],
+            correct: 1
+        },
+        {
+            question: "איזה יסוד כימי מסומן באות Na?",
+            answers: ["ניקל", "חנקן", "נתרן", "נאון"],
+            correct: 2
+        },
+        {
+            question: "באיזו שנה הסתיימה מלחמת העולם השנייה?",
+            answers: ["1943", "1945", "1947", "1950"],
+            correct: 1
+        }
+    ],
+    science: [
+        {
+            question: "מה הנוסחה הכימית של מים?",
+            answers: ["CO2", "H2O", "O2", "NaCl"],
+            correct: 1
+        },
+        {
+            question: "איזה כוח מושך עצמים לכדור הארץ?",
+            answers: ["כוח המשיכה", "כוח החיכוך", "כוח אלקטרומגנטי", "כוח צנטריפוגלי"],
+            correct: 0
+        },
+        {
+            question: "איזה מהבאים הוא לא ירח של כוכב צדק?",
+            answers: ["גנימד", "אירופה", "טיטאן", "קליסטו"],
+            correct: 2
+        },
+        {
+            question: "כמה עצמות יש בגוף האדם?",
+            answers: ["106", "186", "206", "306"],
+            correct: 2
+        },
+        {
+            question: "מהי היחידה הבסיסית של החיים?",
+            answers: ["גן", "תא", "מולקולה", "אטום"],
+            correct: 1
+        }
+    ],
+    history: [
+        {
+            question: "מי היה הקיסר הראשון של רומא?",
+            answers: ["יוליוס קיסר", "אוגוסטוס", "נירון", "קליגולה"],
+            correct: 1
+        },
+        {
+            question: "באיזו שנה התרחשה המהפכה הצרפתית?",
+            answers: ["1689", "1789", "1889", "1989"],
+            correct: 1
+        },
+        {
+            question: "מי המציא את הטלפון?",
+            answers: ["תומאס אדיסון", "ניקולה טסלה", "אלכסנדר גרהם בל", "גוגלילמו מרקוני"],
+            correct: 2
+        },
+        {
+            question: "באיזו שנה הסתיימה מלחמת העצמאות של ישראל?",
+            answers: ["1947", "1948", "1949", "1950"],
+            correct: 2
+        },
+        {
+            question: "מי היה המלך הראשון של ישראל המאוחדת?",
+            answers: ["שאול", "דוד", "שלמה", "רחבעם"],
+            correct: 0
+        }
+    ],
+    judaism: [
+        {
+            question: "מי היה הכהן הגדול הראשון?",
+            answers: ["משה", "אהרן", "פנחס", "עלי"],
+            correct: 1
+        },
+        {
+            question: "כמה ספרים יש בתורה?",
+            answers: ["3", "5", "6", "12"],
+            correct: 1
+        },
+        {
+            question: "מה שמו של בנו הבכור של יעקב?",
+            answers: ["יוסף", "יהודה", "ראובן", "בנימין"],
+            correct: 2
+        },
+        {
+            question: "באיזה חג אוכלים מצות?",
+            answers: ["פורים", "פסח", "שבועות", "סוכות"],
+            correct: 1
+        },
+        {
+            question: "כמה ימים נמשך חג החנוכה?",
+            answers: ["7", "8", "9", "10"],
+            correct: 1
+        }
+    ]
+};
 
-        // מערכת הזמנה
-        const bookingSystem = {
-            bookingsData: [],
-            totalBooked: 0,
-            
-            tempBookingsManager: {
-                STORAGE_KEY: 'tempProductBookings',
-                
-                getData() {
-                    try {
-                        const stored = localStorage.getItem(this.STORAGE_KEY);
-                        return stored ? JSON.parse(stored) : {};
-                    } catch {
-                        return {};
-                    }
-                },
-                
-                setData(bookings) {
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
-                },
-                
-                addBooking(booking) {
-                    const bookings = this.getData();
-                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}_${Date.now()}`;
-                    bookings[key] = {
-                        ...booking,
-                        expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
-                    };
-                    this.setData(bookings);
-                    return key;
-                },
-                
-                removeBooking(key) {
-                    const bookings = this.getData();
-                    if (bookings[key]) {
-                        delete bookings[key];
-                        this.setData(bookings);
-                    }
-                },
-                
-                getValidBookings() {
-                    const bookings = this.getData();
-                    const now = Date.now();
-                    const validBookings = {};
-                    
-                    Object.entries(bookings).forEach(([key, booking]) => {
-                        if (booking.expiryTime > now) {
-                            validBookings[key] = booking;
-                        }
-                    });
-                    
-                    this.setData(validBookings);
-                    return validBookings;
-                },
-                
-                getTotalTempQuantity() {
-                    const bookings = this.getValidBookings();
-                    return Object.values(bookings).reduce((total, booking) => {
-                        // וידוא שהכמות היא מספר חיובי
-                        const quantity = parseInt(booking.quantity) || 0;
-                        return total + (quantity > 0 ? quantity : 0);
-                    }, 0);
-                }
-            },
-            
-            async init() {
-                this.updateProjectDetails();
-                this.attachEventListeners();
-                await this.loadData();
-                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
-            },
-            
-            updateProjectDetails() {
-                // עדכון פרטי הפרויקט בדף
-                document.getElementById('project-title').textContent = CONFIG.project.title;
-                document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
-                document.getElementById('product-name').textContent = CONFIG.project.title;
-                document.getElementById('product-description').textContent = CONFIG.project.description;
-                document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
-                document.getElementById('projectName').value = CONFIG.project.name;
-                document.getElementById('price-per-person').textContent = CONFIG.pricePerPerson;
-                document.getElementById('total-price').textContent = CONFIG.pricePerPerson;
-            },
-            
-            attachEventListeners() {
-                // אתחול לחצני טופס
-                document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
-                document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
-                document.getElementById('reservation-form').addEventListener('submit', (e) => this.handleSubmit(e));
-                
-                // אתחול מונה כמות
-                document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
-                document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
-            },
-            
-            async loadData(showLoading = true) {
-                if (showLoading) this.showLoading();
-                
-                try {
-                    await this.loadBookings();
-                    this.updateUI();
-                    await this.delay(500);
-                } catch (error) {
-                    console.error('שגיאה בטעינת הנתונים:', error);
-                } finally {
-                    if (showLoading) this.hideLoading();
-                }
-            },
-            
-            async refreshData() {
-                await this.loadData(false);
-            },
-            
-            async loadBookings() {
-                try {
-                    // מוסיף timestamp כדי למנוע caching
-                    const timestamp = Date.now();
-                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
-                    
-                    const response = await fetch(url, {
-                        cache: 'no-store',
-                        headers: {
-                            'Cache-Control': 'no-cache, no-store, must-revalidate',
-                            'Pragma': 'no-cache'
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const csvText = await response.text();
-                    console.log("Raw CSV data (first 100 chars):", csvText.substring(0, 100));
-                    
-                    this.bookingsData = this.parseCSV(csvText);
-                    console.log("Parsed bookings data:", this.bookingsData);
-                    
-                    // חישוב סך הכל הזמנות - בדיקת כל אפשרויות שמות העמודות
-                    this.totalBooked = this.bookingsData.reduce((total, booking) => {
-                        // בדיקת כל האפשרויות של שם העמודה
-                        const quantity = 
-                            parseInt(booking['הזמן']) || 
-                            parseInt(booking['כמות']) || 
-                            parseInt(booking['entry.1406108683']) ||
-                            parseInt(booking['Quantity']) || 
-                            parseInt(booking['quantity']) || 0;
-                        
-                        return total + quantity;
-                    }, 0);
-                    
-                    console.log("Total booked:", this.totalBooked);
-                    
-                    // אם אין הזמנות בכלל, אפס את הערך במקום NaN
-                    if (isNaN(this.totalBooked)) {
-                        console.log("Total is NaN, setting to 0");
-                        this.totalBooked = 0;
-                    }
-                    
-                } catch (error) {
-                    console.error('שגיאה בטעינת ההזמנות:', error);
-                    this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
-                }
-            },
-            
-            updateUI() {
-                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
-                const totalBooked = this.totalBooked + tempQuantity;
-                const availableSlots = CONFIG.totalSlots - totalBooked;
-                const progressPercentage = (totalBooked / CONFIG.totalSlots) * 100;
-                
-                // וידוא שהערכים הם מספרים תקינים
-                const displayTotalBooked = isNaN(totalBooked) ? 0 : totalBooked;
-                const displayAvailableSlots = isNaN(availableSlots) ? CONFIG.totalSlots : availableSlots;
-                const displayProgressPercentage = isNaN(progressPercentage) ? 0 : progressPercentage;
-                
-                // עדכון ערכים בממשק
-                document.getElementById('total-slots').textContent = CONFIG.totalSlots;
-                document.getElementById('booked-slots').textContent = displayTotalBooked;
-                document.getElementById('available-slots').textContent = displayAvailableSlots;
-                document.getElementById('booking-progress').style.width = `${displayProgressPercentage}%`;
-                
-                console.log("UI updated with:", {
-                    totalSlots: CONFIG.totalSlots,
-                    booked: displayTotalBooked,
-                    available: displayAvailableSlots,
-                    progress: displayProgressPercentage
-                });
-                
-                // כפתור הזמנה מושבת אם אין מקומות פנויים
-                const bookingBtn = document.getElementById('booking-btn');
-                bookingBtn.disabled = displayAvailableSlots <= 0;
-                bookingBtn.textContent = displayAvailableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
-            },
-            
-            openForm() {
-                document.getElementById('error-message').textContent = '';
-                document.getElementById('reservation-form').reset();
-                document.getElementById('projectName').value = CONFIG.project.name;
-                
-                // איפוס מונה כמות
-                this.updateQuantity(0, true);
-                
-                document.getElementById('overlay').style.display = 'block';
-                document.getElementById('booking-form').style.display = 'block';
-            },
-            closeForm() {
-                document.getElementById('overlay').style.display = 'none';
-                document.getElementById('booking-form').style.display = 'none';
-            },
-            
-            updateQuantity(delta, reset = false) {
-                const quantityValueEl = document.getElementById('quantity-value');
-                const quantityInputEl = document.getElementById('quantity');
-                const totalPriceEl = document.getElementById('total-price');
-                
-                if (reset) {
-                    quantityValueEl.textContent = '1';
-                    quantityInputEl.value = '1';
-                    totalPriceEl.textContent = CONFIG.pricePerPerson;
-                    return;
-                }
-                
-                let currentValue = parseInt(quantityValueEl.textContent);
-                let newValue = currentValue + delta;
-                
-                // בדיקות תקינות
-                if (newValue < 1) newValue = 1;
-                if (newValue > CONFIG.maxSlotsPerBooking) newValue = CONFIG.maxSlotsPerBooking;
-                
-                // בדיקה שלא חורג ממספר המקומות הפנויים
-                const availableSlots = parseInt(document.getElementById('available-slots').textContent);
-                if (newValue > availableSlots) newValue = availableSlots;
-                
-                quantityValueEl.textContent = newValue.toString();
-                quantityInputEl.value = newValue.toString();
-                
-                // עדכון מחיר כולל
-                const totalPrice = newValue * CONFIG.pricePerPerson;
-                totalPriceEl.textContent = totalPrice.toString();
-            },
-            
-            async handleSubmit(event) {
-                event.preventDefault();
-                console.log("Submit form called");
-                
-                const formData = {
-                    firstName: document.getElementById('firstName').value,
-                    lastName: document.getElementById('lastName').value,
-                    phone: document.getElementById('phone').value,
-                    quantity: document.getElementById('quantity').value,
-                    projectName: document.getElementById('projectName').value
-                };
-                
-                console.log("Form data:", formData);
-                
-                // בדיקה שכל השדות מלאים
-                if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
-                    document.getElementById('error-message').textContent = 'יש למלא את כל השדות';
-                    return;
-                }
-                
-                // בדיקת תקינות טלפון
-                if (!/^\d{10}$/.test(formData.phone)) {
-                    document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות)';
-                    return;
-                }
-                
-                // בדיקת זמינות בזמן אמת
-                await this.loadBookings();
-                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
-                const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
-                
-                if (parseInt(formData.quantity) > availableSlots) {
-                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
-                    return;
-                }
-                
-                try {
-                    // יצירת הזמנה זמנית
-                    const bookingKey = this.tempBookingsManager.addBooking(formData);
-                    this.updateUI();
-                    
-                    // שליחת נתונים ל-Google Form
-                    this.showLoading();
-                    
-                    const googleFormData = new FormData();
-                    googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
-                    googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
-                    googleFormData.append(CONFIG.formFields.phone, formData.phone);
-                    googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
-                    googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
-                    
-                    await fetch(CONFIG.urls.form, {
-                        method: 'POST',
-                        body: googleFormData,
-                        mode: 'no-cors'
-                    });
-                    
-                    // הצגת הודעת הצלחה
-                    this.closeForm();
-                    document.getElementById('success-message').style.display = 'block';
-                    
-                    // הסתרת הודעת הצלחה אחרי 5 שניות
-                    setTimeout(() => {
-                        document.getElementById('success-message').style.display = 'none';
-                    }, 5000);
-                    
-                    // רענון נתונים אחרי הזמנה
-                    await this.delay(2000);
-                    await this.loadData();
-                    
-                } catch (error) {
-                    console.error('שגיאה בשליחת ההזמנה:', error);
-                    document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
-                } finally {
-                    this.hideLoading();
-                }
-            },
-            
-            parseCSV(csv) {
-                try {
-                    // נקה סיומת שורה ותווים מיוחדים
-                    const cleanCsv = csv.replace(/\\r/g, '').trim();
-                    const lines = cleanCsv.split('\n');
-                    
-                    console.log(`Found ${lines.length} lines in CSV`);
-                    
-                    if (lines.length <= 1) {
-                        console.log("CSV is empty or has only headers");
-                        return [];
-                    }
-                    
-                    // קריאת כותרות - נסה פיצול לפי פסיק או טאב
-                    const headerLine = lines[0];
-                    console.log("Header line:", headerLine);
-                    
-                    let headers;
-                    if (headerLine.includes(',')) {
-                        headers = headerLine.split(',').map(h => h.trim());
-                    } else if (headerLine.includes('\t')) {
-                        headers = headerLine.split('\t').map(h => h.trim());
-                    } else {
-                        // אם אין מפריד ברור, ננסה לפצל לפי רווח
-                        headers = headerLine.split(/\s+/).map(h => h.trim());
-                    }
-                    
-                    console.log("Detected headers:", headers);
-                    
-                    // נבדוק אם יש עמודה שקשורה לכמות
-                    const hasQuantityColumn = headers.some(h => 
-                        h.includes('הזמן') || 
-                        h.includes('כמות') || 
-                        h.includes('Quantity') || 
-                        h.includes('quantity') || 
-                        h.includes('entry.1406108683')
-                    );
-                    
-                    console.log("Has quantity column:", hasQuantityColumn);
-                    
-                    // אם אין עמודת כמות, נוסיף עמודה כזו
-                    if (!hasQuantityColumn) {
-                        headers.push('כמות');
-                    }
-                    
-                    return lines.slice(1)
-                        .filter(line => line.trim() !== '')
-                        .map((line, index) => {
-                            let values;
-                            
-                            // בדוק איזה מפריד יש בשורה
-                            if (line.includes(',')) {
-                                values = line.split(',');
-                            } else if (line.includes('\t')) {
-                                values = line.split('\t');
-                            } else {
-                                values = line.split(/\s+/);
-                            }
-                            
-                            console.log(`Line ${index+1} values:`, values);
-                            
-                            const entry = {};
-                            
-                            headers.forEach((header, i) => {
-                                // אם אין מספיק ערכים, השתמש בערך ריק
-                                entry[header] = i < values.length && values[i] ? values[i].trim() : '';
-                                
-                                // אם זה עמודת הכמות שהוספנו והיא ריקה, שים 1 כברירת מחדל
-                                if (header === 'כמות' && !entry[header] && !hasQuantityColumn) {
-                                    entry[header] = '1';
-                                }
-                            });
-                            
-                            return entry;
-                        });
-                } catch (error) {
-                    console.error("Error parsing CSV:", error);
-                    return [];
-                }
-            },
-            
-            showLoading() {
-                document.getElementById('loading-overlay').style.display = 'flex';
-            },
-            
-            hideLoading() {
-                document.getElementById('loading-overlay').style.display = 'none';
-            },
-            
-            async delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-        };
+// משתנים גלובליים
+let playerName = "שחקן";
+let playerAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>";
+let selectedCategory = "general";
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let gameHistory = [];
+let timerInterval;
+let timeLeft = 20; // זמן לשאלה בשניות
+let answersDisabled = false;
+
+// פוזיציות התחנות על המסלול
+const checkpointPositions = [
+    { top: "75%", left: "15%" }, // תחנה 1
+    { top: "60%", left: "35%" }, // תחנה 2
+    { top: "45%", left: "55%" }, // תחנה 3
+    { top: "30%", left: "40%" }, // תחנה 4
+    { top: "15%", left: "60%" }, // תחנה 5
+    { top: "5%", left: "80%" }   // בית מדרש
+];
+
+// פונקציות עזר
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function getRandomQuestions(category, count) {
+    const allQuestions = questionsDatabase[category];
+    const shuffled = shuffleArray([...allQuestions]);
+    return shuffled.slice(0, count);
+}
+
+function updatePlayerPosition(questionIndex) {
+    const playerAvatar = document.querySelector('.player-avatar');
+    const position = checkpointPositions[questionIndex];
+    
+    playerAvatar.style.top = position.top;
+    playerAvatar.style.left = position.left;
+}
+
+function startTimer() {
+    timeLeft = 20;
+    clearInterval(timerInterval);
+    
+    const timerBar = document.getElementById('timer-bar');
+    timerBar.style.width = '100%';
+    
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        let width = (timeLeft / 20) * 100;
+        timerBar.style.width = width + '%';
         
-        // אתחול המערכת
-        document.addEventListener('DOMContentLoaded', () => {
-            bookingSystem.init();
+        if (timeLeft < 5) {
+            timerBar.style.backgroundColor = '#ef4444';
+        } else if (timeLeft < 10) {
+            timerBar.style.backgroundColor = '#f59e0b';
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleWrongAnswer();
+        }
+    }, 1000);
+}
+
+function createConfetti() {
+    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+    
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const leftPosition = Math.random() * 100;
+        const size = Math.random() * 10 + 5;
+        const duration = Math.random() * 3 + 2;
+        const delay = Math.random() * 2;
+        
+        confetti.style.backgroundColor = color;
+        confetti.style.left = leftPosition + 'vw';
+        confetti.style.width = size + 'px';
+        confetti.style.height = size + 'px';
+        confetti.style.animationDuration = duration + 's';
+        confetti.style.animationDelay = delay + 's';
+        
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => {
+            confetti.remove();
+        }, (duration + delay) * 1000);
+    }
+}
+
+// מעבר בין מסכים
+function showScreen(screenClass) {
+    const screens = ['welcome-screen', 'name-input', 'category-selection', 'game-screen', 'summary-screen', 'certificate'];
+    
+    screens.forEach(screen => {
+        const element = document.querySelector('.' + screen);
+        if (element) {
+            if (screen === screenClass) {
+                element.classList.remove('hidden');
+            } else {
+                element.classList.add('hidden');
+            }
+        }
+    });
+}
+
+// טעינת שאלה
+function loadQuestion() {
+    if (currentQuestionIndex >= currentQuestions.length) {
+        // סיימנו את כל השאלות
+        endGame(true);
+        return;
+    }
+    
+    answersDisabled = false;
+    const question = currentQuestions[currentQuestionIndex];
+    const questionElement = document.querySelector('.question');
+    const answersContainer = document.querySelector('.answers');
+    const questionNumberElement = document.getElementById('question-number');
+    
+    questionNumberElement.textContent = currentQuestionIndex + 1;
+    questionElement.textContent = question.question;
+    
+    answersContainer.innerHTML = '';
+    question.answers.forEach((answer, index) => {
+        const button = document.createElement('button');
+        button.className = 'answer-btn';
+        button.dataset.index = index;
+        button.textContent = answer;
+        button.addEventListener('click', handleAnswer);
+        answersContainer.appendChild(button);
+    });
+    
+    // עדכון מיקום השחקן והתחנה הפעילה
+    document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
+        checkpoint.classList.remove('active');
+        
+        if (index < currentQuestionIndex) {
+            checkpoint.classList.add('completed');
+        } else if (index === currentQuestionIndex) {
+            checkpoint.classList.add('active');
+        } else {
+            checkpoint.classList.remove('completed');
+        }
+    });
+    
+    updatePlayerPosition(currentQuestionIndex);
+    startTimer();
+}
+
+// טיפול בתשובה
+function handleAnswer(e) {
+    if (answersDisabled) return;
+    answersDisabled = true;
+    
+    clearInterval(timerInterval);
+    
+    const selectedIndex = parseInt(e.target.dataset.index);
+    const questionData = currentQuestions[currentQuestionIndex];
+    const resultMessage = document.getElementById('result-message');
+    
+    // שמירת היסטוריית משחק
+    gameHistory.push({
+        question: questionData.question,
+        userAnswer: questionData.answers[selectedIndex],
+        correctAnswer: questionData.answers[questionData.correct],
+        isCorrect: selectedIndex === questionData.correct
+    });
+    
+    if (selectedIndex === questionData.correct) {
+        handleCorrectAnswer(e.target);
+    } else {
+        handleWrongAnswer(e.target);
+    }
+}
+
+function handleCorrectAnswer(selectedButton) {
+    selectedButton.classList.add('correct');
+    
+    const timeFactor = Math.max(timeLeft / 20, 0.3); // מקדם זמן - יותר מהיר = יותר נקודות
+    const questionPoints = Math.round(100 * timeFactor);
+    score += questionPoints;
+    
+    document.getElementById('score').textContent = score;
+    
+    const resultMessage = document.getElementById('result-message');
+    resultMessage.textContent = `נכון! +${questionPoints} נקודות!`;
+    resultMessage.className = 'result-message success show';
+    
+    // עדכון התחנה הנוכחית כהושלמה
+    const checkpoint = document.querySelector(`.checkpoint[data-question="${currentQuestionIndex + 1}"]`);
+    checkpoint.classList.remove('active');
+    checkpoint.classList.add('completed');
+    
+    currentQuestionIndex++;
+    
+    setTimeout(() => {
+        resultMessage.classList.remove('show');
+        setTimeout(() => {
+            loadQuestion();
+        }, 300);
+    }, 1500);
+}
+
+function handleWrongAnswer(selectedButton = null) {
+    if (selectedButton) {
+        selectedButton.classList.add('incorrect');
+        
+        // הדגשת התשובה הנכונה
+        const question = currentQuestions[currentQuestionIndex];
+        const allButtons = document.querySelectorAll('.answer-btn');
+        allButtons[question.correct].classList.add('correct');
+    }
+    
+    const resultMessage = document.getElementById('result-message');
+    resultMessage.textContent = "טעות! חוזרים להתחלה...";
+    resultMessage.className = 'result-message error show';
+    
+    setTimeout(() => {
+        // חזרה להתחלה
+        currentQuestionIndex = 0;
+        
+        // איפוס התחנות
+        document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
+            checkpoint.classList.remove('active', 'completed');
+            if (index === 0) {
+                checkpoint.classList.add('active');
+            }
         });
-    </script>
+        
+        resultMessage.classList.remove('show');
+        
+        setTimeout(() => {
+            updatePlayerPosition(0);
+            loadQuestion();
+        }, 500);
+    }, 2000);
+}
+
+function endGame(success) {
+    clearInterval(timerInterval);
+    
+    if (success) {
+        document.querySelector('.beit-midrash').classList.add('completed');
+        updatePlayerPosition(5); // העברה לבית המדרש
+        createConfetti();
+        
+        setTimeout(() => {
+            showSummaryScreen();
+        }, 2000);
+    }
+}
+
+function showSummaryScreen() {
+    showScreen('summary-screen');
+    
+    document.getElementById('summary-avatar').src = playerAvatar;
+    document.getElementById('summary-name').textContent = playerName;
+    document.getElementById('final-score').textContent = score;
+    
+    const tableBody = document.getElementById('summary-table-body');
+    tableBody.innerHTML = '';
+    
+    gameHistory.forEach((record, index) => {
+        const row = document.createElement('tr');
+        
+        const cellNum = document.createElement('td');
+        cellNum.textContent = index + 1;
+        
+        const cellQuestion = document.createElement('td');
+        cellQuestion.textContent = record.question;
+        
+        const cellUserAnswer = document.createElement('td');
+        cellUserAnswer.textContent = record.userAnswer;
+        if (record.isCorrect) {
+            cellUserAnswer.classList.add('correct-answer');
+        } else {
+            cellUserAnswer.classList.add('wrong-answer');
+        }
+        
+        const cellCorrect = document.createElement('td');
+        cellCorrect.textContent = record.correctAnswer;
+        cellCorrect.classList.add('correct-answer');
+        
+        row.appendChild(cellNum);
+        row.appendChild(cellQuestion);
+        row.appendChild(cellUserAnswer);
+        row.appendChild(cellCorrect);
+        
+        tableBody.appendChild(row);
+    });
+}
+
+function showCertificate() {
+    showScreen('certificate');
+    
+    const today = new Date();
+    const dateString = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+    
+    document.getElementById('certificate-name').textContent = playerName;
+    document.getElementById('certificate-score').textContent = score;
+    document.getElementById('certificate-category').textContent = getCategoryName(selectedCategory);
+    document.getElementById('certificate-date').textContent = `הוענק בתאריך: ${dateString}`;
+}
+
+function getCategoryName(categoryKey) {
+    const categories = {
+        'general': 'ידע כללי',
+        'science': 'מדע',
+        'history': 'היסטוריה',
+        'judaism': 'יהדות'
+    };
+    return categories[categoryKey] || categoryKey;
+}
+
+function resetGame() {
+    score = 0;
+    currentQuestionIndex = 0;
+    gameHistory = [];
+    document.getElementById('score').textContent = '0';
+    document.querySelector('.beit-midrash').classList.remove('completed');
+    
+    document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
+        checkpoint.classList.remove('active', 'completed');
+        if (index === 0) {
+            checkpoint.classList.add('active');
+        }
+    });
+    
+    currentQuestions = getRandomQuestions(selectedCategory, 5);
+    updatePlayerPosition(0);
+    loadQuestion();
+    showScreen('game-screen');
+}
+
+// אתחול המשחק ואירועים
+document.addEventListener('DOMContentLoaded', () => {
+    // אירועי כפתורים
+    document.getElementById('start-btn').addEventListener('click', () => {
+        showScreen('name-input');
+    });
+    
+    document.getElementById('continue-to-category').addEventListener('click', () => {
+        const nameInput = document.getElementById('player-name');
+        if (nameInput.value.trim()) {
+            playerName = nameInput.value.trim();
+        }
+        
+        const selectedAvatarElement = document.querySelector('.avatar-option.selected img');
+        if (selectedAvatarElement) {
+            playerAvatar = selectedAvatarElement.src;
+        }
+        
+        document.getElementById('player-name-display').textContent = playerName;
+        document.getElementById('player-avatar-small').src = playerAvatar;
+        document.querySelector('.player-avatar img').src = playerAvatar;
+        
+        showScreen('category-selection');
+    });
+    
+    document.querySelectorAll('.avatar-option').forEach(option => {
+        option.addEventListener('click', () => {
+            document.querySelectorAll('.avatar-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+        });
+    });
+    
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('selected');
+            });
+            btn.classList.add('selected');
+            selectedCategory = btn.dataset.category;
+        });
+    });
+    
+    document.getElementById('start-game').addEventListener('click', () => {
+        currentQuestions = getRandomQuestions(selectedCategory, 5);
+        resetGame();
+    });
+    
+    document.getElementById('show-certificate').addEventListener('click', showCertificate);
+    
+    document.getElementById('play-again').addEventListener('click', () => {
+        showScreen('category-selection');
+    });
+    
+    document.getElementById('play-again-cert').addEventListener('click', () => {
+        showScreen('category-selection');
+    });
+});
+         </script>
 </body>
 </html>
