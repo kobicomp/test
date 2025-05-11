@@ -1,1152 +1,471 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משחק סימני טהרה</title>
+    <title>טופס הזנת תלמידים מרובים</title>
     <style>
-        :root {
-            --primary-color: #3b82f6;
-            --primary-dark: #2563eb;
-            --success-color: #22c55e;
-            --error-color: #ef4444;
-            --warning-color: #f59e0b;
-            --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--background-gradient);
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
             margin: 0;
             padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #f5f5f5;
         }
-
-        button {
-            cursor: pointer;
-        }
-
-        .game-container {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 900px;
-            width: 95%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .welcome-screen, .name-input, .game-screen, .summary-screen {
-            transition: opacity 0.5s, transform 0.5s;
-        }
-
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
-            position: absolute;
-            transform: translateY(20px);
-        }
-
-        .logo-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .logo-container img {
-            max-width: 150px;
-            height: auto;
-        }
-
-        .welcome-screen, .name-input {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .welcome-title {
-            font-size: 32px;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-
-        .welcome-text {
-            font-size: 18px;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            font-size: 16px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            margin: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .btn.large {
-            font-size: 20px;
-            padding: 15px 30px;
-        }
-
-        .name-input-container {
-            margin: 20px 0;
-        }
-
-        .name-input-container input {
-            padding: 12px 15px;
-            font-size: 18px;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 300px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .name-input-container input:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        .avatar-selection {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .avatar-option {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 3px;
-        }
-
-        .avatar-option img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .avatar-option.selected {
-            border-color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
-        .game-board {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto 30px;
-        }
-
-        .game-board img {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-            display: block;
-        }
-
-        .player-avatar {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 10;
-            top: 75%;
-            left: 15%;
-            overflow: hidden;
-        }
-
-        .player-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .checkpoint {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            border: 3px solid var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            color: #1e293b;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .checkpoint.active {
-            background: var(--primary-color);
-            color: white;
-            animation: pulse 1.5s infinite;
-        }
-
-        .checkpoint.completed {
-            background: var(--success-color);
-            color: white;
-            border-color: var(--success-color);
-        }
-
-        /* Checkpoint positions - approximate based on the path in the image */
-        .checkpoint[data-question="1"] { top: 75%; left: 15%; }
-        .checkpoint[data-question="2"] { top: 60%; left: 35%; }
-        .checkpoint[data-question="3"] { top: 45%; left: 55%; }
-        .checkpoint[data-question="4"] { top: 30%; left: 40%; }
-        .checkpoint[data-question="5"] { top: 15%; left: 60%; }
         
-        .beit-midrash {
-            position: absolute;
-            top: 5%;
-            left: 80%;
-            width: 60px;
-            height: 60px;
-            background: #f8f4e3;
-            border: 3px solid #8b4513;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .beit-midrash.completed {
-            animation: glow 2s infinite alternate;
-        }
-
-        .beit-midrash::before {
-            content: '🕍';
-            font-size: 24px;
-        }
-
-        .beit-midrash::after {
-            content: 'בית מדרש';
-            font-size: 10px;
-            font-weight: bold;
-            color: #8b4513;
-        }
-
-        .game-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 0 10px;
-        }
-
-        .player-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .player-info img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid var(--primary-color);
-        }
-
-        .score-display {
-            background: #f3f4f6;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .timer-container {
-            width: 100%;
-            background: #e5e7eb;
-            height: 6px;
-            border-radius: 3px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .timer-bar {
-            height: 100%;
-            background: var(--warning-color);
-            width: 100%;
-            transition: width linear;
-        }
-
-        .question-container {
-            text-align: center;
-            margin-bottom: 30px;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .question-number {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 5px;
-        }
-
-        .question-category {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        .question {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #1e293b;
-        }
-
-        .answers {
-            display: grid;
-            grid-template-columns: repeat(1, 1fr);
-            gap: 10px;
-        }
-
-        .answer-btn {
-            padding: 15px 20px;
-            font-size: 18px;
-            border: 2px solid var(--primary-color);
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
-            color: var(--primary-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            text-align: right;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
         }
-
-        .answer-btn:hover {
-            background: #f0f9ff;
-            transform: translateY(-2px);
-        }
-
-        .answer-btn.correct {
-            background: var(--success-color);
-            border-color: var(--success-color);
-            color: white;
-        }
-
-        .answer-btn.incorrect {
-            background: var(--error-color);
-            border-color: var(--error-color);
-            color: white;
-        }
-
-        .result-message {
+        
+        h1 {
             text-align: center;
-            font-size: 20px;
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            transform: scale(0);
-        }
-
-        .result-message.show {
-            transform: scale(1);
-        }
-
-        .result-message.success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .result-message.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .certificate {
-            text-align: center;
-            padding: 40px;
-            background: linear-gradient(45deg, #ffd700, #ffea00);
-            border-radius: 20px;
-            border: 5px solid #b8860b;
-            margin-top: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .certificate::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path fill="none" stroke="rgba(139, 69, 19, 0.1)" stroke-width="2" d="M25,2 L2,2 L2,25 M75,2 L98,2 L98,25 M25,98 L2,98 L2,75 M75,98 L98,98 L98,75"/></svg>');
-            background-repeat: repeat;
-            z-index: 0;
-            opacity: 0.5;
-        }
-
-        .certificate h2 {
-            font-size: 36px;
-            color: #8b4513;
+            color: #2c3e50;
             margin-bottom: 20px;
-            position: relative;
-            z-index: 1;
         }
-
-        .certificate .player-name {
-            font-size: 28px;
+        
+        .school-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: bold;
-            color: #5c3d1e;
-            margin: 15px 0;
-            position: relative;
-            z-index: 1;
         }
-
-        .certificate-text {
-            font-size: 22px;
-            color: #654321;
-            margin: 20px 0;
-            position: relative;
-            z-index: 1;
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
         }
-
-        .certificate-details {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            position: relative;
-            z-index: 1;
-        }
-
-        .certificate-detail {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .certificate-detail-label {
-            font-size: 14px;
-            color: #8b4513;
-        }
-
-        .certificate-detail-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #5c3d1e;
-        }
-
-        .certificate-date {
-            font-size: 18px;
-            color: #8b4513;
-            margin-top: 30px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .certificate-stamp {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            width: 100px;
-            height: 100px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="rgba(139, 69, 19, 0.5)" stroke-width="2"/><path d="M50 10 L54 22 L67 22 L56 30 L60 42 L50 35 L40 42 L44 30 L33 22 L46 22 Z" fill="rgba(139, 69, 19, 0.5)"/></svg>');
-            opacity: 0.7;
-            transform: rotate(-15deg);
-        }
-
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .summary-table {
+        
+        .students-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin-top: 20px;
         }
-
-        .summary-table th, .summary-table td {
-            padding: 12px;
+        
+        .students-table th {
+            background-color: #4b6584;
+            color: white;
+            padding: 10px;
             text-align: right;
-            border-bottom: 1px solid #e5e7eb;
         }
-
-        .summary-table th {
-            background: #f9fafb;
-            font-weight: bold;
-            color: #4b5563;
+        
+        .students-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
         }
-
-        .correct-answer {
-            color: var(--success-color);
-            font-weight: bold;
+        
+        .students-table input {
+            width: 100%;
+            border: none;
+            padding: 8px;
+            box-sizing: border-box;
         }
-
-        .wrong-answer {
-            color: var(--error-color);
-            text-decoration: line-through;
+        
+        .students-table tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            top: -10px;
-            animation: fall linear forwards;
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 5px;
         }
-
-        /* Animations */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
         }
-
-        @keyframes glow {
-            from { box-shadow: 0 0 5px 2px rgba(255, 215, 0, 0.5); }
-            to { box-shadow: 0 0 20px 5px rgba(255, 215, 0, 0.8); }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
         }
-
-        @keyframes fall {
-            to { transform: translateY(100vh); }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
         }
-
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .btn-secondary {
+            background-color: #7f8c8d;
+            color: white;
         }
-
-        /* Responsive design */
-        @media (min-width: 640px) {
-            .answers {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-            }
+        
+        .action-column {
+            width: 50px;
+            text-align: center;
         }
-
-        @media (min-width: 768px) {
-            .game-container {
-                padding: 30px;
-            }
-            
-            .logo-container img {
-                max-width: 200px;
-            }
-
-            .checkpoint {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
-            
-            .beit-midrash {
-                width: 80px;
-                height: 80px;
-            }
-            
-            .beit-midrash::before {
-                font-size: 30px;
-            }
-            
-            .beit-midrash::after {
-                font-size: 12px;
-            }
-
-            .player-avatar {
-                width: 50px;
-                height: 50px;
-            }
+        
+        .submission-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f1f8ff;
+            border-left: 4px solid #1a73e8;
+            display: none;
+        }
+        
+        .status-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .status-item {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status-success {
+            color: #2ecc71;
+        }
+        
+        .status-pending {
+            color: #f39c12;
+        }
+        
+        .status-error {
+            color: #e74c3c;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="logo-container">
-            <img src="logo.png" alt="לוגו" />
+    <div class="container">
+        <h1>טופס הזנת תלמידים מרובים</h1>
+        
+        <div class="school-info">
+            <h2>פרטי בית הספר</h2>
+            <div class="form-group">
+                <label for="schoolName">שם בית הספר:</label>
+                <input type="text" id="schoolName" name="schoolName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="city">העיר:</label>
+                <input type="text" id="city" name="city" required>
+            </div>
         </div>
         
-        <!-- Welcome Screen -->
-        <div class="welcome-screen">
-            <h1 class="welcome-title">ברוכים הבאים למשחק סימני טהרה!</h1>
-            <p class="welcome-text">
-                מוכנים לאתגר? ענו נכון על 5 שאלות בנושא סימני טהרה והגיעו לבית המדרש!<br>
-                תשובות נכונות יקדמו אתכם במסלול, אך שגיאה תחזיר אתכם להתחלה.
-            </p>
-            <button class="btn large" id="start-btn">בואו נתחיל!</button>
-        </div>
-
-        <!-- Name Input Screen -->
-        <div class="name-input hidden">
-            <h2 class="welcome-title">הכירו את עצמכם</h2>
-            <div class="name-input-container">
-                <label for="player-name">מה השם שלך?</label>
-                <input type="text" id="player-name" placeholder="הכנס את שמך כאן" />
-            </div>
-            
-            <h3>בחר אווטאר:</h3>
-            <div class="avatar-selection">
-                <div class="avatar-option selected" data-avatar="avatar1">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="אווטאר 1" />
-                </div>
-                <div class="avatar-option" data-avatar="avatar2">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2322c55e'/><rect x='35' y='35' width='30' height='30' fill='white'/><circle cx='50' cy='65' r='10' fill='white'/></svg>" alt="אווטאר 2" />
-                </div>
-                <div class="avatar-option" data-avatar="avatar3">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23f59e0b'/><polygon points='50,30 35,60 65,60' fill='white'/><rect x='40' y='60' width='20' height='15' fill='white'/></svg>" alt="אווטאר 3" />
-                </div>
-                <div class="avatar-option" data-avatar="avatar4">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ef4444'/><circle cx='35' cy='40' r='10' fill='white'/><circle cx='65' cy='40' r='10' fill='white'/><path d='M30,60 Q50,80 70,60' fill='none' stroke='white' stroke-width='5'/></svg>" alt="אווטאר 4" />
-                </div>
-            </div>
-            
-            <button class="btn" id="continue-to-game">התחל משחק</button>
-        </div>
+        <h2>פרטי התלמידים</h2>
+        <p>הזן את פרטי התלמידים בטבלה. ניתן להוסיף שורות נוספות לפי הצורך.</p>
         
-        <!-- Game Screen -->
-        <div class="game-screen hidden">
-            <div class="game-board">
-                <img src="map.jpg" alt="מסלול המשחק" />
-                
-                <!-- Player Avatar -->
-                <div class="player-avatar">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="שחקן" />
-                </div>
-                
-                <!-- Checkpoints -->
-                <div class="checkpoint active" data-question="1">1</div>
-                <div class="checkpoint" data-question="2">2</div>
-                <div class="checkpoint" data-question="3">3</div>
-                <div class="checkpoint" data-question="4">4</div>
-                <div class="checkpoint" data-question="5">5</div>
-                
-                <!-- Beit Midrash -->
-                <div class="beit-midrash"></div>
-            </div>
-
-            <div class="game-status">
-                <div class="player-info">
-                    <img id="player-avatar-small" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="שחקן" />
-                    <span id="player-name-display">שחקן</span>
-                </div>
-                <div class="score-display">
-                    ניקוד: <span id="score">0</span>
-                </div>
-            </div>
-
-            <div class="timer-container">
-                <div class="timer-bar" id="timer-bar"></div>
-            </div>
-
-            <div class="question-container">
-                <div class="question-number">שאלה <span id="question-number">1</span> מתוך 5</div>
-                <div class="question-category" id="question-category">בהמות - סימני טהרה</div>
-                <div class="question">איזה מהסימנים הבאים מעיד על בהמה טהורה?</div>
-                <div class="answers">
-                    <button class="answer-btn" data-index="0">א. זנב ארוך</button>
-                    <button class="answer-btn" data-index="1">ב. שיניים חדות</button>
-                    <button class="answer-btn" data-index="2">ג. מעלה גרה</button>
-                    <button class="answer-btn" data-index="3">ד. אוזניים גדולות</button>
-                </div>
-            </div>
-
-            <div class="result-message" id="result-message"></div>
-        </div>
-
-        <!-- Summary Screen -->
-        <div class="summary-screen hidden">
-            <h2 class="welcome-title">סיכום המשחק</h2>
-            <div class="player-info" style="justify-content: center; margin-bottom: 20px;">
-                <img id="summary-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>" alt="שחקן" style="width: 50px; height: 50px;" />
-                <span id="summary-name" style="font-size: 24px; margin-right: 10px;">שחקן</span>
-            </div>
-            
-            <div class="score-display" style="text-align: center; font-size: 24px; margin-bottom: 20px;">
-                הניקוד הסופי: <span id="final-score">0</span>
-            </div>
-            
-            <table class="summary-table">
+        <div style="overflow-x:auto;">
+            <table class="students-table" id="studentsTable">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>שאלה</th>
-                        <th>תשובתך</th>
-                        <th>תשובה נכונה</th>
+                        <th>שם התלמיד</th>
+                        <th>כיתה</th>
+                        <th class="action-column">פעולות</th>
                     </tr>
                 </thead>
-                <tbody id="summary-table-body">
-                    <!-- Filled dynamically -->
+                <tbody id="studentsTableBody">
+                    <tr>
+                        <td><input type="text" name="studentName" placeholder="שם התלמיד"></td>
+                        <td><input type="text" name="studentClass" placeholder="כיתה"></td>
+                        <td class="action-column">
+                            <button class="btn btn-danger" onclick="removeRow(this)">הסר</button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-            
-            <div class="btn-container">
-                <button class="btn" id="show-certificate">הצג תעודה</button>
-                <button class="btn" id="play-again">שחק שוב</button>
-            </div>
         </div>
-
-        <!-- Certificate -->
-        <div class="certificate hidden" id="certificate">
-            <div class="certificate-stamp"></div>
-            <h2>תעודת הצטיינות</h2>
-            <div class="player-name" id="certificate-name">ישראל ישראלי</div>
-            <div class="certificate-text">
-                הצליח לסיים בהצלחה את מסלול הטריוויה<br>
-                וענה נכון על כל חמש השאלות בנושא סימני טהרה!
-            </div>
-            <div class="certificate-details">
-                <div class="certificate-detail">
-                    <div class="certificate-detail-label">ניקוד</div>
-                    <div class="certificate-detail-value" id="certificate-score">1000</div>
-                </div>
-                <div class="certificate-detail">
-                    <div class="certificate-detail-label">תאריך</div>
-                    <div class="certificate-detail-value" id="certificate-date-value">10/05/2025</div>
-                </div>
-            </div>
-            <div class="certificate-date">מוענק בגאווה על ידי משחק סימני טהרה</div>
+        
+        <div style="margin-top: 15px;">
+            <button class="btn btn-secondary" onclick="addRow()">הוסף תלמיד</button>
+            <button class="btn btn-primary" onclick="submitForms()">שלח את כל התלמידים</button>
+        </div>
+        
+        <div class="submission-status" id="submissionStatus">
+            <h3>סטטוס שליחה</h3>
+            <div>תלמידים ממתינים לשליחה: <span id="pendingCount">0</span></div>
+            <div>תלמידים שנשלחו בהצלחה: <span id="successCount">0</span></div>
+            <div id="submitProgress"></div>
             
-            <div class="btn-container">
-                <button class="btn" id="play-again-cert">שחק שוב</button>
-            </div>
+            <div class="status-list" id="statusList"></div>
         </div>
     </div>
-
+    
+    <footer>
+        © כל הזכויות שמורות - טופס שליחת תלמידים מרובים לגוגל פורמס
+    </footer>
+    
     <script>
-        // השאלות בנושא סימני טהרה
-        const questions = [
-            {
-                category: "בהמות – סימני טהרה",
-                question: "איזה מהסימנים הבאים מעיד על בהמה טהורה?",
-                answers: ["א. זנב ארוך", "ב. שיניים חדות", "ג. מעלה גרה", "ד. אוזניים גדולות"],
-                correct: 2
-            },
-            {
-                category: "בהמות – סימני טהרה",
-                question: "כמה סימנים צריכה בהמה כדי להיחשב טהורה לפי התורה?",
-                answers: ["א. אחד", "ב. שניים", "ג. שלושה", "ד. אין צורך בסימנים"],
-                correct: 1
-            },
-            {
-                category: "דגים – סימני טהרה",
-                question: "איזה סימן לא נדרש כדי שדג ייחשב כשר?",
-                answers: ["א. סנפיר", "ב. קשקשת", "ג. זנב", "ד. שני הסימנים הראשונים"],
-                correct: 2
-            },
-            {
-                category: "דגים – סימני טהרה",
-                question: "אם לדג יש קשקשים אבל לא סנפירים, מה דינו?",
-                answers: ["א. טהור", "ב. טמא", "ג. מותר באכילה רק בשבת", "ד. תלוי בגודל הדג"],
-              correct: 1
-            },
-            {
-                category: "דגים – סימני טהרה",
-                question: "מה נכון לגבי דג שיש לו סנפירים אך אין לו קשקשים?",
-                answers: ["א. נחשב טהור", "ב. נחשב טמא", "ג. מותר לילדים בלבד", "ד. מותר רק אם נצוד בים התיכון"],
-                correct: 1
-            }
-        ];
-
-        // משתנים גלובליים
-        let playerName = "שחקן";
-        let playerAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>";
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let gameHistory = [];
-        let timerInterval;
-        let timeLeft = 20; // זמן לשאלה בשניות
-        let answersDisabled = false;
-
-        // פוזיציות התחנות על המסלול
-        const checkpointPositions = [
-            { top: "75%", left: "15%" }, // תחנה 1
-            { top: "60%", left: "35%" }, // תחנה 2
-            { top: "45%", left: "55%" }, // תחנה 3
-            { top: "30%", left: "40%" }, // תחנה 4
-            { top: "15%", left: "60%" }, // תחנה 5
-            { top: "5%", left: "80%" }   // בית מדרש
-        ];
-
-        // פונקציות עזר
-        function updatePlayerPosition(questionIndex) {
-            const playerAvatar = document.querySelector('.player-avatar');
-            const position = checkpointPositions[questionIndex];
+        // מזהה הטופס של גוגל
+        const googleFormId = '12t490UpAFJRxx91Faj9jo59eZtbi24HmcWGFxakh69w';
+        
+        // מיפוי השדות
+        const fieldsMapping = {
+            "schoolName": "entry.1691548632",
+            "city": "entry.2146493326", 
+            "studentName": "entry.648923336",
+            "studentClass": "entry.1577451299"
+        };
+        
+        // פונקציה להוספת שורה חדשה לטבלה
+        function addRow() {
+            const tableBody = document.getElementById('studentsTableBody');
+            const newRow = document.createElement('tr');
             
-            playerAvatar.style.top = position.top;
-            playerAvatar.style.left = position.left;
+            newRow.innerHTML = `
+                <td><input type="text" name="studentName" placeholder="שם התלמיד"></td>
+                <td><input type="text" name="studentClass" placeholder="כיתה"></td>
+                <td class="action-column">
+                    <button class="btn btn-danger" onclick="removeRow(this)">הסר</button>
+                </td>
+            `;
+            
+            tableBody.appendChild(newRow);
         }
-
-        function startTimer() {
-            timeLeft = 20;
-            clearInterval(timerInterval);
+        
+        // פונקציה להסרת שורה מהטבלה
+        function removeRow(button) {
+            const row = button.closest('tr');
+            const tableBody = document.getElementById('studentsTableBody');
             
-            const timerBar = document.getElementById('timer-bar');
-            timerBar.style.width = '100%';
-            timerBar.style.backgroundColor = '#f59e0b';
-            
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                let width = (timeLeft / 20) * 100;
-                timerBar.style.width = width + '%';
-                
-                if (timeLeft < 5) {
-                    timerBar.style.backgroundColor = '#ef4444';
-                } else if (timeLeft < 10) {
-                    timerBar.style.backgroundColor = '#f59e0b';
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    handleWrongAnswer();
-                }
-            }, 1000);
-        }
-
-        function createConfetti() {
-            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
-            
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const leftPosition = Math.random() * 100;
-                const size = Math.random() * 10 + 5;
-                const duration = Math.random() * 3 + 2;
-                const delay = Math.random() * 2;
-                
-                confetti.style.backgroundColor = color;
-                confetti.style.left = leftPosition + 'vw';
-                confetti.style.width = size + 'px';
-                confetti.style.height = size + 'px';
-                confetti.style.animationDuration = duration + 's';
-                confetti.style.animationDelay = delay + 's';
-                
-                document.body.appendChild(confetti);
-                
-                setTimeout(() => {
-                    confetti.remove();
-                }, (duration + delay) * 1000);
+            // ודא שיש לפחות שורה אחת בטבלה
+            if (tableBody.rows.length > 1) {
+                row.remove();
+            } else {
+                // אפס את הערכים בשורה אם זו השורה האחרונה
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.value = '';
+                });
             }
         }
-
-        // מעבר בין מסכים
-        function showScreen(screenClass) {
-            const screens = ['welcome-screen', 'name-input', 'game-screen', 'summary-screen', 'certificate'];
+        
+        // יצירת כתובת URL לשליחה
+        function prepareSubmissionUrl(data) {
+            const url = new URL(`https://docs.google.com/forms/d/e/${googleFormId}/formResponse`);
+            const params = new URLSearchParams();
             
-            screens.forEach(screen => {
-                const element = document.querySelector('.' + screen);
-                if (element) {
-                    if (screen === screenClass) {
-                        element.classList.remove('hidden');
-                    } else {
-                        element.classList.add('hidden');
-                    }
+            for (const key in data) {
+                if (fieldsMapping[key]) {
+                    params.append(fieldsMapping[key], data[key]);
                 }
+            }
+            
+            url.search = params.toString();
+            return url.toString();
+        }
+        
+        // שליחת טופס בודד באמצעות iframe
+        function submitSingleForm(data) {
+            return new Promise((resolve, reject) => {
+                const submissionUrl = prepareSubmissionUrl(data);
+                
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                
+                iframe.onload = () => {
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        resolve({
+                            success: true,
+                            data: data
+                        });
+                    }, 1000);
+                };
+                
+                iframe.onerror = () => {
+                    document.body.removeChild(iframe);
+                    reject({
+                        success: false,
+                        data: data,
+                        error: 'שגיאה בשליחת הטופס'
+                    });
+                };
+                
+                document.body.appendChild(iframe);
+                iframe.src = submissionUrl;
             });
         }
-
-        // טעינת שאלה
-        function loadQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                // סיימנו את כל השאלות
-                endGame(true);
+        
+        // עדכון סטטוס השליחה
+        function updateStatusUI(pending, success) {
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('successCount').textContent = success;
+            
+            if (pending === 0 && success > 0) {
+                document.getElementById('submitProgress').innerHTML = 
+                    '<div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">כל התלמידים נשלחו בהצלחה!</div>';
+            } else if (pending > 0) {
+                const percent = Math.round((success / (pending + success)) * 100);
+                document.getElementById('submitProgress').innerHTML = 
+                    `<div style="margin-top: 10px;">התקדמות: ${percent}%</div>`;
+            }
+        }
+        
+        // הוספת סטטוס לרשימת הסטטוס
+        function addStatusMessage(message, type) {
+            const statusList = document.getElementById('statusList');
+            const statusItem = document.createElement('div');
+            statusItem.className = `status-item status-${type}`;
+            statusItem.textContent = message;
+            statusList.prepend(statusItem);
+        }
+        
+        // אימות נתונים בסיסי
+        function validateData() {
+            const schoolName = document.getElementById('schoolName').value.trim();
+            const city = document.getElementById('city').value.trim();
+            
+            if (!schoolName) {
+                alert('אנא הזן את שם בית הספר');
+                return false;
+            }
+            
+            if (!city) {
+                alert('אנא הזן את שם העיר');
+                return false;
+            }
+            
+            const rows = document.getElementById('studentsTableBody').rows;
+            let validStudents = false;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const studentName = rows[i].querySelector('input[name="studentName"]').value.trim();
+                const studentClass = rows[i].querySelector('input[name="studentClass"]').value.trim();
+                
+                if (studentName && studentClass) {
+                    validStudents = true;
+                    break;
+                }
+            }
+            
+            if (!validStudents) {
+                alert('אנא הזן פרטים של לפחות תלמיד אחד');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // איסוף כל הנתונים מהטופס
+        function collectFormData() {
+            const schoolName = document.getElementById('schoolName').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const rows = document.getElementById('studentsTableBody').rows;
+            
+            const studentsData = [];
+            
+            for (let i = 0; i < rows.length; i++) {
+                const studentName = rows[i].querySelector('input[name="studentName"]').value.trim();
+                const studentClass = rows[i].querySelector('input[name="studentClass"]').value.trim();
+                
+                if (studentName && studentClass) {
+                    studentsData.push({
+                        schoolName,
+                        city,
+                        studentName,
+                        studentClass
+                    });
+                }
+            }
+            
+            return studentsData;
+        }
+        
+        // שליחת כל הטפסים
+        async function submitForms() {
+            // אימות נתונים
+            if (!validateData()) {
                 return;
             }
             
-            answersDisabled = false;
-            const question = questions[currentQuestionIndex];
-            const questionElement = document.querySelector('.question');
-            const answersContainer = document.querySelector('.answers');
-            const questionNumberElement = document.getElementById('question-number');
-            const questionCategoryElement = document.getElementById('question-category');
+            const studentsData = collectFormData();
             
-            questionNumberElement.textContent = currentQuestionIndex + 1;
-            questionCategoryElement.textContent = question.category;
-            questionElement.textContent = question.question;
-            
-            answersContainer.innerHTML = '';
-            question.answers.forEach((answer, index) => {
-                const button = document.createElement('button');
-                button.className = 'answer-btn';
-                button.dataset.index = index;
-                button.textContent = answer;
-                button.addEventListener('click', handleAnswer);
-                answersContainer.appendChild(button);
-            });
-            
-            // עדכון מיקום השחקן והתחנה הפעילה
-            document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
-                checkpoint.classList.remove('active');
-                
-                if (index < currentQuestionIndex) {
-                    checkpoint.classList.add('completed');
-                } else if (index === currentQuestionIndex) {
-                    checkpoint.classList.add('active');
-                } else {
-                    checkpoint.classList.remove('completed');
-                }
-            });
-            
-            updatePlayerPosition(currentQuestionIndex);
-            startTimer();
-        }
-
-        // טיפול בתשובה
-        function handleAnswer(e) {
-            if (answersDisabled) return;
-            answersDisabled = true;
-            
-            clearInterval(timerInterval);
-            
-            const selectedIndex = parseInt(e.target.dataset.index);
-            const questionData = questions[currentQuestionIndex];
-            const resultMessage = document.getElementById('result-message');
-            
-            // שמירת היסטוריית משחק
-            gameHistory.push({
-                question: questionData.question,
-                userAnswer: questionData.answers[selectedIndex],
-                correctAnswer: questionData.answers[questionData.correct],
-                isCorrect: selectedIndex === questionData.correct
-            });
-            
-            if (selectedIndex === questionData.correct) {
-                handleCorrectAnswer(e.target);
-            } else {
-                handleWrongAnswer(e.target);
-            }
-        }
-
-        function handleCorrectAnswer(selectedButton) {
-            selectedButton.classList.add('correct');
-            
-            const timeFactor = Math.max(timeLeft / 20, 0.3); // מקדם זמן - יותר מהיר = יותר נקודות
-            const questionPoints = Math.round(100 * timeFactor);
-            score += questionPoints;
-            
-            document.getElementById('score').textContent = score;
-            
-            const resultMessage = document.getElementById('result-message');
-            resultMessage.textContent = `נכון! +${questionPoints} נקודות!`;
-            resultMessage.className = 'result-message success show';
-            
-            // עדכון התחנה הנוכחית כהושלמה
-            const checkpoint = document.querySelector(`.checkpoint[data-question="${currentQuestionIndex + 1}"]`);
-            checkpoint.classList.remove('active');
-            checkpoint.classList.add('completed');
-            
-            currentQuestionIndex++;
-            
-            setTimeout(() => {
-                resultMessage.classList.remove('show');
-                setTimeout(() => {
-                    loadQuestion();
-                }, 300);
-            }, 1500);
-        }
-
-        function handleWrongAnswer(selectedButton = null) {
-            if (selectedButton) {
-                selectedButton.classList.add('incorrect');
-                
-                // הדגשת התשובה הנכונה
-                const question = questions[currentQuestionIndex];
-                const allButtons = document.querySelectorAll('.answer-btn');
-                allButtons[question.correct].classList.add('correct');
+            if (studentsData.length === 0) {
+                alert('אין תלמידים חוקיים לשליחה');
+                return;
             }
             
-            const resultMessage = document.getElementById('result-message');
-            resultMessage.textContent = "טעות! חוזרים להתחלה...";
-            resultMessage.className = 'result-message error show';
+            // הצג את פאנל הסטטוס
+            document.getElementById('submissionStatus').style.display = 'block';
+            document.getElementById('statusList').innerHTML = '';
             
-            setTimeout(() => {
-                // חזרה להתחלה
-                currentQuestionIndex = 0;
+            // עדכון מוני הסטטוס
+            let pendingCount = studentsData.length;
+            let successCount = 0;
+            
+            updateStatusUI(pendingCount, successCount);
+            
+            // הוסף הודעה על התחלת התהליך
+            addStatusMessage(`מתחיל לשלוח ${studentsData.length} תלמידים...`, 'pending');
+            
+            // עבור על כל התלמידים ושלח אותם בהדרגה
+            for (let i = 0; i < studentsData.length; i++) {
+                const studentData = studentsData[i];
                 
-                // איפוס התחנות
-                document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
-                    checkpoint.classList.remove('active', 'completed');
-                    if (index === 0) {
-                        checkpoint.classList.add('active');
+                addStatusMessage(`שולח את הנתונים של ${studentData.studentName}...`, 'pending');
+                
+                try {
+                    // שלח את הנתונים
+                    await submitSingleForm(studentData);
+                    
+                    // עדכן סטטוס
+                    pendingCount--;
+                    successCount++;
+                    updateStatusUI(pendingCount, successCount);
+                    
+                    addStatusMessage(`הנתונים של ${studentData.studentName} נשלחו בהצלחה`, 'success');
+                    
+                    // המתן מעט בין שליחות כדי למנוע חסימה
+                    if (i < studentsData.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                     }
-                });
-                
-                resultMessage.classList.remove('show');
-                
-                setTimeout(() => {
-                    updatePlayerPosition(0);
-                    loadQuestion();
-                }, 500);
-            }, 2000);
-        }
-
-        function endGame(success) {
-            clearInterval(timerInterval);
+                } catch (error) {
+                    addStatusMessage(`שגיאה בשליחת הנתונים של ${studentData.studentName}`, 'error');
+                    console.error('שגיאה בשליחת נתונים:', error);
+                    
+                    // עדכן סטטוס
+                    pendingCount--;
+                    updateStatusUI(pendingCount, successCount);
+                    
+                    // המתן מעט לפני המשך
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
             
-            if (success) {
-                document.querySelector('.beit-midrash').classList.add('completed');
-                updatePlayerPosition(5); // העברה לבית המדרש
-                createConfetti();
-                
-                setTimeout(() => {
-                    showSummaryScreen();
-                }, 2000);
+            if (successCount === studentsData.length) {
+                addStatusMessage(`כל ${successCount} התלמידים נשלחו בהצלחה!`, 'success');
+            } else {
+                addStatusMessage(`${successCount} מתוך ${studentsData.length} תלמידים נשלחו בהצלחה`, 
+                    successCount > 0 ? 'partial' : 'error');
             }
         }
-
-        function showSummaryScreen() {
-            showScreen('summary-screen');
-            
-            document.getElementById('summary-avatar').src = playerAvatar;
-            document.getElementById('summary-name').textContent = playerName;
-            document.getElementById('final-score').textContent = score;
-            
-            const tableBody = document.getElementById('summary-table-body');
-            tableBody.innerHTML = '';
-            
-            gameHistory.forEach((record, index) => {
-                const row = document.createElement('tr');
-                
-                const cellNum = document.createElement('td');
-                cellNum.textContent = index + 1;
-                
-                const cellQuestion = document.createElement('td');
-                cellQuestion.textContent = record.question;
-                
-                const cellUserAnswer = document.createElement('td');
-                cellUserAnswer.textContent = record.userAnswer;
-                if (record.isCorrect) {
-                    cellUserAnswer.classList.add('correct-answer');
-                } else {
-                    cellUserAnswer.classList.add('wrong-answer');
-                }
-                
-                const cellCorrect = document.createElement('td');
-                cellCorrect.textContent = record.correctAnswer;
-                cellCorrect.classList.add('correct-answer');
-                
-                row.appendChild(cellNum);
-                row.appendChild(cellQuestion);
-                row.appendChild(cellUserAnswer);
-                row.appendChild(cellCorrect);
-                
-                tableBody.appendChild(row);
-            });
-        }
-
-        function showCertificate() {
-            showScreen('certificate');
-            
-            const today = new Date();
-            const dateString = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
-            
-            document.getElementById('certificate-name').textContent = playerName;
-            document.getElementById('certificate-score').textContent = score;
-            document.getElementById('certificate-date-value').textContent = dateString;
-        }
-
-        function resetGame() {
-            score = 0;
-            currentQuestionIndex = 0;
-            gameHistory = [];
-            document.getElementById('score').textContent = '0';
-            document.querySelector('.beit-midrash').classList.remove('completed');
-            
-            document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
-                checkpoint.classList.remove('active', 'completed');
-                if (index === 0) {
-                    checkpoint.classList.add('active');
-                }
-            });
-            
-            updatePlayerPosition(0);
-            loadQuestion();
-            showScreen('game-screen');
-        }
-
-        // אתחול המשחק ואירועים
-        document.addEventListener('DOMContentLoaded', () => {
-            // אירועי כפתורים
-            document.getElementById('start-btn').addEventListener('click', () => {
-                showScreen('name-input');
-            });
-            
-            document.getElementById('continue-to-game').addEventListener('click', () => {
-                const nameInput = document.getElementById('player-name');
-                if (nameInput.value.trim()) {
-                    playerName = nameInput.value.trim();
-                }
-                
-                const selectedAvatarElement = document.querySelector('.avatar-option.selected img');
-                if (selectedAvatarElement) {
-                    playerAvatar = selectedAvatarElement.src;
-                }
-                
-                document.getElementById('player-name-display').textContent = playerName;
-                document.getElementById('player-avatar-small').src = playerAvatar;
-                document.querySelector('.player-avatar img').src = playerAvatar;
-                
-                resetGame();
-            });
-            
-            document.querySelectorAll('.avatar-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    document.querySelectorAll('.avatar-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    option.classList.add('selected');
-                });
-            });
-            
-            document.getElementById('show-certificate').addEventListener('click', showCertificate);
-            
-            document.getElementById('play-again').addEventListener('click', () => {
-                showScreen('name-input');
-            });
-            
-            document.getElementById('play-again-cert').addEventListener('click', () => {
-                showScreen('name-input');
-            });
-        });
     </script>
 </body>
 </html>
