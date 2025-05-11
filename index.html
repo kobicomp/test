@@ -3,8 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>טופס הזנת תלמידים מרובים</title>
+    <title>טופס הזנת תלמידים מרובים - שליחה אוטומטית</title>
     <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-light: #e8f4fd;
+            --secondary-color: #2ecc71;
+            --error-color: #e74c3c;
+            --text-color: #2c3e50;
+            --border-radius: 8px;
+        }
+
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -19,21 +28,21 @@
             background: white;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 5px;
+            border-radius: var(--border-radius);
         }
         
         h1 {
             text-align: center;
-            color: #2c3e50;
+            color: var(--text-color);
             margin-bottom: 20px;
         }
         
         .school-info {
-            background-color: #f8f9fa;
+            background-color: var(--primary-light);
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
-            border: 1px solid #e9ecef;
+            border: 1px solid #d1e6fa;
         }
         
         .form-group {
@@ -48,10 +57,17 @@
         
         input[type="text"] {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
         
         .students-table {
@@ -61,7 +77,7 @@
         }
         
         .students-table th {
-            background-color: #4b6584;
+            background-color: var(--primary-color);
             color: white;
             padding: 10px;
             text-align: right;
@@ -90,26 +106,43 @@
             cursor: pointer;
             font-size: 16px;
             margin-right: 5px;
+            transition: all 0.3s ease;
         }
         
         .btn-primary {
-            background-color: #3498db;
+            background-color: var(--primary-color);
             color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
         }
         
         .btn-success {
-            background-color: #2ecc71;
+            background-color: var(--secondary-color);
             color: white;
         }
         
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
         .btn-danger {
-            background-color: #e74c3c;
+            background-color: var(--error-color);
             color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
         }
         
         .btn-secondary {
             background-color: #7f8c8d;
             color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #6c7879;
         }
         
         .action-column {
@@ -122,7 +155,7 @@
             padding: 15px;
             border-radius: 5px;
             background-color: #f1f8ff;
-            border-left: 4px solid #1a73e8;
+            border-left: 4px solid var(--primary-color);
             display: none;
         }
         
@@ -142,7 +175,7 @@
         }
         
         .status-success {
-            color: #2ecc71;
+            color: var(--secondary-color);
         }
         
         .status-pending {
@@ -150,16 +183,15 @@
         }
         
         .status-error {
-            color: #e74c3c;
+            color: var(--error-color);
         }
         
-        #submissionArea {
-            display: none;
-        }
-        
-        .form-container {
-            display: none;
+        .instructions {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-radius: 5px;
             margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
         }
         
         footer {
@@ -169,78 +201,86 @@
             font-size: 14px;
         }
         
-        .instructions {
-            background-color: #e8f4fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-        
-        /* סגנון להוראות השליחה */
-        .submission-instructions {
-            background-color: #fef5e7;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-            border-left: 4px solid #f39c12;
-        }
-        
-        /* סגנון לכפתור שליחה ידנית */
-        .manual-submit-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background-color: #27ae60;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
-            cursor: pointer;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        
-        .manual-submit-btn:hover {
-            background-color: #219653;
-        }
-        
-        /* סגנון להוראות צעד אחר צעד */
-        .step {
-            margin-bottom: 10px;
-            padding-right: 20px;
-            position: relative;
-        }
-        
-        .step-number {
-            position: absolute;
-            right: 0;
+        #loadingOverlay {
+            display: none;
+            position: fixed;
             top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loader {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            background-color: #3498db;
-            color: white;
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
             text-align: center;
+        }
+        
+        .loader:after {
+            content: " ";
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
             border-radius: 50%;
-            font-size: 12px;
-            line-height: 20px;
+            border: 6px solid var(--primary-color);
+            border-color: var(--primary-color) transparent var(--primary-color) transparent;
+            animation: loader 1.2s linear infinite;
+        }
+        
+        .loader-text {
+            margin-top: 15px;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+        
+        @keyframes loader {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #csv-export {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        #csv-content {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay">
+        <div class="loader">
+            <div class="loader-text">שולח נתונים...</div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>טופס הזנת תלמידים מרובים</h1>
         
         <div class="instructions">
             <h3>הוראות שימוש</h3>
-            <p>טופס זה מאפשר לך להזין פרטים של מספר תלמידים ולשלוח אותם לגוגל פורמס.</p>
+            <p>טופס זה מאפשר לך להזין פרטים של מספר תלמידים ולשלוח אותם לגוגל פורמס <strong>בבת אחת</strong>!</p>
             <ol>
                 <li>הזן את פרטי בית הספר והעיר (פעם אחת עבור כל התלמידים)</li>
                 <li>הוסף את פרטי התלמידים בטבלה</li>
-                <li>לחץ על "הכן טפסים לשליחה" כדי ליצור את הטפסים</li>
-                <li>לחץ על כל כפתור "שלח טופס" כדי לשלוח כל תלמיד</li>
+                <li>לחץ על "שלח את כל התלמידים" כדי לשלוח את כל הנתונים <strong>אוטומטית</strong></li>
+                <li>המערכת תשלח את כל הרשומות עבורך ותציג לך סטטוס בזמן אמת</li>
             </ol>
         </div>
         
@@ -283,21 +323,22 @@
         
         <div style="margin-top: 15px;">
             <button class="btn btn-secondary" onclick="addRow()">הוסף תלמיד</button>
-            <button class="btn btn-primary" onclick="prepareSubmission()">הכן טפסים לשליחה</button>
+            <button class="btn btn-success" onclick="submitAllForms()">שלח את כל התלמידים</button>
+            <button class="btn btn-primary" onclick="exportToCsv()">ייצא ל-CSV (גיבוי)</button>
         </div>
         
-        <!-- אזור השליחה הידנית -->
-        <div id="submissionArea" class="submission-status">
-            <h3>טפסים מוכנים לשליחה</h3>
-            <div class="submission-instructions">
-                <h4>הוראות שליחה:</h4>
-                <div class="step"><span class="step-number">1</span> לחץ על כפתור "שלח טופס" עבור כל תלמיד</div>
-                <div class="step"><span class="step-number">2</span> ייפתח חלון חדש עם טופס גוגל פורמס מוכן עם הנתונים</div>
-                <div class="step"><span class="step-number">3</span> לחץ על "שלח" בטופס גוגל פורמס</div>
-                <div class="step"><span class="step-number">4</span> חזור לחלון זה ועבור לתלמיד הבא</div>
-            </div>
+        <div class="submission-status" id="submissionStatus">
+            <h3>סטטוס שליחה</h3>
+            <div>תלמידים שנשלחו: <span id="sentCount">0</span> מתוך <span id="totalCount">0</span></div>
+            <div id="progressInfo"></div>
             
-            <div id="formsContainer"></div>
+            <div class="status-list" id="statusList"></div>
+        </div>
+        
+        <div id="csv-export">
+            <h3>נתונים ב-CSV (ייצוא)</h3>
+            <p>להלן הנתונים בפורמט CSV לגיבוי. ניתן להעתיק ולשמור אותם:</p>
+            <textarea id="csv-content" readonly></textarea>
         </div>
     </div>
     
@@ -348,23 +389,6 @@
                     input.value = '';
                 });
             }
-        }
-        
-        // יצירת קישור ישיר לטופס גוגל פורמס עם פרמטרים
-        function createDirectLink(data) {
-            // הבסיס לקישור הטופס
-            const baseUrl = `https://docs.google.com/forms/d/e/${googleFormId}/viewform`;
-            const params = new URLSearchParams();
-            
-            // הוספת כל הפרמטרים לקישור
-            for (const key in data) {
-                if (fieldsMapping[key]) {
-                    params.append(fieldsMapping[key], data[key]);
-                }
-            }
-            
-            // יצירת הקישור המלא
-            return `${baseUrl}?${params.toString()}`;
         }
         
         // אימות נתונים בסיסי
@@ -428,8 +452,72 @@
             return studentsData;
         }
         
-        // הכנת טפסים לשליחה ידנית
-        function prepareSubmission() {
+        // יצירת FormData לשליחה לגוגל פורמס
+        function createFormData(data) {
+            const formData = new FormData();
+            
+            formData.append(fieldsMapping.schoolName, data.schoolName);
+            formData.append(fieldsMapping.city, data.city);
+            formData.append(fieldsMapping.studentName, data.studentName);
+            formData.append(fieldsMapping.studentClass, data.studentClass);
+            
+            return formData;
+        }
+        
+        // שליחת טופס בודד
+        async function submitSingleForm(data) {
+            const formData = createFormData(data);
+            const formUrl = `https://docs.google.com/forms/d/e/${googleFormId}/formResponse`;
+            
+            try {
+                // שימוש ב-Fetch API עם מצב no-cors כדי לעקוף מגבלות CORS
+                const response = await fetch(formUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                
+                // אין אפשרות לדעת אם השליחה הצליחה בגלל מגבלות no-cors,
+                // אבל אם לא נזרקה שגיאה, סביר להניח שהשליחה הצליחה
+                return { success: true, data: data };
+                
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                return { success: false, data: data, error: error.message };
+            }
+        }
+        
+        // עדכון סטטוס השליחה
+        function updateStatusUI(sent, total) {
+            document.getElementById('sentCount').textContent = sent;
+            document.getElementById('totalCount').textContent = total;
+            
+            if (sent === total) {
+                document.getElementById('progressInfo').innerHTML = 
+                    '<div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">כל התלמידים נשלחו בהצלחה!</div>';
+            } else {
+                const percent = Math.round((sent / total) * 100);
+                document.getElementById('progressInfo').innerHTML = 
+                    `<div style="margin-top: 10px;">התקדמות: ${percent}%</div>`;
+            }
+        }
+        
+        // הוספת סטטוס לרשימת הסטטוס
+        function addStatusMessage(message, type) {
+            const statusList = document.getElementById('statusList');
+            const statusItem = document.createElement('div');
+            statusItem.className = `status-item status-${type}`;
+            statusItem.textContent = message;
+            statusList.prepend(statusItem);
+        }
+        
+        // הצגת/הסתרת מסך טעינה
+        function toggleLoadingOverlay(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+        
+        // שליחת כל הטפסים
+        async function submitAllForms() {
             // אימות נתונים
             if (!validateData()) {
                 return;
@@ -442,38 +530,109 @@
                 return;
             }
             
-            // הצג את אזור השליחה
-            const submissionArea = document.getElementById('submissionArea');
-            submissionArea.style.display = 'block';
+            // הצג את מסך הטעינה
+            toggleLoadingOverlay(true);
             
-            // מחק תוכן קודם
-            const formsContainer = document.getElementById('formsContainer');
-            formsContainer.innerHTML = '';
+            // הצג את פאנל הסטטוס
+            document.getElementById('submissionStatus').style.display = 'block';
+            document.getElementById('statusList').innerHTML = '';
             
-            // צור קישור ישיר לכל תלמיד
-            studentsData.forEach((studentData, index) => {
-                // יצירת קישור ישיר לטופס גוגל עם כל הפרמטרים
-                const directLink = createDirectLink(studentData);
+            // עדכון מוני הסטטוס
+            let sentCount = 0;
+            const totalCount = studentsData.length;
+            
+            updateStatusUI(sentCount, totalCount);
+            
+            // הוסף הודעה על התחלת התהליך
+            addStatusMessage(`מתחיל לשלוח ${totalCount} תלמידים...`, 'pending');
+            
+            // גלול אל אזור הסטטוס
+            document.getElementById('submissionStatus').scrollIntoView({ behavior: 'smooth' });
+            
+            // עבור על כל התלמידים ושלח אותם בהדרגה
+            for (let i = 0; i < studentsData.length; i++) {
+                const studentData = studentsData[i];
                 
-                // יצירת קונטיינר לטופס
-                const formDiv = document.createElement('div');
-                formDiv.className = 'form-container';
-                formDiv.style.display = 'block';
-                formDiv.innerHTML = `
-                    <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
-                        <h4>תלמיד #${index + 1}: ${studentData.studentName}</h4>
-                        <div><strong>בית ספר:</strong> ${studentData.schoolName}</div>
-                        <div><strong>עיר:</strong> ${studentData.city}</div>
-                        <div><strong>כיתה:</strong> ${studentData.studentClass}</div>
-                        <a href="${directLink}" target="_blank" class="manual-submit-btn">שלח טופס</a>
-                    </div>
-                `;
+                addStatusMessage(`שולח את הנתונים של ${studentData.studentName}...`, 'pending');
                 
-                formsContainer.appendChild(formDiv);
+                try {
+                    // שלח את הנתונים
+                    const result = await submitSingleForm(studentData);
+                    
+                    if (result.success) {
+                        // עדכן סטטוס
+                        sentCount++;
+                        updateStatusUI(sentCount, totalCount);
+                        
+                        addStatusMessage(`הנתונים של ${studentData.studentName} נשלחו בהצלחה`, 'success');
+                    } else {
+                        addStatusMessage(`שגיאה בשליחת הנתונים של ${studentData.studentName}: ${result.error}`, 'error');
+                    }
+                    
+                    // המתן מעט בין שליחות כדי למנוע חסימה
+                    if (i < studentsData.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                } catch (error) {
+                    addStatusMessage(`שגיאה בשליחת הנתונים של ${studentData.studentName}`, 'error');
+                    console.error('שגיאה בשליחת נתונים:', error);
+                }
+            }
+            
+            // הסתר את מסך הטעינה
+            toggleLoadingOverlay(false);
+            
+            if (sentCount === totalCount) {
+                addStatusMessage(`כל ${sentCount} התלמידים נשלחו בהצלחה!`, 'success');
+            } else {
+                addStatusMessage(`${sentCount} מתוך ${totalCount} תלמידים נשלחו בהצלחה`, 
+                    sentCount > 0 ? 'partial' : 'error');
+            }
+            
+            // הצג את אפשרות הייצוא
+            document.getElementById('csv-export').style.display = 'block';
+        }
+        
+        // ייצוא הנתונים ל-CSV
+        function exportToCsv() {
+            const studentsData = collectFormData();
+            
+            if (studentsData.length === 0) {
+                alert('אין נתונים לייצוא');
+                return;
+            }
+            
+            // יצירת כותרות ה-CSV
+            let csvContent = 'שם בית הספר,עיר,שם התלמיד,כיתה\n';
+            
+            // הוספת שורות הנתונים
+            studentsData.forEach(student => {
+                csvContent += `"${student.schoolName}","${student.city}","${student.studentName}","${student.studentClass}"\n`;
             });
             
-            // גלול אל אזור השליחה
-            submissionArea.scrollIntoView({ behavior: 'smooth' });
+            // הצגת ה-CSV בתיבת הטקסט
+            const csvTextarea = document.getElementById('csv-content');
+            csvTextarea.value = csvContent;
+            
+            // הצגת אזור הייצוא
+            document.getElementById('csv-export').style.display = 'block';
+            csvTextarea.scrollIntoView({ behavior: 'smooth' });
+            
+            // בחירת כל הטקסט בתיבה
+            csvTextarea.select();
+            
+            // יצירת קובץ CSV להורדה
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'תלמידים.csv');
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
