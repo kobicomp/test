@@ -93,6 +93,17 @@
             margin-bottom: 20px;
         }
         
+        .school-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .form-group-compact {
+            flex: 1;
+            min-width: 200px;
+        }
+        
         label {
             display: block;
             margin-bottom: 8px;
@@ -573,7 +584,7 @@
                 הוראות שימוש
             </h3>
             <ol>
-                <li>הזן את פרטי בית הספר והעיר (פעם אחת עבור כל התלמידים)</li>
+                <li>הזן את פרטי בית הספר והעיר (הפרטים יישמרו אוטומטית לשימוש הבא)</li>
                 <li>הוסף את פרטי התלמידים בטבלה (אפשר להוסיף שורות על ידי לחיצה על TAB בסוף שורה)</li>
                 <li>לחץ על "שלח את כל התלמידים" כדי לשלוח את כל הנתונים <strong>אוטומטית</strong></li>
                 <li>המערכת תייצא קובץ CSV באופן אוטומטי עם סיום השליחה ותנקה את רשימת התלמידים</li>
@@ -582,14 +593,16 @@
         
         <div class="school-info hover-shadow">
             <h2>פרטי בית הספר</h2>
-            <div class="form-group">
-                <label for="schoolName">שם בית הספר:</label>
-                <input type="text" id="schoolName" name="schoolName" required placeholder="הזן את שם בית הספר">
-            </div>
-            
-            <div class="form-group">
-                <label for="city">העיר:</label>
-                <input type="text" id="city" name="city" required placeholder="הזן את שם העיר">
+            <div class="school-info-row">
+                <div class="form-group-compact">
+                    <label for="schoolName">שם בית הספר:</label>
+                    <input type="text" id="schoolName" name="schoolName" required placeholder="הזן את שם בית הספר">
+                </div>
+                
+                <div class="form-group-compact">
+                    <label for="city">העיר:</label>
+                    <input type="text" id="city" name="city" required placeholder="הזן את שם העיר">
+                </div>
             </div>
         </div>
         
@@ -699,17 +712,113 @@
             AUTO_DOWNLOAD_CSV: true,
             
             // האם לנקות את פרטי התלמידים אחרי שליחה
-            CLEAR_STUDENTS_AFTER_SUBMISSION: true
+            CLEAR_STUDENTS_AFTER_SUBMISSION: true,
+            
+            // מפתחות לשמירה ב-localStorage
+            STORAGE_KEYS: {
+                schoolName: 'students_form_school_name',
+                city: 'students_form_city'
+            }
         };
         
         // ----- אתחול לאחר טעינת הדף -----
         document.addEventListener('DOMContentLoaded', function() {
+            // טען נתונים שמורים מ-localStorage
+            loadSavedSchoolInfo();
+            
             // הוסף מאזין אירועים לטאב בטבלת התלמידים
             setupTabNavigation();
             
-            // מיקוד אוטומטי בשדה הראשון
-            document.getElementById('schoolName').focus();
+            // הוסף מאזין אירועים לשמירת נתוני בית הספר
+            setupSchoolInfoStorage();
+            
+            // מיקוד אוטומטי בשדה הראשון (אם ריק)
+            if (!document.getElementById('schoolName').value) {
+                document.getElementById('schoolName').focus();
+            } else if (!document.getElementById('city').value) {
+                document.getElementById('city').focus();
+            } else {
+                // אם יש בית ספר ועיר, מקד את שדה התלמיד הראשון
+                const firstStudentField = document.querySelector('input[name="studentName"]');
+                if (firstStudentField) {
+                    firstStudentField.focus();
+                }
+            }
         });
+        
+        // ----- פונקציות לטעינה ושמירה של נתוני בית הספר -----
+        
+        // טעינת פרטי בית הספר והעיר מה-localStorage
+        function loadSavedSchoolInfo() {
+            try {
+                const schoolName = localStorage.getItem(CONFIG.STORAGE_KEYS.schoolName);
+                const city = localStorage.getItem(CONFIG.STORAGE_KEYS.city);
+                
+                if (schoolName) {
+                    document.getElementById('schoolName').value = schoolName;
+                }
+                
+                if (city) {
+                    document.getElementById('city').value = city;
+                }
+            } catch (e) {
+                console.error('שגיאה בטעינת נתוני בית הספר מהזיכרון המקומי:', e);
+            }
+        }
+        
+        // הגדרת מאזיני אירועים לשמירת נתוני בית הספר
+        function setupSchoolInfoStorage() {
+            const schoolNameInput = document.getElementById('schoolName');
+            const cityInput = document.getElementById('city');
+            
+            // הוסף האזנה לשינוי בשדות
+            schoolNameInput.addEventListener('input', debounce(function() {
+                saveSchoolInfo();
+            }, 500));
+            
+            cityInput.addEventListener('input', debounce(function() {
+                saveSchoolInfo();
+            }, 500));
+            
+            // הוסף האזנה לעזיבת השדה
+            schoolNameInput.addEventListener('blur', function() {
+                saveSchoolInfo();
+            });
+            
+            cityInput.addEventListener('blur', function() {
+                saveSchoolInfo();
+            });
+        }
+        
+        // שמירת פרטי בית הספר והעיר ב-localStorage
+        function saveSchoolInfo() {
+            try {
+                const schoolName = document.getElementById('schoolName').value.trim();
+                const city = document.getElementById('city').value.trim();
+                
+                if (schoolName) {
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.schoolName, schoolName);
+                }
+                
+                if (city) {
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.city, city);
+                }
+            } catch (e) {
+                console.error('שגיאה בשמירת נתוני בית הספר לזיכרון המקומי:', e);
+            }
+        }
+        
+        // פונקציית debounce לשיפור ביצועים
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this, args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
         
         // ----- הגדרת ניווט באמצעות TAB -----
         function setupTabNavigation() {
@@ -1163,7 +1272,8 @@
         // יצירת תוכן CSV מנתוני התלמידים
         function createCsvContent(studentsData) {
             // יצירת כותרות ה-CSV
-            let csvContent = 'שם בית הספר,עיר,שם התלמיד,כיתה\n';
+            let csvContent = '\uFEFF'; // הוספת BOM לתמיכה נכונה בעברית
+            csvContent += 'שם בית הספר,עיר,שם התלמיד,כיתה\n';
             
             // הוספת שורות הנתונים
             studentsData.forEach(student => {
