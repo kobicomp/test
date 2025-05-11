@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משחק מסלול טריוויה</title>
+    <title>משחק סימני טהרה</title>
     <style>
         :root {
             --primary-color: #3b82f6;
@@ -46,7 +46,7 @@
             overflow: hidden;
         }
 
-        .welcome-screen, .category-selection, .name-input, .game-screen, .summary-screen {
+        .welcome-screen, .name-input, .game-screen, .summary-screen {
             transition: opacity 0.5s, transform 0.5s;
         }
 
@@ -67,7 +67,7 @@
             height: auto;
         }
 
-        .welcome-screen, .category-selection, .name-input {
+        .welcome-screen, .name-input {
             text-align: center;
             padding: 20px;
         }
@@ -154,30 +154,6 @@
         .avatar-option.selected {
             border-color: var(--primary-color);
             transform: scale(1.1);
-        }
-
-        .categories {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .category-btn {
-            background: white;
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .category-btn:hover, .category-btn.selected {
-            background: var(--primary-color);
-            color: white;
         }
 
         .game-board {
@@ -344,6 +320,13 @@
             margin-bottom: 5px;
         }
 
+        .question-category {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
         .question {
             font-size: 24px;
             font-weight: bold;
@@ -368,6 +351,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            text-align: right;
         }
 
         .answer-btn:hover {
@@ -622,9 +606,9 @@
         
         <!-- Welcome Screen -->
         <div class="welcome-screen">
-            <h1 class="welcome-title">ברוכים הבאים למשחק מסלול הטריוויה!</h1>
+            <h1 class="welcome-title">ברוכים הבאים למשחק סימני טהרה!</h1>
             <p class="welcome-text">
-                מוכנים לאתגר? ענו נכון על 5 שאלות טריוויה והגיעו לבית המדרש!<br>
+                מוכנים לאתגר? ענו נכון על 5 שאלות בנושא סימני טהרה והגיעו לבית המדרש!<br>
                 תשובות נכונות יקדמו אתכם במסלול, אך שגיאה תחזיר אתכם להתחלה.
             </p>
             <button class="btn large" id="start-btn">בואו נתחיל!</button>
@@ -654,19 +638,7 @@
                 </div>
             </div>
             
-            <button class="btn" id="continue-to-category">המשך</button>
-        </div>
-
-        <!-- Category Selection Screen -->
-        <div class="category-selection hidden">
-            <h2 class="welcome-title">בחר קטגוריה</h2>
-            <div class="categories">
-                <button class="category-btn selected" data-category="general">ידע כללי</button>
-                <button class="category-btn" data-category="science">מדע</button>
-                <button class="category-btn" data-category="history">היסטוריה</button>
-                <button class="category-btn" data-category="judaism">יהדות</button>
-            </div>
-            <button class="btn" id="start-game">התחל משחק</button>
+            <button class="btn" id="continue-to-game">התחל משחק</button>
         </div>
         
         <!-- Game Screen -->
@@ -706,12 +678,13 @@
 
             <div class="question-container">
                 <div class="question-number">שאלה <span id="question-number">1</span> מתוך 5</div>
-                <div class="question">מה בירת צרפת?</div>
+                <div class="question-category" id="question-category">בהמות - סימני טהרה</div>
+                <div class="question">איזה מהסימנים הבאים מעיד על בהמה טהורה?</div>
                 <div class="answers">
-                    <button class="answer-btn" data-index="0">פריז</button>
-                    <button class="answer-btn" data-index="1">לונדון</button>
-                    <button class="answer-btn" data-index="2">ברלין</button>
-                    <button class="answer-btn" data-index="3">מדריד</button>
+                    <button class="answer-btn" data-index="0">א. זנב ארוך</button>
+                    <button class="answer-btn" data-index="1">ב. שיניים חדות</button>
+                    <button class="answer-btn" data-index="2">ג. מעלה גרה</button>
+                    <button class="answer-btn" data-index="3">ד. אוזניים גדולות</button>
                 </div>
             </div>
 
@@ -757,7 +730,7 @@
             <div class="player-name" id="certificate-name">ישראל ישראלי</div>
             <div class="certificate-text">
                 הצליח לסיים בהצלחה את מסלול הטריוויה<br>
-                וענה נכון על כל חמש השאלות!
+                וענה נכון על כל חמש השאלות בנושא סימני טהרה!
             </div>
             <div class="certificate-details">
                 <div class="certificate-detail">
@@ -765,11 +738,11 @@
                     <div class="certificate-detail-value" id="certificate-score">1000</div>
                 </div>
                 <div class="certificate-detail">
-                    <div class="certificate-detail-label">קטגוריה</div>
-                    <div class="certificate-detail-value" id="certificate-category">ידע כללי</div>
+                    <div class="certificate-detail-label">תאריך</div>
+                    <div class="certificate-detail-value" id="certificate-date-value">10/05/2025</div>
                 </div>
             </div>
-            <div class="certificate-date" id="certificate-date">הוענק בתאריך: 10/05/2025</div>
+            <div class="certificate-date">מוענק בגאווה על ידי משחק סימני טהרה</div>
             
             <div class="btn-container">
                 <button class="btn" id="play-again-cert">שחק שוב</button>
@@ -778,531 +751,402 @@
     </div>
 
     <script>
-        // המאגר שאלות לפי קטגוריות
-       // המאגר שאלות לפי קטגוריות
-const questionsDatabase = {
-    general: [
-        {
-            question: "מה בירת צרפת?",
-            answers: ["פריז", "לונדון", "ברלין", "מדריד"],
-            correct: 0
-        },
-        {
-            question: "מי צייר את המונה ליזה?",
-            answers: ["לאונרדו דה וינצ'י", "פבלו פיקאסו", "וינסנט ואן גוך", "מיכלאנג'לו"],
-            correct: 0
-        },
-        {
-            question: "מהו כוכב הלכת הגדול ביותר במערכת השמש?",
-            answers: ["מאדים", "שבתאי", "צדק", "נוגה"],
-            correct: 2
-        },
-        {
-            question: "איזו מדינה היא הגדולה ביותר בעולם?",
-            answers: ["קנדה", "סין", "ארצות הברית", "רוסיה"],
-            correct: 3
-        },
-        {
-            question: "מי כתב את 'רומיאו ויוליה'?",
-            answers: ["צ'ארלס דיקנס", "ויליאם שייקספיר", "מארק טוויין", "ג'יין אוסטן"],
-            correct: 1
-        },
-        {
-            question: "איזה יסוד כימי מסומן באות Na?",
-            answers: ["ניקל", "חנקן", "נתרן", "נאון"],
-            correct: 2
-        },
-        {
-            question: "באיזו שנה הסתיימה מלחמת העולם השנייה?",
-            answers: ["1943", "1945", "1947", "1950"],
-            correct: 1
+        // השאלות בנושא סימני טהרה
+        const questions = [
+            {
+                category: "בהמות – סימני טהרה",
+                question: "איזה מהסימנים הבאים מעיד על בהמה טהורה?",
+                answers: ["א. זנב ארוך", "ב. שיניים חדות", "ג. מעלה גרה", "ד. אוזניים גדולות"],
+                correct: 2
+            },
+            {
+                category: "בהמות – סימני טהרה",
+                question: "כמה סימנים צריכה בהמה כדי להיחשב טהורה לפי התורה?",
+                answers: ["א. אחד", "ב. שניים", "ג. שלושה", "ד. אין צורך בסימנים"],
+                correct: 1
+            },
+            {
+                category: "דגים – סימני טהרה",
+                question: "איזה סימן לא נדרש כדי שדג ייחשב כשר?",
+                answers: ["א. סנפיר", "ב. קשקשת", "ג. זנב", "ד. שני הסימנים הראשונים"],
+                correct: 2
+            },
+            {
+                category: "דגים – סימני טהרה",
+                question: "אם לדג יש קשקשים אבל לא סנפירים, מה דינו?",
+                answers: ["א. טהור", "ב. טמא", "ג. מותר באכילה רק בשבת", "ד. תלוי בגודל הדג"],
+              correct: 1
+            },
+            {
+                category: "דגים – סימני טהרה",
+                question: "מה נכון לגבי דג שיש לו סנפירים אך אין לו קשקשים?",
+                answers: ["א. נחשב טהור", "ב. נחשב טמא", "ג. מותר לילדים בלבד", "ד. מותר רק אם נצוד בים התיכון"],
+                correct: 1
+            }
+        ];
+
+        // משתנים גלובליים
+        let playerName = "שחקן";
+        let playerAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>";
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let gameHistory = [];
+        let timerInterval;
+        let timeLeft = 20; // זמן לשאלה בשניות
+        let answersDisabled = false;
+
+        // פוזיציות התחנות על המסלול
+        const checkpointPositions = [
+            { top: "75%", left: "15%" }, // תחנה 1
+            { top: "60%", left: "35%" }, // תחנה 2
+            { top: "45%", left: "55%" }, // תחנה 3
+            { top: "30%", left: "40%" }, // תחנה 4
+            { top: "15%", left: "60%" }, // תחנה 5
+            { top: "5%", left: "80%" }   // בית מדרש
+        ];
+
+        // פונקציות עזר
+        function updatePlayerPosition(questionIndex) {
+            const playerAvatar = document.querySelector('.player-avatar');
+            const position = checkpointPositions[questionIndex];
+            
+            playerAvatar.style.top = position.top;
+            playerAvatar.style.left = position.left;
         }
-    ],
-    science: [
-        {
-            question: "מה הנוסחה הכימית של מים?",
-            answers: ["CO2", "H2O", "O2", "NaCl"],
-            correct: 1
-        },
-        {
-            question: "איזה כוח מושך עצמים לכדור הארץ?",
-            answers: ["כוח המשיכה", "כוח החיכוך", "כוח אלקטרומגנטי", "כוח צנטריפוגלי"],
-            correct: 0
-        },
-        {
-            question: "איזה מהבאים הוא לא ירח של כוכב צדק?",
-            answers: ["גנימד", "אירופה", "טיטאן", "קליסטו"],
-            correct: 2
-        },
-        {
-            question: "כמה עצמות יש בגוף האדם?",
-            answers: ["106", "186", "206", "306"],
-            correct: 2
-        },
-        {
-            question: "מהי היחידה הבסיסית של החיים?",
-            answers: ["גן", "תא", "מולקולה", "אטום"],
-            correct: 1
-        }
-    ],
-    history: [
-        {
-            question: "מי היה הקיסר הראשון של רומא?",
-            answers: ["יוליוס קיסר", "אוגוסטוס", "נירון", "קליגולה"],
-            correct: 1
-        },
-        {
-            question: "באיזו שנה התרחשה המהפכה הצרפתית?",
-            answers: ["1689", "1789", "1889", "1989"],
-            correct: 1
-        },
-        {
-            question: "מי המציא את הטלפון?",
-            answers: ["תומאס אדיסון", "ניקולה טסלה", "אלכסנדר גרהם בל", "גוגלילמו מרקוני"],
-            correct: 2
-        },
-        {
-            question: "באיזו שנה הסתיימה מלחמת העצמאות של ישראל?",
-            answers: ["1947", "1948", "1949", "1950"],
-            correct: 2
-        },
-        {
-            question: "מי היה המלך הראשון של ישראל המאוחדת?",
-            answers: ["שאול", "דוד", "שלמה", "רחבעם"],
-            correct: 0
-        }
-    ],
-    judaism: [
-        {
-            question: "מי היה הכהן הגדול הראשון?",
-            answers: ["משה", "אהרן", "פנחס", "עלי"],
-            correct: 1
-        },
-        {
-            question: "כמה ספרים יש בתורה?",
-            answers: ["3", "5", "6", "12"],
-            correct: 1
-        },
-        {
-            question: "מה שמו של בנו הבכור של יעקב?",
-            answers: ["יוסף", "יהודה", "ראובן", "בנימין"],
-            correct: 2
-        },
-        {
-            question: "באיזה חג אוכלים מצות?",
-            answers: ["פורים", "פסח", "שבועות", "סוכות"],
-            correct: 1
-        },
-        {
-            question: "כמה ימים נמשך חג החנוכה?",
-            answers: ["7", "8", "9", "10"],
-            correct: 1
-        }
-    ]
-};
 
-// משתנים גלובליים
-let playerName = "שחקן";
-let playerAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><circle cx='50' cy='40' r='15' fill='white'/><circle cx='40' cy='60' r='10' fill='white'/><circle cx='60' cy='60' r='10' fill='white'/></svg>";
-let selectedCategory = "general";
-let currentQuestions = [];
-let currentQuestionIndex = 0;
-let score = 0;
-let gameHistory = [];
-let timerInterval;
-let timeLeft = 20; // זמן לשאלה בשניות
-let answersDisabled = false;
-
-// פוזיציות התחנות על המסלול
-const checkpointPositions = [
-    { top: "75%", left: "15%" }, // תחנה 1
-    { top: "60%", left: "35%" }, // תחנה 2
-    { top: "45%", left: "55%" }, // תחנה 3
-    { top: "30%", left: "40%" }, // תחנה 4
-    { top: "15%", left: "60%" }, // תחנה 5
-    { top: "5%", left: "80%" }   // בית מדרש
-];
-
-// פונקציות עזר
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function getRandomQuestions(category, count) {
-    const allQuestions = questionsDatabase[category];
-    const shuffled = shuffleArray([...allQuestions]);
-    return shuffled.slice(0, count);
-}
-
-function updatePlayerPosition(questionIndex) {
-    const playerAvatar = document.querySelector('.player-avatar');
-    const position = checkpointPositions[questionIndex];
-    
-    playerAvatar.style.top = position.top;
-    playerAvatar.style.left = position.left;
-}
-
-function startTimer() {
-    timeLeft = 20;
-    clearInterval(timerInterval);
-    
-    const timerBar = document.getElementById('timer-bar');
-    timerBar.style.width = '100%';
-    
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        let width = (timeLeft / 20) * 100;
-        timerBar.style.width = width + '%';
-        
-        if (timeLeft < 5) {
-            timerBar.style.backgroundColor = '#ef4444';
-        } else if (timeLeft < 10) {
-            timerBar.style.backgroundColor = '#f59e0b';
-        }
-        
-        if (timeLeft <= 0) {
+        function startTimer() {
+            timeLeft = 20;
             clearInterval(timerInterval);
-            handleWrongAnswer();
+            
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#f59e0b';
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                let width = (timeLeft / 20) * 100;
+                timerBar.style.width = width + '%';
+                
+                if (timeLeft < 5) {
+                    timerBar.style.backgroundColor = '#ef4444';
+                } else if (timeLeft < 10) {
+                    timerBar.style.backgroundColor = '#f59e0b';
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleWrongAnswer();
+                }
+            }, 1000);
         }
-    }, 1000);
-}
 
-function createConfetti() {
-    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
-    
-    for (let i = 0; i < 100; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const leftPosition = Math.random() * 100;
-        const size = Math.random() * 10 + 5;
-        const duration = Math.random() * 3 + 2;
-        const delay = Math.random() * 2;
-        
-        confetti.style.backgroundColor = color;
-        confetti.style.left = leftPosition + 'vw';
-        confetti.style.width = size + 'px';
-        confetti.style.height = size + 'px';
-        confetti.style.animationDuration = duration + 's';
-        confetti.style.animationDelay = delay + 's';
-        
-        document.body.appendChild(confetti);
-        
-        setTimeout(() => {
-            confetti.remove();
-        }, (duration + delay) * 1000);
-    }
-}
+        function createConfetti() {
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const leftPosition = Math.random() * 100;
+                const size = Math.random() * 10 + 5;
+                const duration = Math.random() * 3 + 2;
+                const delay = Math.random() * 2;
+                
+                confetti.style.backgroundColor = color;
+                confetti.style.left = leftPosition + 'vw';
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                confetti.style.animationDuration = duration + 's';
+                confetti.style.animationDelay = delay + 's';
+                
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, (duration + delay) * 1000);
+            }
+        }
 
-// מעבר בין מסכים
-function showScreen(screenClass) {
-    const screens = ['welcome-screen', 'name-input', 'category-selection', 'game-screen', 'summary-screen', 'certificate'];
-    
-    screens.forEach(screen => {
-        const element = document.querySelector('.' + screen);
-        if (element) {
-            if (screen === screenClass) {
-                element.classList.remove('hidden');
+        // מעבר בין מסכים
+        function showScreen(screenClass) {
+            const screens = ['welcome-screen', 'name-input', 'game-screen', 'summary-screen', 'certificate'];
+            
+            screens.forEach(screen => {
+                const element = document.querySelector('.' + screen);
+                if (element) {
+                    if (screen === screenClass) {
+                        element.classList.remove('hidden');
+                    } else {
+                        element.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // טעינת שאלה
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                // סיימנו את כל השאלות
+                endGame(true);
+                return;
+            }
+            
+            answersDisabled = false;
+            const question = questions[currentQuestionIndex];
+            const questionElement = document.querySelector('.question');
+            const answersContainer = document.querySelector('.answers');
+            const questionNumberElement = document.getElementById('question-number');
+            const questionCategoryElement = document.getElementById('question-category');
+            
+            questionNumberElement.textContent = currentQuestionIndex + 1;
+            questionCategoryElement.textContent = question.category;
+            questionElement.textContent = question.question;
+            
+            answersContainer.innerHTML = '';
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.dataset.index = index;
+                button.textContent = answer;
+                button.addEventListener('click', handleAnswer);
+                answersContainer.appendChild(button);
+            });
+            
+            // עדכון מיקום השחקן והתחנה הפעילה
+            document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
+                checkpoint.classList.remove('active');
+                
+                if (index < currentQuestionIndex) {
+                    checkpoint.classList.add('completed');
+                } else if (index === currentQuestionIndex) {
+                    checkpoint.classList.add('active');
+                } else {
+                    checkpoint.classList.remove('completed');
+                }
+            });
+            
+            updatePlayerPosition(currentQuestionIndex);
+            startTimer();
+        }
+
+        // טיפול בתשובה
+        function handleAnswer(e) {
+            if (answersDisabled) return;
+            answersDisabled = true;
+            
+            clearInterval(timerInterval);
+            
+            const selectedIndex = parseInt(e.target.dataset.index);
+            const questionData = questions[currentQuestionIndex];
+            const resultMessage = document.getElementById('result-message');
+            
+            // שמירת היסטוריית משחק
+            gameHistory.push({
+                question: questionData.question,
+                userAnswer: questionData.answers[selectedIndex],
+                correctAnswer: questionData.answers[questionData.correct],
+                isCorrect: selectedIndex === questionData.correct
+            });
+            
+            if (selectedIndex === questionData.correct) {
+                handleCorrectAnswer(e.target);
             } else {
-                element.classList.add('hidden');
+                handleWrongAnswer(e.target);
             }
         }
-    });
-}
 
-// טעינת שאלה
-function loadQuestion() {
-    if (currentQuestionIndex >= currentQuestions.length) {
-        // סיימנו את כל השאלות
-        endGame(true);
-        return;
-    }
-    
-    answersDisabled = false;
-    const question = currentQuestions[currentQuestionIndex];
-    const questionElement = document.querySelector('.question');
-    const answersContainer = document.querySelector('.answers');
-    const questionNumberElement = document.getElementById('question-number');
-    
-    questionNumberElement.textContent = currentQuestionIndex + 1;
-    questionElement.textContent = question.question;
-    
-    answersContainer.innerHTML = '';
-    question.answers.forEach((answer, index) => {
-        const button = document.createElement('button');
-        button.className = 'answer-btn';
-        button.dataset.index = index;
-        button.textContent = answer;
-        button.addEventListener('click', handleAnswer);
-        answersContainer.appendChild(button);
-    });
-    
-    // עדכון מיקום השחקן והתחנה הפעילה
-    document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
-        checkpoint.classList.remove('active');
-        
-        if (index < currentQuestionIndex) {
+        function handleCorrectAnswer(selectedButton) {
+            selectedButton.classList.add('correct');
+            
+            const timeFactor = Math.max(timeLeft / 20, 0.3); // מקדם זמן - יותר מהיר = יותר נקודות
+            const questionPoints = Math.round(100 * timeFactor);
+            score += questionPoints;
+            
+            document.getElementById('score').textContent = score;
+            
+            const resultMessage = document.getElementById('result-message');
+            resultMessage.textContent = `נכון! +${questionPoints} נקודות!`;
+            resultMessage.className = 'result-message success show';
+            
+            // עדכון התחנה הנוכחית כהושלמה
+            const checkpoint = document.querySelector(`.checkpoint[data-question="${currentQuestionIndex + 1}"]`);
+            checkpoint.classList.remove('active');
             checkpoint.classList.add('completed');
-        } else if (index === currentQuestionIndex) {
-            checkpoint.classList.add('active');
-        } else {
-            checkpoint.classList.remove('completed');
+            
+            currentQuestionIndex++;
+            
+            setTimeout(() => {
+                resultMessage.classList.remove('show');
+                setTimeout(() => {
+                    loadQuestion();
+                }, 300);
+            }, 1500);
         }
-    });
-    
-    updatePlayerPosition(currentQuestionIndex);
-    startTimer();
-}
 
-// טיפול בתשובה
-function handleAnswer(e) {
-    if (answersDisabled) return;
-    answersDisabled = true;
-    
-    clearInterval(timerInterval);
-    
-    const selectedIndex = parseInt(e.target.dataset.index);
-    const questionData = currentQuestions[currentQuestionIndex];
-    const resultMessage = document.getElementById('result-message');
-    
-    // שמירת היסטוריית משחק
-    gameHistory.push({
-        question: questionData.question,
-        userAnswer: questionData.answers[selectedIndex],
-        correctAnswer: questionData.answers[questionData.correct],
-        isCorrect: selectedIndex === questionData.correct
-    });
-    
-    if (selectedIndex === questionData.correct) {
-        handleCorrectAnswer(e.target);
-    } else {
-        handleWrongAnswer(e.target);
-    }
-}
-
-function handleCorrectAnswer(selectedButton) {
-    selectedButton.classList.add('correct');
-    
-    const timeFactor = Math.max(timeLeft / 20, 0.3); // מקדם זמן - יותר מהיר = יותר נקודות
-    const questionPoints = Math.round(100 * timeFactor);
-    score += questionPoints;
-    
-    document.getElementById('score').textContent = score;
-    
-    const resultMessage = document.getElementById('result-message');
-    resultMessage.textContent = `נכון! +${questionPoints} נקודות!`;
-    resultMessage.className = 'result-message success show';
-    
-    // עדכון התחנה הנוכחית כהושלמה
-    const checkpoint = document.querySelector(`.checkpoint[data-question="${currentQuestionIndex + 1}"]`);
-    checkpoint.classList.remove('active');
-    checkpoint.classList.add('completed');
-    
-    currentQuestionIndex++;
-    
-    setTimeout(() => {
-        resultMessage.classList.remove('show');
-        setTimeout(() => {
-            loadQuestion();
-        }, 300);
-    }, 1500);
-}
-
-function handleWrongAnswer(selectedButton = null) {
-    if (selectedButton) {
-        selectedButton.classList.add('incorrect');
-        
-        // הדגשת התשובה הנכונה
-        const question = currentQuestions[currentQuestionIndex];
-        const allButtons = document.querySelectorAll('.answer-btn');
-        allButtons[question.correct].classList.add('correct');
-    }
-    
-    const resultMessage = document.getElementById('result-message');
-    resultMessage.textContent = "טעות! חוזרים להתחלה...";
-    resultMessage.className = 'result-message error show';
-    
-    setTimeout(() => {
-        // חזרה להתחלה
-        currentQuestionIndex = 0;
-        
-        // איפוס התחנות
-        document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
-            checkpoint.classList.remove('active', 'completed');
-            if (index === 0) {
-                checkpoint.classList.add('active');
+        function handleWrongAnswer(selectedButton = null) {
+            if (selectedButton) {
+                selectedButton.classList.add('incorrect');
+                
+                // הדגשת התשובה הנכונה
+                const question = questions[currentQuestionIndex];
+                const allButtons = document.querySelectorAll('.answer-btn');
+                allButtons[question.correct].classList.add('correct');
             }
-        });
-        
-        resultMessage.classList.remove('show');
-        
-        setTimeout(() => {
+            
+            const resultMessage = document.getElementById('result-message');
+            resultMessage.textContent = "טעות! חוזרים להתחלה...";
+            resultMessage.className = 'result-message error show';
+            
+            setTimeout(() => {
+                // חזרה להתחלה
+                currentQuestionIndex = 0;
+                
+                // איפוס התחנות
+                document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
+                    checkpoint.classList.remove('active', 'completed');
+                    if (index === 0) {
+                        checkpoint.classList.add('active');
+                    }
+                });
+                
+                resultMessage.classList.remove('show');
+                
+                setTimeout(() => {
+                    updatePlayerPosition(0);
+                    loadQuestion();
+                }, 500);
+            }, 2000);
+        }
+
+        function endGame(success) {
+            clearInterval(timerInterval);
+            
+            if (success) {
+                document.querySelector('.beit-midrash').classList.add('completed');
+                updatePlayerPosition(5); // העברה לבית המדרש
+                createConfetti();
+                
+                setTimeout(() => {
+                    showSummaryScreen();
+                }, 2000);
+            }
+        }
+
+        function showSummaryScreen() {
+            showScreen('summary-screen');
+            
+            document.getElementById('summary-avatar').src = playerAvatar;
+            document.getElementById('summary-name').textContent = playerName;
+            document.getElementById('final-score').textContent = score;
+            
+            const tableBody = document.getElementById('summary-table-body');
+            tableBody.innerHTML = '';
+            
+            gameHistory.forEach((record, index) => {
+                const row = document.createElement('tr');
+                
+                const cellNum = document.createElement('td');
+                cellNum.textContent = index + 1;
+                
+                const cellQuestion = document.createElement('td');
+                cellQuestion.textContent = record.question;
+                
+                const cellUserAnswer = document.createElement('td');
+                cellUserAnswer.textContent = record.userAnswer;
+                if (record.isCorrect) {
+                    cellUserAnswer.classList.add('correct-answer');
+                } else {
+                    cellUserAnswer.classList.add('wrong-answer');
+                }
+                
+                const cellCorrect = document.createElement('td');
+                cellCorrect.textContent = record.correctAnswer;
+                cellCorrect.classList.add('correct-answer');
+                
+                row.appendChild(cellNum);
+                row.appendChild(cellQuestion);
+                row.appendChild(cellUserAnswer);
+                row.appendChild(cellCorrect);
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function showCertificate() {
+            showScreen('certificate');
+            
+            const today = new Date();
+            const dateString = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+            
+            document.getElementById('certificate-name').textContent = playerName;
+            document.getElementById('certificate-score').textContent = score;
+            document.getElementById('certificate-date-value').textContent = dateString;
+        }
+
+        function resetGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            gameHistory = [];
+            document.getElementById('score').textContent = '0';
+            document.querySelector('.beit-midrash').classList.remove('completed');
+            
+            document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
+                checkpoint.classList.remove('active', 'completed');
+                if (index === 0) {
+                    checkpoint.classList.add('active');
+                }
+            });
+            
             updatePlayerPosition(0);
             loadQuestion();
-        }, 500);
-    }, 2000);
-}
-
-function endGame(success) {
-    clearInterval(timerInterval);
-    
-    if (success) {
-        document.querySelector('.beit-midrash').classList.add('completed');
-        updatePlayerPosition(5); // העברה לבית המדרש
-        createConfetti();
-        
-        setTimeout(() => {
-            showSummaryScreen();
-        }, 2000);
-    }
-}
-
-function showSummaryScreen() {
-    showScreen('summary-screen');
-    
-    document.getElementById('summary-avatar').src = playerAvatar;
-    document.getElementById('summary-name').textContent = playerName;
-    document.getElementById('final-score').textContent = score;
-    
-    const tableBody = document.getElementById('summary-table-body');
-    tableBody.innerHTML = '';
-    
-    gameHistory.forEach((record, index) => {
-        const row = document.createElement('tr');
-        
-        const cellNum = document.createElement('td');
-        cellNum.textContent = index + 1;
-        
-        const cellQuestion = document.createElement('td');
-        cellQuestion.textContent = record.question;
-        
-        const cellUserAnswer = document.createElement('td');
-        cellUserAnswer.textContent = record.userAnswer;
-        if (record.isCorrect) {
-            cellUserAnswer.classList.add('correct-answer');
-        } else {
-            cellUserAnswer.classList.add('wrong-answer');
+            showScreen('game-screen');
         }
-        
-        const cellCorrect = document.createElement('td');
-        cellCorrect.textContent = record.correctAnswer;
-        cellCorrect.classList.add('correct-answer');
-        
-        row.appendChild(cellNum);
-        row.appendChild(cellQuestion);
-        row.appendChild(cellUserAnswer);
-        row.appendChild(cellCorrect);
-        
-        tableBody.appendChild(row);
-    });
-}
 
-function showCertificate() {
-    showScreen('certificate');
-    
-    const today = new Date();
-    const dateString = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
-    
-    document.getElementById('certificate-name').textContent = playerName;
-    document.getElementById('certificate-score').textContent = score;
-    document.getElementById('certificate-category').textContent = getCategoryName(selectedCategory);
-    document.getElementById('certificate-date').textContent = `הוענק בתאריך: ${dateString}`;
-}
-
-function getCategoryName(categoryKey) {
-    const categories = {
-        'general': 'ידע כללי',
-        'science': 'מדע',
-        'history': 'היסטוריה',
-        'judaism': 'יהדות'
-    };
-    return categories[categoryKey] || categoryKey;
-}
-
-function resetGame() {
-    score = 0;
-    currentQuestionIndex = 0;
-    gameHistory = [];
-    document.getElementById('score').textContent = '0';
-    document.querySelector('.beit-midrash').classList.remove('completed');
-    
-    document.querySelectorAll('.checkpoint').forEach((checkpoint, index) => {
-        checkpoint.classList.remove('active', 'completed');
-        if (index === 0) {
-            checkpoint.classList.add('active');
-        }
-    });
-    
-    currentQuestions = getRandomQuestions(selectedCategory, 5);
-    updatePlayerPosition(0);
-    loadQuestion();
-    showScreen('game-screen');
-}
-
-// אתחול המשחק ואירועים
-document.addEventListener('DOMContentLoaded', () => {
-    // אירועי כפתורים
-    document.getElementById('start-btn').addEventListener('click', () => {
-        showScreen('name-input');
-    });
-    
-    document.getElementById('continue-to-category').addEventListener('click', () => {
-        const nameInput = document.getElementById('player-name');
-        if (nameInput.value.trim()) {
-            playerName = nameInput.value.trim();
-        }
-        
-        const selectedAvatarElement = document.querySelector('.avatar-option.selected img');
-        if (selectedAvatarElement) {
-            playerAvatar = selectedAvatarElement.src;
-        }
-        
-        document.getElementById('player-name-display').textContent = playerName;
-        document.getElementById('player-avatar-small').src = playerAvatar;
-        document.querySelector('.player-avatar img').src = playerAvatar;
-        
-        showScreen('category-selection');
-    });
-    
-    document.querySelectorAll('.avatar-option').forEach(option => {
-        option.addEventListener('click', () => {
-            document.querySelectorAll('.avatar-option').forEach(opt => {
-                opt.classList.remove('selected');
+        // אתחול המשחק ואירועים
+        document.addEventListener('DOMContentLoaded', () => {
+            // אירועי כפתורים
+            document.getElementById('start-btn').addEventListener('click', () => {
+                showScreen('name-input');
             });
-            option.classList.add('selected');
-        });
-    });
-    
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.category-btn').forEach(b => {
-                b.classList.remove('selected');
+            
+            document.getElementById('continue-to-game').addEventListener('click', () => {
+                const nameInput = document.getElementById('player-name');
+                if (nameInput.value.trim()) {
+                    playerName = nameInput.value.trim();
+                }
+                
+                const selectedAvatarElement = document.querySelector('.avatar-option.selected img');
+                if (selectedAvatarElement) {
+                    playerAvatar = selectedAvatarElement.src;
+                }
+                
+                document.getElementById('player-name-display').textContent = playerName;
+                document.getElementById('player-avatar-small').src = playerAvatar;
+                document.querySelector('.player-avatar img').src = playerAvatar;
+                
+                resetGame();
             });
-            btn.classList.add('selected');
-            selectedCategory = btn.dataset.category;
+            
+            document.querySelectorAll('.avatar-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.avatar-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    option.classList.add('selected');
+                });
+            });
+            
+            document.getElementById('show-certificate').addEventListener('click', showCertificate);
+            
+            document.getElementById('play-again').addEventListener('click', () => {
+                showScreen('name-input');
+            });
+            
+            document.getElementById('play-again-cert').addEventListener('click', () => {
+                showScreen('name-input');
+            });
         });
-    });
-    
-    document.getElementById('start-game').addEventListener('click', () => {
-        currentQuestions = getRandomQuestions(selectedCategory, 5);
-        resetGame();
-    });
-    
-    document.getElementById('show-certificate').addEventListener('click', showCertificate);
-    
-    document.getElementById('play-again').addEventListener('click', () => {
-        showScreen('category-selection');
-    });
-    
-    document.getElementById('play-again-cert').addEventListener('click', () => {
-        showScreen('category-selection');
-    });
-});
-         </script>
+    </script>
 </body>
 </html>
