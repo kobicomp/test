@@ -6,107 +6,205 @@
     <title>טופס הזנת תלמידים מרובים - שליחה אוטומטית</title>
     <style>
         :root {
-            --primary-color: #3498db;
-            --primary-light: #e8f4fd;
-            --secondary-color: #2ecc71;
-            --error-color: #e74c3c;
-            --text-color: #2c3e50;
-            --border-radius: 8px;
+            --primary-color: #4a6cf7;
+            --primary-light: #e6f0ff;
+            --primary-dark: #3555d3;
+            --secondary-color: #20c997;
+            --secondary-dark: #18a278;
+            --error-color: #fa5252;
+            --warning-color: #fd7e14;
+            --text-color: #343a40;
+            --text-secondary: #6c757d;
+            --background-color: #f8f9fa;
+            --border-color: #dee2e6;
+            --border-radius: 12px;
+            --box-shadow: 0 3px 15px rgba(0, 0, 0, 0.07);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             line-height: 1.6;
-            margin: 0;
+            color: var(--text-color);
+            background-color: var(--background-color);
             padding: 20px;
-            background-color: #f5f5f5;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
             border-radius: var(--border-radius);
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary-dark);
         }
         
         h1 {
             text-align: center;
-            color: var(--text-color);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+        
+        h2 {
+            margin: 25px 0 15px;
+            font-size: 22px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
         }
         
         .school-info {
             background-color: var(--primary-light);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px solid #d1e6fa;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            border: 1px solid rgba(74, 108, 247, 0.2);
+            box-shadow: 0 2px 10px rgba(74, 108, 247, 0.05);
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-dark);
         }
         
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             font-size: 16px;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            background-color: white;
         }
         
         input[type="text"]:focus {
             border-color: var(--primary-color);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.25);
+        }
+        
+        .students-table-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
         }
         
         .students-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            border-spacing: 0;
         }
         
         .students-table th {
             background-color: var(--primary-color);
             color: white;
-            padding: 10px;
+            padding: 15px;
             text-align: right;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .students-table th:first-child {
+            border-top-right-radius: var(--border-radius);
+        }
+        
+        .students-table th:last-child {
+            border-top-left-radius: var(--border-radius);
         }
         
         .students-table td {
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .students-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .students-table tbody tr {
+            transition: var(--transition);
+        }
+        
+        .students-table tbody tr:hover {
+            background-color: rgba(74, 108, 247, 0.05);
         }
         
         .students-table input {
             width: 100%;
-            border: none;
-            padding: 8px;
-            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #f8f9fa;
+            transition: var(--transition);
+        }
+        
+        .students-table input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
         }
         
         .students-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: rgba(74, 108, 247, 0.02);
         }
         
         .btn {
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            margin-right: 5px;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-right: 8px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+        
+        .btn svg {
+            margin-left: 8px;
+            width: 18px;
+            height: 18px;
         }
         
         .btn-primary {
@@ -115,7 +213,9 @@
         }
         
         .btn-primary:hover {
-            background-color: #2980b9;
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 108, 247, 0.3);
         }
         
         .btn-success {
@@ -124,183 +224,379 @@
         }
         
         .btn-success:hover {
-            background-color: #27ae60;
+            background-color: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(32, 201, 151, 0.3);
         }
         
         .btn-danger {
             background-color: var(--error-color);
             color: white;
+            padding: 8px 12px;
+            min-width: auto;
         }
         
         .btn-danger:hover {
-            background-color: #c0392b;
+            background-color: #e03131;
+            transform: translateY(-2px);
         }
         
         .btn-secondary {
-            background-color: #7f8c8d;
+            background-color: #5a6268;
             color: white;
         }
         
         .btn-secondary:hover {
-            background-color: #6c7879;
+            background-color: #484e53;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(90, 98, 104, 0.3);
         }
         
         .action-column {
-            width: 50px;
+            width: 60px;
             text-align: center;
         }
         
+        .btn-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
         .submission-status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f1f8ff;
-            border-left: 4px solid var(--primary-color);
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            background-color: white;
+            border: 1px solid rgba(74, 108, 247, 0.2);
+            box-shadow: var(--box-shadow);
             display: none;
         }
         
         .status-list {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
         
         .status-item {
-            margin-bottom: 5px;
-            padding: 5px;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            position: relative;
+            padding-right: 30px;
             border-bottom: 1px solid #eee;
         }
         
+        .status-item::before {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
         .status-success {
-            color: var(--secondary-color);
+            background-color: rgba(32, 201, 151, 0.1);
+            color: var(--secondary-dark);
+        }
+        
+        .status-success::before {
+            background-color: var(--secondary-color);
         }
         
         .status-pending {
-            color: #f39c12;
+            background-color: rgba(253, 126, 20, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .status-pending::before {
+            background-color: var(--warning-color);
         }
         
         .status-error {
+            background-color: rgba(250, 82, 82, 0.1);
             color: var(--error-color);
+        }
+        
+        .status-error::before {
+            background-color: var(--error-color);
+        }
+        
+        .progress-info {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .progress-bar-container {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
         }
         
         .instructions {
             background-color: var(--primary-light);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--primary-color);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            position: relative;
+            border: 1px solid rgba(74, 108, 247, 0.2);
+            box-shadow: 0 2px 10px rgba(74, 108, 247, 0.05);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .instructions h3 svg {
+            margin-left: 10px;
+            width: 24px;
+            height: 24px;
+            color: var(--primary-color);
+        }
+        
+        .instructions ol {
+            padding-right: 20px;
+            margin-bottom: 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
         }
         
         footer {
-            margin-top: 30px;
+            margin-top: 50px;
             text-align: center;
-            color: #7f8c8d;
+            color: var(--text-secondary);
             font-size: 14px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border-color);
         }
         
-        #loadingOverlay {
+        .loading-overlay {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(5px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
+        }
+        
+        .loader-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--box-shadow);
+            max-width: 400px;
+            width: 90%;
         }
         
         .loader {
             display: inline-block;
             width: 80px;
             height: 80px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+            position: relative;
         }
         
-        .loader:after {
-            content: " ";
-            display: block;
-            width: 40px;
-            height: 40px;
-            margin: 0 auto;
+        .loader div {
+            position: absolute;
+            border: 4px solid var(--primary-color);
+            opacity: 1;
             border-radius: 50%;
-            border: 6px solid var(--primary-color);
-            border-color: var(--primary-color) transparent var(--primary-color) transparent;
-            animation: loader 1.2s linear infinite;
+            animation: loader 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
         }
         
-        .loader-text {
-            margin-top: 15px;
-            color: var(--text-color);
-            font-weight: bold;
+        .loader div:nth-child(2) {
+            animation-delay: -0.5s;
         }
         
         @keyframes loader {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                top: 36px;
+                left: 36px;
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                top: 0px;
+                left: 0px;
+                width: 72px;
+                height: 72px;
+                opacity: 0;
+            }
         }
         
-        #csv-export {
+        .loader-text {
             margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
+            color: var(--primary-dark);
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .loader-progress {
+            margin-top: 15px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .csv-export {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
             display: none;
         }
         
-        #csv-content {
+        .csv-content {
             width: 100%;
-            height: 100px;
-            margin-top: 10px;
+            height: 150px;
+            margin-top: 15px;
             font-family: monospace;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            resize: vertical;
+        }
+        
+        /* מסגרת מודגשת לשדה פעיל */
+        .active-row {
+            background-color: var(--primary-light) !important;
+        }
+        
+        /* אנימציה להצגת אזור סטטוס */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-slide-down {
+            animation: slideDown 0.3s ease forwards;
+        }
+        
+        /* אנימציה לכפתור שליחה */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+            animation: pulse 0.5s ease;
+        }
+        
+        /* תיבת התראה בסגנון חדש */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .alert-success {
+            background-color: rgba(32, 201, 151, 0.15);
+            border: 1px solid rgba(32, 201, 151, 0.3);
+            color: var(--secondary-dark);
+        }
+        
+        .alert-info {
+            background-color: rgba(74, 108, 247, 0.15);
+            border: 1px solid rgba(74, 108, 247, 0.3);
+            color: var(--primary-dark);
+        }
+        
+        /* תוספת צללית בהרחפה */
+        .hover-shadow:hover {
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* מעברים חלקים */
+        .students-table-container, .submission-status, .csv-export, .instructions, .school-info {
+            transition: var(--transition);
         }
     </style>
 </head>
 <body>
-    <div id="loadingOverlay">
-        <div class="loader">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader-container">
+            <div class="loader"><div></div><div></div></div>
             <div class="loader-text">שולח נתונים...</div>
+            <div class="loader-progress">
+                <span id="loadingCount">0</span> מתוך <span id="loadingTotal">0</span> תלמידים
+            </div>
         </div>
     </div>
 
     <div class="container">
-        <h1>טופס הזנת תלמידים מרובים</h1>
+        <h1>מערכת הזנת תלמידים מרובים</h1>
         
         <div class="instructions">
-            <h3>הוראות שימוש</h3>
-            <p>טופס זה מאפשר לך להזין פרטים של מספר תלמידים ולשלוח אותם לגוגל פורמס <strong>בבת אחת</strong>!</p>
+            <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                הוראות שימוש
+            </h3>
             <ol>
                 <li>הזן את פרטי בית הספר והעיר (פעם אחת עבור כל התלמידים)</li>
-                <li>הוסף את פרטי התלמידים בטבלה</li>
+                <li>הוסף את פרטי התלמידים בטבלה (אפשר להוסיף שורות על ידי לחיצה על TAB בסוף שורה)</li>
                 <li>לחץ על "שלח את כל התלמידים" כדי לשלוח את כל הנתונים <strong>אוטומטית</strong></li>
-                <li>המערכת תשלח את כל הרשומות עבורך ותציג לך סטטוס בזמן אמת</li>
+                <li>המערכת תייצא קובץ CSV באופן אוטומטי עם סיום השליחה ותנקה את רשימת התלמידים</li>
             </ol>
         </div>
         
-        <div class="school-info">
+        <div class="school-info hover-shadow">
             <h2>פרטי בית הספר</h2>
             <div class="form-group">
                 <label for="schoolName">שם בית הספר:</label>
-                <input type="text" id="schoolName" name="schoolName" required>
+                <input type="text" id="schoolName" name="schoolName" required placeholder="הזן את שם בית הספר">
             </div>
             
             <div class="form-group">
                 <label for="city">העיר:</label>
-                <input type="text" id="city" name="city" required>
+                <input type="text" id="city" name="city" required placeholder="הזן את שם העיר">
             </div>
         </div>
         
         <h2>פרטי התלמידים</h2>
-        <p>הזן את פרטי התלמידים בטבלה. ניתן להוסיף שורות נוספות לפי הצורך.</p>
+        <p>הזן את פרטי התלמידים בטבלה. ניתן להוסיף שורות נוספות בלחיצה על TAB בסוף השורה או על ידי כפתור "הוסף תלמיד".</p>
         
-        <div style="overflow-x:auto;">
+        <div class="students-table-container hover-shadow">
             <table class="students-table" id="studentsTable">
                 <thead>
                     <tr>
@@ -311,39 +607,69 @@
                 </thead>
                 <tbody id="studentsTableBody">
                     <tr>
-                        <td><input type="text" name="studentName" placeholder="שם התלמיד"></td>
-                        <td><input type="text" name="studentClass" placeholder="כיתה"></td>
+                        <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="1"></td>
+                        <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="2"></td>
                         <td class="action-column">
-                            <button class="btn btn-danger" onclick="removeRow(this)">הסר</button>
+                            <button class="btn btn-danger" onclick="removeRow(this)" tabindex="3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
         
-        <div style="margin-top: 15px;">
-            <button class="btn btn-secondary" onclick="addRow()">הוסף תלמיד</button>
-            <button class="btn btn-success" onclick="submitAllForms()">שלח את כל התלמידים</button>
-            <button class="btn btn-primary" onclick="exportToCsv()">ייצא ל-CSV (גיבוי)</button>
+        <div class="btn-actions">
+            <button class="btn btn-secondary" onclick="addRow()" id="addRowBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                הוסף תלמיד
+            </button>
+            <button class="btn btn-success" onclick="submitAllForms()" id="submitBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                שלח את כל התלמידים
+            </button>
+            <button class="btn btn-primary" onclick="exportToCsv(false)" id="exportBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                ייצא ל-CSV
+            </button>
         </div>
         
         <div class="submission-status" id="submissionStatus">
             <h3>סטטוס שליחה</h3>
-            <div>תלמידים שנשלחו: <span id="sentCount">0</span> מתוך <span id="totalCount">0</span></div>
-            <div id="progressInfo"></div>
+            
+            <div class="progress-info">
+                <div><span id="sentCount">0</span> מתוך <span id="totalCount">0</span> תלמידים</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div id="percentageText">0%</div>
+            </div>
             
             <div class="status-list" id="statusList"></div>
         </div>
         
-        <div id="csv-export">
-            <h3>נתונים ב-CSV (ייצוא)</h3>
+        <div class="csv-export" id="csvExport">
+            <h3>נתונים ב-CSV (גיבוי)</h3>
             <p>להלן הנתונים בפורמט CSV לגיבוי. ניתן להעתיק ולשמור אותם:</p>
-            <textarea id="csv-content" readonly></textarea>
+            <textarea class="csv-content" id="csvContent" readonly></textarea>
         </div>
     </div>
     
     <footer>
-        © כל הזכויות שמורות - טופס שליחת תלמידים מרובים לגוגל פורמס
+        © כל הזכויות שמורות - מערכת שליחת תלמידים מרובים לגוגל פורמס
     </footer>
     
     <script>
@@ -367,23 +693,102 @@
             },
             
             // השהייה בין שליחות (במילישניות)
-            DELAY_BETWEEN_SUBMISSIONS: 1000
+            DELAY_BETWEEN_SUBMISSIONS: 800,
+            
+            // האם להוריד את קובץ ה-CSV אוטומטית בסיום השליחה
+            AUTO_DOWNLOAD_CSV: true,
+            
+            // האם לנקות את פרטי התלמידים אחרי שליחה
+            CLEAR_STUDENTS_AFTER_SUBMISSION: true
         };
+        
+        // ----- אתחול לאחר טעינת הדף -----
+        document.addEventListener('DOMContentLoaded', function() {
+            // הוסף מאזין אירועים לטאב בטבלת התלמידים
+            setupTabNavigation();
+            
+            // מיקוד אוטומטי בשדה הראשון
+            document.getElementById('schoolName').focus();
+        });
+        
+        // ----- הגדרת ניווט באמצעות TAB -----
+        function setupTabNavigation() {
+            const tableBody = document.getElementById('studentsTableBody');
+            
+            // הוסף האזנה לאירועי מקלדת לכל הטבלה
+            tableBody.addEventListener('keydown', function(event) {
+                // בדוק אם לחצו על TAB בשדה אחרון בשורה האחרונה
+                if (event.key === 'Tab' && !event.shiftKey) {
+                    const inputs = tableBody.querySelectorAll('input');
+                    const lastInput = inputs[inputs.length - 1];
+                    
+                    if (event.target === lastInput) {
+                        // מניעת ברירת המחדל כדי שהמיקוד לא יעבור לכפתור ההסרה
+                        event.preventDefault();
+                        // הוסף שורה חדשה
+                        addRow();
+                        // מקד את השדה הראשון בשורה החדשה
+                        const newRowInputs = tableBody.querySelectorAll('tr:last-child input');
+                        if (newRowInputs.length > 0) {
+                            newRowInputs[0].focus();
+                        }
+                    }
+                }
+            });
+            
+            // הוסף האזנה למיקוד בשדות
+            tableBody.addEventListener('focusin', function(event) {
+                if (event.target.tagName === 'INPUT') {
+                    // הסר את המחלקה 'active-row' מכל השורות
+                    const allRows = tableBody.querySelectorAll('tr');
+                    allRows.forEach(row => row.classList.remove('active-row'));
+                    
+                    // הוסף את המחלקה 'active-row' לשורה הנוכחית
+                    const currentRow = event.target.closest('tr');
+                    if (currentRow) {
+                        currentRow.classList.add('active-row');
+                    }
+                }
+            });
+        }
+        
+        // ----- פונקציות לניהול טבלת התלמידים -----
         
         // פונקציה להוספת שורה חדשה לטבלה
         function addRow() {
             const tableBody = document.getElementById('studentsTableBody');
+            const rowCount = tableBody.querySelectorAll('tr').length;
             const newRow = document.createElement('tr');
             
+            // הגדרת אינדקס טאב חדש לשורה החדשה
+            const tabIndexBase = rowCount * 3;
+            
             newRow.innerHTML = `
-                <td><input type="text" name="studentName" placeholder="שם התלמיד"></td>
-                <td><input type="text" name="studentClass" placeholder="כיתה"></td>
+                <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="${tabIndexBase+1}"></td>
+                <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="${tabIndexBase+2}"></td>
                 <td class="action-column">
-                    <button class="btn btn-danger" onclick="removeRow(this)">הסר</button>
+                    <button class="btn btn-danger" onclick="removeRow(this)" tabindex="${tabIndexBase+3}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </td>
             `;
             
             tableBody.appendChild(newRow);
+            
+            // אנימציה קלה לשורה החדשה
+            setTimeout(() => {
+                newRow.style.transition = "background-color 0.5s ease";
+                newRow.style.backgroundColor = "rgba(74, 108, 247, 0.1)";
+                
+                setTimeout(() => {
+                    newRow.style.backgroundColor = "";
+                }, 800);
+            }, 10);
+            
+            return newRow;
         }
         
         // פונקציה להסרת שורה מהטבלה
@@ -393,15 +798,49 @@
             
             // ודא שיש לפחות שורה אחת בטבלה
             if (tableBody.rows.length > 1) {
-                row.remove();
+                // אנימציה להסרת השורה
+                row.style.transition = "opacity 0.3s, transform 0.3s";
+                row.style.opacity = "0";
+                row.style.transform = "translateX(20px)";
+                
+                setTimeout(() => {
+                    row.remove();
+                    // עדכון אינדקסי טאב
+                    updateTabIndexes();
+                }, 300);
             } else {
                 // אפס את הערכים בשורה אם זו השורה האחרונה
                 const inputs = row.querySelectorAll('input');
                 inputs.forEach(input => {
                     input.value = '';
                 });
+                
+                // אנימציה קלה לניקוי
+                row.style.transition = "background-color 0.5s ease";
+                row.style.backgroundColor = "rgba(250, 82, 82, 0.1)";
+                
+                setTimeout(() => {
+                    row.style.backgroundColor = "";
+                }, 500);
             }
         }
+        
+        // עדכון אינדקסי טאב לכל השורות בטבלה
+        function updateTabIndexes() {
+            const tableBody = document.getElementById('studentsTableBody');
+            const rows = tableBody.querySelectorAll('tr');
+            
+            rows.forEach((row, rowIndex) => {
+                const inputs = row.querySelectorAll('input, button');
+                const tabIndexBase = rowIndex * 3;
+                
+                inputs.forEach((input, inputIndex) => {
+                    input.tabIndex = tabIndexBase + inputIndex + 1;
+                });
+            });
+        }
+        
+        // ----- פונקציות לאימות וקבלת הנתונים -----
         
         // אימות נתונים בסיסי
         function validateData() {
@@ -409,12 +848,14 @@
             const city = document.getElementById('city').value.trim();
             
             if (!schoolName) {
-                alert('אנא הזן את שם בית הספר');
+                showAlert('אנא הזן את שם בית הספר', 'error');
+                document.getElementById('schoolName').focus();
                 return false;
             }
             
             if (!city) {
-                alert('אנא הזן את שם העיר');
+                showAlert('אנא הזן את שם העיר', 'error');
+                document.getElementById('city').focus();
                 return false;
             }
             
@@ -432,11 +873,50 @@
             }
             
             if (!validStudents) {
-                alert('אנא הזן פרטים של לפחות תלמיד אחד');
+                showAlert('אנא הזן פרטים של לפחות תלמיד אחד', 'error');
                 return false;
             }
             
             return true;
+        }
+        
+        // הצגת התראה למשתמש
+        function showAlert(message, type = 'error') {
+            // בדוק אם כבר קיימת התראה ומחק אותה
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            // יצירת אלמנט ההתראה
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
+            alertDiv.textContent = message;
+            
+            // הוספת ההתראה בראש הטופס
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // הגדרת טיימר להסרת ההתראה
+            setTimeout(() => {
+                if (alertDiv.parentNode === container) {
+                    alertDiv.style.opacity = '0';
+                    alertDiv.style.transform = 'translateY(-10px)';
+                    
+                    setTimeout(() => {
+                        if (alertDiv.parentNode === container) {
+                            container.removeChild(alertDiv);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+            
+            // אנימציית הופעה
+            setTimeout(() => {
+                alertDiv.style.transition = 'opacity 0.3s, transform 0.3s';
+                alertDiv.style.opacity = '1';
+                alertDiv.style.transform = 'translateY(0)';
+            }, 10);
         }
         
         // איסוף כל הנתונים מהטופס
@@ -463,6 +943,8 @@
             
             return studentsData;
         }
+        
+        // ----- פונקציות לשליחת הטפסים -----
         
         // שליחת טופס בודד
         async function submitSingleForm(data) {
@@ -492,18 +974,32 @@
             }
         }
         
-        // עדכון סטטוס השליחה
+        // הצגת/הסתרת מסך טעינה
+        function toggleLoadingOverlay(show, total = 0, current = 0) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+            
+            if (show && total > 0) {
+                document.getElementById('loadingTotal').textContent = total;
+                document.getElementById('loadingCount').textContent = current;
+            }
+        }
+        
+        // עדכון ספירת התלמידים במסך הטעינה
+        function updateLoadingCount(count) {
+            document.getElementById('loadingCount').textContent = count;
+        }
+        
+        // עדכון סטטוס השליחה בממשק
         function updateStatusUI(sent, total) {
             document.getElementById('sentCount').textContent = sent;
             document.getElementById('totalCount').textContent = total;
             
+            const percent = Math.round((sent / total) * 100);
+            document.getElementById('percentageText').textContent = `${percent}%`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            
             if (sent === total) {
-                document.getElementById('progressInfo').innerHTML = 
-                    '<div style="color: #2ecc71; font-weight: bold; margin-top: 10px;">כל התלמידים נשלחו בהצלחה!</div>';
-            } else {
-                const percent = Math.round((sent / total) * 100);
-                document.getElementById('progressInfo').innerHTML = 
-                    `<div style="margin-top: 10px;">התקדמות: ${percent}%</div>`;
+                document.getElementById('progressBar').style.backgroundColor = 'var(--secondary-color)';
             }
         }
         
@@ -513,15 +1009,45 @@
             const statusItem = document.createElement('div');
             statusItem.className = `status-item status-${type}`;
             statusItem.textContent = message;
-            statusList.prepend(statusItem);
+            
+            // הוספת האלמנט בראש הרשימה
+            if (statusList.firstChild) {
+                statusList.insertBefore(statusItem, statusList.firstChild);
+            } else {
+                statusList.appendChild(statusItem);
+            }
+            
+            // אנימציית הופעה
+            statusItem.style.opacity = '0';
+            statusItem.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                statusItem.style.transition = 'opacity 0.3s, transform 0.3s';
+                statusItem.style.opacity = '1';
+                statusItem.style.transform = 'translateY(0)';
+            }, 10);
             
             // החזר את האובייקט שנוצר כדי שניתן יהיה לעדכן אותו בהמשך
             return statusItem;
         }
         
-        // הצגת/הסתרת מסך טעינה
-        function toggleLoadingOverlay(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        // ניקוי רשימת התלמידים
+        function clearStudentsData() {
+            const tableBody = document.getElementById('studentsTableBody');
+            
+            // שמור שורה אחת ואפס את הערכים בה
+            while (tableBody.rows.length > 1) {
+                tableBody.deleteRow(tableBody.rows.length - 1);
+            }
+            
+            // נקה את הערכים בשורה שנותרה
+            const inputs = tableBody.querySelector('tr').querySelectorAll('input');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // עדכן את אינדקסי הטאב
+            updateTabIndexes();
         }
         
         // שליחת כל הטפסים
@@ -531,18 +1057,23 @@
                 return;
             }
             
+            // אנימציה לכפתור השליחה
+            document.getElementById('submitBtn').classList.add('animate-pulse');
+            
             const studentsData = collectFormData();
             
             if (studentsData.length === 0) {
-                alert('אין תלמידים חוקיים לשליחה');
+                showAlert('אין תלמידים חוקיים לשליחה', 'error');
                 return;
             }
             
             // הצג את מסך הטעינה
-            toggleLoadingOverlay(true);
+            toggleLoadingOverlay(true, studentsData.length, 0);
             
             // הצג את פאנל הסטטוס
-            document.getElementById('submissionStatus').style.display = 'block';
+            const statusPanel = document.getElementById('submissionStatus');
+            statusPanel.style.display = 'block';
+            statusPanel.classList.add('animate-slide-down');
             document.getElementById('statusList').innerHTML = '';
             
             // עדכון מוני הסטטוס
@@ -555,7 +1086,10 @@
             addStatusMessage(`מתחיל לשלוח ${totalCount} תלמידים...`, 'pending');
             
             // גלול אל אזור הסטטוס
-            document.getElementById('submissionStatus').scrollIntoView({ behavior: 'smooth' });
+            statusPanel.scrollIntoView({ behavior: 'smooth' });
+            
+            // יצירת רשימת תלמידים ששלחנו בהצלחה (לייצוא CSV)
+            const successfulSubmissions = [];
             
             // עבור על כל התלמידים ושלח אותם בהדרגה
             for (let i = 0; i < studentsData.length; i++) {
@@ -565,13 +1099,20 @@
                 const statusMessage = addStatusMessage(`שולח את הנתונים של ${studentData.studentName}...`, 'pending');
                 
                 try {
+                    // עדכון ספירה במסך הטעינה
+                    updateLoadingCount(i);
+                    
                     // שלח את הנתונים
                     const result = await submitSingleForm(studentData);
                     
                     if (result.success) {
+                        // הוסף לרשימת השליחות המוצלחות
+                        successfulSubmissions.push(studentData);
+                        
                         // עדכן סטטוס
                         sentCount++;
                         updateStatusUI(sentCount, totalCount);
+                        updateLoadingCount(sentCount);
                         
                         // עדכן את הודעת הסטטוס
                         statusMessage.className = 'status-item status-success';
@@ -600,24 +1141,27 @@
             // הוסף הודעת סיכום
             if (sentCount === totalCount) {
                 addStatusMessage(`כל ${sentCount} התלמידים נשלחו בהצלחה!`, 'success');
+                showAlert(`כל ${sentCount} התלמידים נשלחו בהצלחה!`, 'success');
             } else {
                 addStatusMessage(`${sentCount} מתוך ${totalCount} תלמידים נשלחו בהצלחה`, 
                     sentCount > 0 ? 'partial' : 'error');
             }
             
-            // הצג את אפשרות הייצוא לגיבוי
-            document.getElementById('csv-export').style.display = 'block';
-        }
-        
-        // ייצוא הנתונים ל-CSV
-        function exportToCsv() {
-            const studentsData = collectFormData();
-            
-            if (studentsData.length === 0) {
-                alert('אין נתונים לייצוא');
-                return;
+            // הורד קובץ CSV אוטומטית אם הוגדר כך
+            if (CONFIG.AUTO_DOWNLOAD_CSV && successfulSubmissions.length > 0) {
+                exportToCsv(true, successfulSubmissions);
             }
             
+            // נקה את רשימת התלמידים אם הוגדר כך
+            if (CONFIG.CLEAR_STUDENTS_AFTER_SUBMISSION) {
+                clearStudentsData();
+            }
+        }
+        
+        // ----- פונקציות לייצוא נתונים -----
+        
+        // יצירת תוכן CSV מנתוני התלמידים
+        function createCsvContent(studentsData) {
             // יצירת כותרות ה-CSV
             let csvContent = 'שם בית הספר,עיר,שם התלמיד,כיתה\n';
             
@@ -626,29 +1170,61 @@
                 csvContent += `"${student.schoolName}","${student.city}","${student.studentName}","${student.studentClass}"\n`;
             });
             
-            // הצגת ה-CSV בתיבת הטקסט
-            const csvTextarea = document.getElementById('csv-content');
-            csvTextarea.value = csvContent;
+            return csvContent;
+        }
+        
+        // ייצוא הנתונים ל-CSV
+        function exportToCsv(autoDownload = false, specificData = null) {
+            // השתמש בנתונים ספציפיים שסופקו או אסוף את כל הנתונים מהטופס
+            const studentsData = specificData || collectFormData();
             
-            // הצגת אזור הייצוא
-            document.getElementById('csv-export').style.display = 'block';
-            csvTextarea.scrollIntoView({ behavior: 'smooth' });
+            if (studentsData.length === 0) {
+                if (!autoDownload) {
+                    showAlert('אין נתונים לייצוא', 'error');
+                }
+                return;
+            }
             
-            // בחירת כל הטקסט בתיבה
-            csvTextarea.select();
+            // יצירת תוכן ה-CSV
+            const csvContent = createCsvContent(studentsData);
+            
+            // אם זו לא הורדה אוטומטית, הצג את ה-CSV בממשק
+            if (!autoDownload) {
+                // הצגת ה-CSV בתיבת הטקסט
+                const csvTextarea = document.getElementById('csvContent');
+                csvTextarea.value = csvContent;
+                
+                // הצגת אזור הייצוא
+                const csvExport = document.getElementById('csvExport');
+                csvExport.style.display = 'block';
+                csvExport.classList.add('animate-slide-down');
+                csvTextarea.scrollIntoView({ behavior: 'smooth' });
+                
+                // בחירת כל הטקסט בתיבה
+                csvTextarea.select();
+            }
             
             // יצירת קובץ CSV להורדה
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             
+            // הגדרת שם הקובץ עם תאריך ושעה נוכחיים
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('he-IL').replace(/\./g, '-');
+            const timeStr = now.toLocaleTimeString('he-IL').replace(/:/g, '-');
+            
             link.setAttribute('href', url);
-            link.setAttribute('download', 'תלמידים.csv');
+            link.setAttribute('download', `תלמידים_${dateStr}_${timeStr}.csv`);
             link.style.display = 'none';
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            if (!autoDownload) {
+                showAlert('הקובץ הורד בהצלחה!', 'success');
+            }
         }
     </script>
 </body>
