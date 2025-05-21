@@ -2,144 +2,1213 @@
 <html dir="rtl" lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>מחולל טפסים לאירועים</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ארוע דורש טוב - ךלחךףחלףךל</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
+        :root {
+            --primary-color: #2196f3;
+            --secondary-color: #4b6cb7;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --light-color: #f5f5f5;
+            --dark-color: #333;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            background-color: var(--light-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
-            direction: rtl;
         }
-        .form-group {
+
+        .header {
+            background: linear-gradient(to left, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 0 0 10px 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .logo {
+            max-width: 150px;
             margin-bottom: 15px;
         }
-        .form-group label {
-            display: block;
+
+        .product-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .product-title {
+            font-size: 1.8em;
+            color: var(--dark-color);
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .product-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            white-space: pre-line;
+        }
+
+        .product-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-right: 4px solid var(--primary-color);
+        }
+
+        .price-info {
+            font-weight: bold;
+            color: var(--dark-color);
+            font-size: 1.1em;
             margin-bottom: 5px;
         }
+
+        .payment-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--primary-color);
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 1px dotted var(--primary-color);
+            transition: all 0.2s ease;
+        }
+
+        .payment-link:hover {
+            color: var(--secondary-color);
+        }
+
+        .product-stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 100px;
+            margin: 5px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .progress-container {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            height: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--success-color), var(--primary-color));
+            transition: width 0.5s ease;
+        }
+
+        .actions {
+            text-align: center;
+        }
+
+        .booking-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .booking-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .booking-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            backdrop-filter: blur(3px);
+        }
+
+        .booking-form {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .booking-form h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
         .form-group input {
             width: 100%;
-            padding: 8px;
-        }
-        .preview {
-            margin-top: 20px;
+            padding: 10px;
             border: 1px solid #ddd;
-            padding: 15px;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border 0.3s ease;
         }
-        .generate-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .form-group .input-with-counter {
+            position: relative;
+        }
+
+        .quantity-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 120px;
+            margin: 0 auto;
+        }
+
+        .counter-btn {
+            width: 30px;
+            height: 30px;
             border: none;
+            background-color: #eee;
+            color: #333;
+            font-size: 1.2em;
             cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
         }
-    </style>
-</head>
-<body>
-    <h1>מחולל טפסים לאירועים</h1>
-    
-    <form id="formGenerator">
-        <div class="form-group">
-            <label>שם האירוע:</label>
-            <input type="text" id="eventName" required>
-        </div>
-        
-        <div class="form-group">
-            <label>קישור לוגו (אופציונלי):</label>
-            <input type="text" id="logoUrl">
-        </div>
-        
-        <div class="form-group">
-            <label>כמות מקסימלית של משתתפים:</label>
-            <input type="number" id="maxParticipants" required min="1" max="100">
-        </div>
-        
-        <div class="form-group">
-            <label>קישור לטופס Google Forms:</label>
-            <input type="url" id="googleFormsLink" required>
-        </div>
-        
-        <div class="form-group">
-            <label>קישור לגיליון Google Sheets:</label>
-            <input type="url" id="googleSheetsLink" required>
-        </div>
-        
-        <div class="form-group">
-            <label>קישור לתשלום:</label>
-            <input type="url" id="paymentLink" required>
-        </div>
-        
-        <div class="form-group">
-            <label>מחיר למשתתף (בש"ח):</label>
-            <input type="number" id="pricePerParticipant" required min="0">
-        </div>
-        
-        <button type="button" onclick="generateForm()" class="generate-btn">
-            צור טופס
-        </button>
-    </form>
 
-    <div class="preview" id="previewArea">
-        <!-- תצוגה מקדימה של הטופס יופיע כאן -->
-    </div>
+        .counter-btn:hover {
+            background-color: #ddd;
+        }
 
-    <script>
-        function generateForm() {
-            // אחזור נתונים
-            const eventName = document.getElementById('eventName').value;
-            const logoUrl = document.getElementById('logoUrl').value;
-            const maxParticipants = document.getElementById('maxParticipants').value;
-            const googleFormsLink = document.getElementById('googleFormsLink').value;
-            const googleSheetsLink = document.getElementById('googleSheetsLink').value;
-            const paymentLink = document.getElementById('paymentLink').value;
-            const pricePerParticipant = document.getElementById('pricePerParticipant').value;
+        .counter-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
 
-            // בדיקות תקינות
-            if (!eventName || !maxParticipants || !googleFormsLink || 
-                !googleSheetsLink || !paymentLink || !pricePerParticipant) {
-                alert('אנא מלא את כל השדות החובה');
-                return;
+        .price-display {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+
+        .price-amount {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .form-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background-color: #3d9140;
+        }
+
+        .cancel-btn {
+            background-color: #eee;
+            color: #333;
+        }
+
+        .cancel-btn:hover {
+            background-color: #ddd;
+        }
+
+        .payment-note {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 5px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .payment-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: var(--success-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .payment-btn:hover {
+            background-color: #3d9140;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: var(--danger-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .decoration {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .event-decoration {
+            font-size: 1.2em;
+            color: #8d6e63;
+            text-align: center;
+            margin: 15px 0;
+            font-style: italic;
+            display: none;
+        }
+
+        .debug-btn {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 999;
+            padding: 8px 12px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
             }
 
-            // יצירת קונפיגורציה
-            const config = {
-                eventName,
-                logoUrl,
-                maxParticipants: parseInt(maxParticipants),
-                googleFormsLink,
-                googleSheetsLink,
-                paymentLink,
-                pricePerParticipant: parseFloat(pricePerParticipant)
-            };
+            .header h1 {
+                font-size: 1.8em;
+            }
 
-            // הצגת תצוגה מקדימה
-            const previewArea = document.getElementById('previewArea');
-            previewArea.innerHTML = `
-                <h2>תצוגה מקדימה של הגדרות הטופס</h2>
-                <p><strong>שם האירוע:</strong> ${config.eventName}</p>
-                <p><strong>כמות מקסימלית:</strong> ${config.maxParticipants}</p>
-                <p><strong>מחיר למשתתף:</strong> ${config.pricePerParticipant} ש"ח</p>
-                <button onclick="copyConfigCode()">העתק קוד הגדרות</button>
-            `;
+            .header p {
+                font-size: 1em;
+            }
+
+            .product-card {
+                padding: 15px;
+            }
+
+            .product-title {
+                font-size: 1.5em;
+            }
+
+            .product-stats {
+                flex-direction: column;
+            }
+            
+            .stat-box {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-actions button {
+                width: 100%;
+            }
+
+            .booking-form {
+                padding: 20px;
+                width: 95%;
+            }
         }
+    </style>
 
-        function copyConfigCode() {
-            // יצירת קוד קונפיגורציה להעתקה
-            const config = {
-                eventName: document.getElementById('eventName').value,
-                logoUrl: document.getElementById('logoUrl').value,
-                maxParticipants: document.getElementById('maxParticipants').value,
-                googleFormsLink: document.getElementById('googleFormsLink').value,
-                googleSheetsLink: document.getElementById('googleSheetsLink').value,
-                paymentLink: document.getElementById('paymentLink').value,
-                pricePerParticipant: document.getElementById('pricePerParticipant').value
-            };
+<meta name="NetsparkQuiltingResult" total-length="48122" removed="0" rules-found="w11626,w3509,w2656,w8931,w4829,w4830,w5434,w26950,w6522,w16585,w26891,w11400,w19703,w6243,w17783,w19613,w27088,w19402,w10821" />
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <img src="logo.jpg" alt="לוגו" class="logo">
+            <h1 id="project-title">ארוע דורש טוב</h1>
+            <p id="project-subtitle">ךלחךףחלףךל</p>
+        </div>
+    </div>
 
-            navigator.clipboard.writeText(JSON.stringify(config, null, 2)).then(() => {
-                alert('קוד ההגדרות הועתק בהצלחה!');
-            });
-        }
+    <div class="container">
+        <div class="success-message" id="success-message">
+            ההזמנה שלך התקבלה בהצלחה! נא להשלים את התשלום בקישור שלהלן.
+            <br>
+            <a href="https://payboxapp.page.link/mYU4bTgMwyGCBXWd6" class="payment-btn" target="_blank">מעבר לתשלום</a>
+        </div>
+
+        <div class="product-card">
+            <h2 class="product-title" id="product-name">ארוע דורש טוב</h2>
+            
+            
+            
+            <div class="product-details">
+                <div class="price-info">עלות: <span id="price-per-person">20</span> ₪ לש"ח</div>
+              
+                <a href="https://payboxapp.page.link/mYU4bTgMwyGCBXWd6" class="payment-link" target="_blank">קישור לתשלום</a>
+            </div>
+
+            <div class="product-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="total-slots">40</div>
+                    <div class="stat-label">סך המקומות</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="booked-slots">0</div>
+                    <div class="stat-label">מקומות שהוזמנו</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="available-slots">40</div>
+                    <div class="stat-label">מקומות פנויים</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="booking-progress" style="width: 0%"></div>
+            </div>
+
+            <div class="event-decoration">
+                
+            </div>
+
+            <div class="actions">
+                <button class="booking-btn" id="booking-btn">הזמן עכשיו</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="booking-form" id="booking-form">
+        <h3 id="form-title">הזמנת ארוע דורש טוב</h3>
+        <form id="reservation-form">
+            <div class="form-group">
+                <label for="firstName">שם פרטי:</label>
+                <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">שם משפחה:</label>
+                <input type="text" id="lastName" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">מספר טלפון:</label>
+                <input type="tel" id="phone" required pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות">
+            </div>
+            <div class="form-group" id="quantity-group">
+                <label for="quantity">מספר מקומות:</label>
+                <div class="quantity-counter">
+                    <button type="button" class="counter-btn" id="decrease-btn">-</button>
+                    <span class="counter-value" id="quantity-value">1</span>
+                    <button type="button" class="counter-btn" id="increase-btn">+</button>
+                </div>
+                <input type="hidden" id="quantity" value="1">
+            </div>
+            
+            <div class="price-display">
+                סך הכל לתשלום: <span class="price-amount" id="total-price">20</span> ₪
+            </div>
+            
+            <div class="payment-note">
+                לאחר שליחת טופס ההזמנה, יש להשלים את התשלום בקישור שיופיע.
+            </div>
+            
+            <input type="hidden" id="projectName" value="">
+            <div id="error-message" class="error"></div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
+                <button type="submit" class="submit-btn">שלח הזמנה</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">טוען נתונים...</div>
+    </div>
+
+    <button class="debug-btn" id="debug-btn">בדוק נתונים</button>
+
+    <script>
+        // הגדרות המערכת
+        const CONFIG = {
+            // מספר הזמנות מקסימלי
+            totalSlots: 40,
+            
+            // מספר הזמנות מקסימלי להזמנה בודדת
+            maxSlotsPerBooking: 1,
+            
+            // מחיר ליחידה
+            pricePerPerson: 20,
+            
+            // זמן עבור הזמנה זמנית (בדקות)
+            tempBookingTimeout: 4,
+            
+            // זמן רענון אוטומטי (בשניות)
+            autoRefreshInterval: 60,
+            
+            // קישור לתשלום
+            paymentLink: 'https://payboxapp.page.link/mYU4bTgMwyGCBXWd6',
+            
+            // כתובות URL
+            urls: {
+                form: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/viewform?usp=header',
+                formViewUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/viewform?usp=header',
+                sheet: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv'
+            },
+            
+            // שדות טופס Google
+            formFields: {
+                firstName: "entry.1726269772",
+                lastName: "entry.1766470893",
+                phone: "entry.2028941780",
+                quantity: "entry.1406108683",
+                projectName: "entry.1414374653"
+            },
+            
+            // פרטי פרויקט
+            project: {
+                name: "ארוע דורש טוב 2025",
+                title: "ארוע דורש טוב",
+                subtitle: "ךלחךףחלףךל"
+            },
+
+            // האם להציג בוחר כמות או להגביל ל-1
+            showQuantitySelector: true
+        };
+
+        // מערכת הזמנה
+        const bookingSystem = {
+            bookingsData: [],
+            totalBooked: 0,
+            
+            tempBookingsManager: {
+                STORAGE_KEY: 'tempProductBookings_1234',
+                
+                getData() {
+                    try {
+                        const stored = localStorage.getItem(this.STORAGE_KEY);
+                        return stored ? JSON.parse(stored) : {};
+                    } catch {
+                        return {};
+                    }
+                },
+                
+                clearAllData() {
+                    localStorage.removeItem(this.STORAGE_KEY);
+                },
+                
+                setData(bookings) {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
+                },
+                
+                addBooking(booking) {
+                    const bookings = this.getData();
+                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}_${Date.now()}`;
+                    bookings[key] = {
+                        ...booking,
+                        expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
+                    };
+                    this.setData(bookings);
+                    return key;
+                },
+                
+                removeBooking(key) {
+                    const bookings = this.getData();
+                    if (bookings[key]) {
+                        delete bookings[key];
+                        this.setData(bookings);
+                    }
+                },
+                
+                getValidBookings() {
+                    const bookings = this.getData();
+                    const now = Date.now();
+                    const validBookings = {};
+                    
+                    Object.entries(bookings).forEach(([key, booking]) => {
+                        if (booking.expiryTime > now) {
+                            validBookings[key] = booking;
+                        }
+                    });
+                    
+                    this.setData(validBookings);
+                    return validBookings;
+                },
+                
+                getTotalTempQuantity() {
+                    const bookings = this.getValidBookings();
+                    return Object.values(bookings).reduce((total, booking) => {
+                        // וידוא שהכמות היא מספר חיובי
+                        const quantity = parseInt(booking.quantity) || 0;
+                        return total + (quantity > 0 ? quantity : 0);
+                    }, 0);
+                }
+            },
+            
+            async init() {
+                // ניקוי נתונים זמניים ישנים
+                this.tempBookingsManager.clearAllData();
+                
+                this.updateProjectDetails();
+                this.attachEventListeners();
+                await this.loadData();
+                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
+            },
+            
+            updateProjectDetails() {
+                // עדכון פרטי הפרויקט בדף
+                document.getElementById('project-title').textContent = CONFIG.project.title;
+                document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
+                document.getElementById('product-name').textContent = CONFIG.project.title;
+                document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
+                document.getElementById('projectName').value = CONFIG.project.name;
+                document.getElementById('price-per-person').textContent = CONFIG.pricePerPerson;
+                document.getElementById('total-price').textContent = CONFIG.pricePerPerson;
+                
+                // הסתרת או הצגת בוחר הכמות בהתאם להגדרות
+                if (!CONFIG.showQuantitySelector) {
+                    document.getElementById('quantity-group').style.display = 'none';
+                }
+            },
+            
+            attachEventListeners() {
+                // אתחול לחצני טופס
+                document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
+                document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
+                document.getElementById('reservation-form').addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                // אתחול מונה כמות אם הוא מוצג
+                if (CONFIG.showQuantitySelector) {
+                    document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
+                    document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
+                }
+                
+                // כפתור דיבוג
+                document.getElementById('debug-btn').addEventListener('click', () => this.debugData());
+            },
+            
+            async loadData(showLoading = true) {
+                if (showLoading) this.showLoading();
+                
+                try {
+                    await this.loadBookings();
+                    this.updateUI();
+                    await this.delay(500);
+                } catch (error) {
+                    console.error('שגיאה בטעינת הנתונים:', error);
+                } finally {
+                    if (showLoading) this.hideLoading();
+                }
+            },
+            
+            async refreshData() {
+                await this.loadData(false);
+            },
+            
+            async loadBookings() {
+                try {
+                    // נתחיל עם 0 הזמנות
+                    this.totalBooked = 0;
+                    
+                    // מוסיף timestamp כדי למנוע caching
+                    const timestamp = Date.now();
+                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
+                    
+                    try {
+                        // ניסיון לקרוא את הנתונים מהגיליון עם תמיכה בתפיסת שגיאות
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 10000); // timeout של 10 שניות
+                        
+                        const response = await fetch(url, {
+                            cache: 'no-store',
+                            headers: {
+                                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                'Pragma': 'no-cache'
+                            },
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const csvText = await response.text();
+                        
+                        // בדיקה שיש תוכן בקובץ
+                        if (csvText.trim().length === 0) {
+                            console.log("CSV file is empty");
+                            this.bookingsData = [];
+                            return;
+                        }
+                        
+                        console.log("Raw CSV data retrieved successfully");
+                        this.bookingsData = this.parseCSV(csvText);
+                        
+                        if (!Array.isArray(this.bookingsData) || this.bookingsData.length === 0) {
+                            console.log("No bookings data found or parsing failed");
+                            this.bookingsData = [];
+                            return;
+                        }
+                        
+                        console.log(`Parsed ${this.bookingsData.length} bookings`);
+                        
+                        // שמירת הנתונים בזכרון מקומי למקרה של כשל בחיבור בעתיד
+                        localStorage.setItem('bookingsDataCache', JSON.stringify(this.bookingsData));
+                    } catch (fetchError) {
+                        console.warn("Could not fetch data from Google Sheets:", fetchError);
+                        
+                        // ניסיון לקרוא מהמטמון המקומי
+                        const cachedData = localStorage.getItem('bookingsDataCache');
+                        if (cachedData) {
+                            console.log("Using cached bookings data");
+                            this.bookingsData = JSON.parse(cachedData);
+                        } else {
+                            console.log("No cached data available, starting with empty bookings");
+                            this.bookingsData = [];
+                        }
+                    }
+                    
+                    // חישוב סך הכל הזמנות לפרויקט הנוכחי
+                    if (this.bookingsData.length > 0) {
+                        console.log("Computing total booked - all bookings:", this.bookingsData);
+                        
+                        // בדיקה אם נמצאו הזמנות לפרויקט הנוכחי
+                        this.totalBooked = 0;
+                        
+                        for (let i = 0; i < this.bookingsData.length; i++) {
+                            const booking = this.bookingsData[i];
+                            
+                            // הצגת נתוני ההזמנה לצורך דיבוג
+                            console.log(`Booking ${i+1}:`, booking);
+                            
+                            // בדיקת שם הפרויקט (נסנן רק לפרויקט הנוכחי אם קיים)
+                            const projectField = booking['שם הפרוייקט'] || booking[CONFIG.formFields.projectName] || '';
+                            
+                            // בדיקה האם ההזמנה שייכת לפרויקט הנוכחי
+                            if (CONFIG.project.name && projectField && !projectField.includes(CONFIG.project.name)) {
+                                console.log(`Skipping booking with different project: ${projectField}`);
+                                continue;
+                            }
+                            
+                            // בדיקת הכמות
+                            let quantity = 0;
+                            
+                            try {
+                                quantity = parseInt(booking['הזמן']) || 
+                                    parseInt(booking['כמות']) || 
+                                    parseInt(booking[CONFIG.formFields.quantity]) ||
+                                    parseInt(booking['Quantity']) || 
+                                    parseInt(booking['quantity']) || 0;
+                            } catch (parseError) {
+                                console.error("Error parsing quantity:", parseError);
+                                quantity = 0;
+                            }
+                            
+                            if (quantity > 0) {
+                                console.log(`Adding ${quantity} from booking with project: ${projectField}`);
+                                this.totalBooked += quantity;
+                            }
+                        }
+                        
+                        console.log("Total booked (filtered by project):", this.totalBooked);
+                    }
+                    
+                } catch (error) {
+                    console.error('שגיאה כללית בטעינת ההזמנות:', error);
+                    this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
+                }
+            },
+            
+            parseCSV(csv) {
+                try {
+                    // נקה סיומת שורה ותווים מיוחדים
+                    const cleanCsv = csv.replace(/\r/g, '').trim();
+                    const lines = cleanCsv.split('\n');
+                    
+                    console.log(`Found ${lines.length} lines in CSV`);
+                    
+                    if (lines.length <= 1) {
+                        console.log("CSV is empty or has only headers");
+                        return [];
+                    }
+                    
+                    // קריאת כותרות
+                    const headerLine = lines[0].trim();
+                    console.log("Header line:", headerLine);
+                    
+                    let headers;
+                    if (headerLine.includes(',')) {
+                        headers = headerLine.split(',').map(h => h.trim());
+                    } else if (headerLine.includes('\t')) {
+                        headers = headerLine.split('\t').map(h => h.trim());
+                    } else {
+                        // אם אין מפריד ברור, ננסה לפצל לפי רווח
+                        headers = headerLine.split(/\s+/).map(h => h.trim());
+                    }
+                    
+                    console.log("Detected headers:", headers);
+                    
+                    // בדיקת שדות חובה
+                    const hasQuantityColumn = headers.some(h => 
+                        h.includes('הזמן') || 
+                        h.includes('כמות') || 
+                        h.includes(CONFIG.formFields.quantity)
+                    );
+                    
+                    if (!hasQuantityColumn) {
+                        headers.push('כמות');
+                        console.log("Added missing quantity column");
+                    }
+                    
+                    return lines.slice(1)
+                        .filter(line => line.trim() !== '')
+                        .map((line, index) => {
+                            let values;
+                            
+                            // בדוק איזה מפריד יש בשורה
+                            if (line.includes(',')) {
+                                values = line.split(',');
+                            } else if (line.includes('\t')) {
+                                values = line.split('\t');
+                            } else {
+                                values = line.split(/\s+/);
+                            }
+                            
+                            const entry = {};
+                            
+                            headers.forEach((header, i) => {
+                                // אם אין מספיק ערכים, השתמש בערך ריק
+                                entry[header] = i < values.length && values[i] ? values[i].trim() : '';
+                                
+                                // אם זה עמודת כמות והיא ריקה, שים ערך ברירת מחדל
+                                if ((header === 'כמות' || header === 'הזמן' || header.includes('quantity')) && !entry[header]) {
+                                    entry[header] = '1';
+                                }
+                            });
+                            
+                            return entry;
+                        });
+                } catch (error) {
+                    console.error("Error parsing CSV:", error);
+                    return [];
+                }
+            },
+            
+            updateUI() {
+                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
+                const totalBooked = this.totalBooked + tempQuantity;
+                const availableSlots = CONFIG.totalSlots - totalBooked;
+                const progressPercentage = (totalBooked / CONFIG.totalSlots) * 100;
+                
+                // וידוא שהערכים הם מספרים תקינים
+                const displayTotalBooked = isNaN(totalBooked) ? 0 : totalBooked;
+                const displayAvailableSlots = isNaN(availableSlots) || availableSlots < 0 ? 0 : availableSlots;
+                const displayProgressPercentage = isNaN(progressPercentage) ? 0 : Math.min(progressPercentage, 100);
+                
+                // עדכון ערכים בממשק
+                document.getElementById('total-slots').textContent = CONFIG.totalSlots;
+                document.getElementById('booked-slots').textContent = displayTotalBooked;
+                document.getElementById('available-slots').textContent = displayAvailableSlots;
+                document.getElementById('booking-progress').style.width = `${displayProgressPercentage}%`;
+                
+                console.log("UI updated with:", {
+                    totalSlots: CONFIG.totalSlots,
+                    booked: displayTotalBooked,
+                    available: displayAvailableSlots,
+                    progress: displayProgressPercentage
+                });
+                
+                // כפתור הזמנה מושבת אם אין מקומות פנויים
+                const bookingBtn = document.getElementById('booking-btn');
+                bookingBtn.disabled = displayAvailableSlots <= 0;
+                bookingBtn.textContent = displayAvailableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
+            },
+            
+            openForm() {
+                document.getElementById('error-message').textContent = '';
+                document.getElementById('reservation-form').reset();
+                document.getElementById('projectName').value = CONFIG.project.name;
+                
+                // איפוס מונה כמות
+                if (CONFIG.showQuantitySelector) {
+                    this.updateQuantity(0, true);
+                }
+                
+                document.getElementById('overlay').style.display = 'block';
+                document.getElementById('booking-form').style.display = 'block';
+            },
+            
+            closeForm() {
+                document.getElementById('overlay').style.display = 'none';
+                document.getElementById('booking-form').style.display = 'none';
+            },
+            
+            updateQuantity(delta, reset = false) {
+                const quantityValueEl = document.getElementById('quantity-value');
+                const quantityInputEl = document.getElementById('quantity');
+                const totalPriceEl = document.getElementById('total-price');
+                
+                if (reset) {
+                    quantityValueEl.textContent = '1';
+                    quantityInputEl.value = '1';
+                    totalPriceEl.textContent = CONFIG.pricePerPerson;
+                    return;
+                }
+                
+                let currentValue = parseInt(quantityValueEl.textContent);
+                let newValue = currentValue + delta;
+                
+                // בדיקות תקינות
+                if (newValue < 1) newValue = 1;
+                if (newValue > CONFIG.maxSlotsPerBooking) newValue = CONFIG.maxSlotsPerBooking;
+                
+                // בדיקה שלא חורג ממספר המקומות הפנויים
+                const availableSlots = parseInt(document.getElementById('available-slots').textContent);
+                if (newValue > availableSlots) newValue = availableSlots;
+                
+                quantityValueEl.textContent = newValue.toString();
+                quantityInputEl.value = newValue.toString();
+                
+                // עדכון מחיר כולל
+                const totalPrice = newValue * CONFIG.pricePerPerson;
+                totalPriceEl.textContent = totalPrice.toString();
+            },
+            
+            async handleSubmit(event) {
+                event.preventDefault();
+                console.log("Submit form called");
+                
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    quantity: document.getElementById('quantity').value,
+                    projectName: document.getElementById('projectName').value
+                };
+                
+                console.log("Form data:", formData);
+                
+                // בדיקה שכל השדות מלאים
+                if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
+                    document.getElementById('error-message').textContent = 'יש למלא את כל השדות';
+                    return;
+                }
+                
+                // בדיקת תקינות טלפון
+                if (!/^\d{10}$/.test(formData.phone)) {
+                    document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות)';
+                    return;
+                }
+                
+                // בדיקת זמינות בזמן אמת
+                await this.loadBookings();
+                const tempQuantity = this.tempBookingsManager.getTotalTempQuantity();
+                const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
+                
+                if (parseInt(formData.quantity) > availableSlots) {
+                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
+                    return;
+                }
+                
+                try {
+                    // יצירת הזמנה זמנית
+                    const bookingKey = this.tempBookingsManager.addBooking(formData);
+                    this.updateUI();
+                    
+                    // שליחת נתונים ל-Google Form
+                    this.showLoading();
+                    
+                    // ניסיון לשלוח נתונים באמצעות POST
+                    try {
+                        // שליחת הנתונים באמצעות FormData
+                        const googleFormData = new FormData();
+                        googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
+                        googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
+                        googleFormData.append(CONFIG.formFields.phone, formData.phone);
+                        googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
+                        googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
+                        
+                        const formResponse = await fetch(CONFIG.urls.form, {
+                            method: 'POST',
+                            body: googleFormData,
+                            mode: 'no-cors'
+                        });
+                        
+                        console.log("Form submitted successfully");
+                    } catch (formError) {
+                        console.warn("Could not submit form directly, trying with URL params:", formError);
+                        
+                        // במקרה של שגיאה, ננסה להשתמש ב-URL עם פרמטרים לטופס צפייה
+                        // שינוי הסיומת מ-formResponse ל-viewform
+                        const formViewUrl = CONFIG.urls.formViewUrl || CONFIG.urls.form.replace('/formResponse', '/viewform');
+                        const formUrl = new URL(formViewUrl);
+                        
+                        // הוספת פרמטרים לטופס
+                        // שים לב שבטופס צפייה משתמשים ב-entry_ במקום entry.
+                        formUrl.searchParams.append(CONFIG.formFields.firstName.replace('entry.', 'entry_'), formData.firstName);
+                        formUrl.searchParams.append(CONFIG.formFields.lastName.replace('entry.', 'entry_'), formData.lastName);
+                        formUrl.searchParams.append(CONFIG.formFields.phone.replace('entry.', 'entry_'), formData.phone);
+                        formUrl.searchParams.append(CONFIG.formFields.quantity.replace('entry.', 'entry_'), formData.quantity);
+                        formUrl.searchParams.append(CONFIG.formFields.projectName.replace('entry.', 'entry_'), formData.projectName);
+                        
+                        // פתיחת חלון חדש עם הטופס
+                        const formWindow = window.open(formUrl.toString(), '_blank', 'width=600,height=400');
+                        
+                        // ניסיון לשלוח את הטופס אוטומטית
+                        setTimeout(() => {
+                            try {
+                                if (formWindow) {
+                                    console.log("Trying to auto-submit the form");
+                                    formWindow.document.querySelector('form')?.submit();
+                                    setTimeout(() => {
+                                        formWindow.close();
+                                    }, 3000);
+                                }
+                            } catch (e) {
+                                console.error("Could not auto-submit the form:", e);
+                            }
+                        }, 2000);
+                    }
+                    
+                    // הצגת הודעת הצלחה
+                    this.closeForm();
+                    document.getElementById('success-message').style.display = 'block';
+                    
+                    // שמירת ההזמנה לאחר שנשלחה בהצלחה
+                    const totalAmount = parseInt(formData.quantity) * CONFIG.pricePerPerson;
+                    alert(`הזמנתך התקבלה בהצלחה!\nמספר אנשים: ${formData.quantity}\nסכום לתשלום: ${totalAmount} ש"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.`);
+                    
+                    // פתיחת חלון תשלום בלשונית חדשה
+                    window.open(CONFIG.paymentLink, '_blank');
+                    
+                    // הסתרת הודעת הצלחה אחרי 10 שניות
+                    setTimeout(() => {
+                        document.getElementById('success-message').style.display = 'none';
+                    }, 10000);
+                    
+                    // רענון נתונים אחרי הזמנה
+                    await this.delay(2000);
+                    await this.loadData();
+                    
+                } catch (error) {
+                    console.error('שגיאה בשליחת ההזמנה:', error);
+                    document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
+                } finally {
+                    this.hideLoading();
+                }
+            },
+            
+            debugData() {
+                console.clear();
+                console.log("----- DEBUG INFO -----");
+                console.log("Project name:", CONFIG.project.name);
+                console.log("Total bookings data rows:", this.bookingsData.length);
+                console.log("Raw bookings data:", this.bookingsData);
+                console.log("Current total booked:", this.totalBooked);
+                console.log("Temp bookings:", this.tempBookingsManager.getValidBookings());
+                
+                // הצגת נתונים
+                const projectCounts = {};
+                this.bookingsData.forEach(booking => {
+                    const projectName = booking['שם הפרוייקט'] || booking[CONFIG.formFields.projectName] || 'לא ידוע';
+                    if (!projectCounts[projectName]) projectCounts[projectName] = 0;
+                    projectCounts[projectName]++;
+                });
+                
+                console.log("Projects in data:", projectCounts);
+                
+                const totalCount = this.bookingsData.reduce((sum, booking) => {
+                    const quantity = parseInt(booking['הזמן']) || parseInt(booking['כמות']) || 0;
+                    return sum + quantity;
+                }, 0);
+                
+                alert(`מידע דיבוג:\n- נמצאו ${this.bookingsData.length} רשומות בסה"כ\n- סה"כ כמות: ${this.totalBooked}\n- כמויות זמניות: ${this.tempBookingsManager.getTotalTempQuantity()}\n\nמידע מפורט נמצא בקונסול (F12)`);
+            },
+            
+            showLoading() {
+                document.getElementById('loading-overlay').style.display = 'flex';
+            },
+            
+            hideLoading() {
+                document.getElementById('loading-overlay').style.display = 'none';
+            },
+            
+            async delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        };
+        
+        // אתחול המערכת
+        document.addEventListener('DOMContentLoaded', () => {
+            bookingSystem.init();
+        });
     </script>
 </body>
 </html>
