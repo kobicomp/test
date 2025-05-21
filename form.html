@@ -2,7 +2,7 @@
 <html dir="rtl" lang="he">
 <head>
    <meta charset="UTF-8">
-   <title>בדיקה</title>
+   <title>הזמנת מקום לערב נשים סיון התשפ"ה</title>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
    <style>
        :root {
@@ -43,6 +43,12 @@
        .header h1 {
            margin: 0;
            font-size: 2.2em;
+       }
+
+       .header p {
+           margin: 10px 0 0;
+           font-size: 1.1em;
+           opacity: 0.9;
        }
 
        .logo {
@@ -380,11 +386,6 @@
            font-weight: bold;
        }
 
-       .decoration {
-           text-align: center;
-           margin: 20px 0;
-       }
-
        .pesach-decoration {
            font-size: 1.2em;
            color: #8d6e63;
@@ -397,30 +398,28 @@
            .product-stats {
                flex-direction: column;
            }
-
+           
            .stat-box {
                margin-bottom: 10px;
                width: 100%;
            }
-
+           
            .form-actions {
                flex-direction: column;
                gap: 10px;
            }
-
+           
            .form-actions button {
                width: 100%;
            }
        }
    </style>
-
-<meta name="NetsparkQuiltingResult" total-length="26352" removed="0" rules-found="w3509,w8931,w4829,w4830,w5434,w2656,w11626,w26950,w11400" />
 </head>
 <body>
    <div class="header">
        <div class="container">
-           <h1 id="project-title">בדיקה</h1>
-           <p id="project-subtitle">בדיקה 1</p>
+           <h1 id="project-title">הזמנת מקום לערב נשים סיון התשפ"ה</h1>
+           <p id="project-subtitle">ערב נשים מיוחד</p>
        </div>
    </div>
 
@@ -432,12 +431,12 @@
        </div>
 
        <div class="product-card">
-           <h2 class="product-title" id="product-name">בדיקה</h2>
-           <p class="product-description" id="product-description">לחךליךלחיךלחיךליחך</p>
-
+           <h2 class="product-title" id="product-name">הזמנת מקום לערב נשים סיון התשפ"ה</h2>
+           <p class="product-description" id="product-description">ערב מיוחד ומרגש לנשות הקהילה</p>
+           
            <div class="product-stats">
                <div class="stat-box">
-                   <div class="stat-value" id="total-slots">20</div>
+                   <div class="stat-value" id="total-slots">40</div>
                    <div class="stat-label">סך ההזמנות</div>
                </div>
                <div class="stat-box">
@@ -445,7 +444,7 @@
                    <div class="stat-label">הזמנות שבוצעו</div>
                </div>
                <div class="stat-box">
-                   <div class="stat-value" id="available-slots">20</div>
+                   <div class="stat-value" id="available-slots">40</div>
                    <div class="stat-label">הזמנות פנויות</div>
                </div>
            </div>
@@ -453,8 +452,6 @@
            <div class="progress-container">
                <div class="progress-bar" id="booking-progress" style="width: 0%"></div>
            </div>
-
-
 
            <div class="actions">
                <button class="booking-btn" id="booking-btn">הזמן עכשיו</button>
@@ -464,7 +461,7 @@
 
    <div class="overlay" id="overlay"></div>
    <div class="booking-form" id="booking-form">
-       <h3 id="form-title">הזמנת אפיית מצות</h3>
+       <h3 id="form-title">הזמנת מקום לערב נשים</h3>
        <form id="reservation-form">
            <div class="form-group">
                <label for="firstName">שם פרטי:</label>
@@ -479,24 +476,24 @@
                <input type="tel" id="phone" required pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות">
            </div>
            <div class="form-group">
-               <label for="quantity">מספר אנשים:</label>
+               <label for="quantity">מספר משתתפות:</label>
                <div class="quantity-counter">
                    <button type="button" class="counter-btn" id="decrease-btn">-</button>
                    <span class="counter-value" id="quantity-value">1</span>
                    <button type="button" class="counter-btn" id="increase-btn">+</button>
-               </div>
+                   </div>
                <input type="hidden" id="quantity" value="1">
            </div>
-
+           
            <div class="price-display">
-               סך הכל לתשלום: <span class="price-amount" id="total-price">10</span> ₪
+               סך הכל לתשלום: <span class="price-amount" id="total-price">20</span> ₪
            </div>
-
+           
            <div class="payment-note">
                לאחר שליחת טופס ההזמנה, יש להשלים את התשלום בקישור שיופיע.
            </div>
-
-           <input type="hidden" id="projectName" value="בדיקה">
+           
+           <input type="hidden" id="projectName" value="הזמנת מקום לערב נשים סיון התשפ"ה">
            <div id="error-message" class="error"></div>
            <div class="form-actions">
                <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
@@ -512,9 +509,9 @@
 
    <script>
    const CONFIG = {
-       totalSlots: 20,
+       totalSlots: 40,
        maxSlotsPerBooking: 5,
-       pricePerPerson: 10,
+       pricePerPerson: 20,
        autoRefreshInterval: 60,
        urls: {
            form: 'https://docs.google.com/forms/d/e/1FAIpQLSc_JcWjPeInB6N-ayGDvxjnUU1sERQrcp2w7KPmE7XWTFmUPg/formResponse',
@@ -528,10 +525,10 @@
            projectName: "entry.1414374653"
        },
        project: {
-           name: "בדיקה",
-           title: "בדיקה",
-           subtitle: "בדיקה 1",
-           description: "לחךליךלחיךלחיךליחך"
+           name: "הזמנת מקום לערב נשים סיון התשפ"ה",
+           title: "הזמנת מקום לערב נשים סיון התשפ"ה",
+           subtitle: "ערב נשים מיוחד",
+           description: "ערב מיוחד ומרגש לנשות הקהילה"
        },
        paymentLink: 'https://payboxapp.page.link/mYU4bTgMwyGCBXWd6'
    };
@@ -539,21 +536,21 @@
    const bookingSystem = {
        bookingsData: [],
        totalBooked: 0,
-
+       
        async init() {
            this.updateProjectDetails();
            this.attachEventListeners();
            await this.loadData();
            setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
        },
-
+       
        updateProjectDetails() {
            document.getElementById('project-title').textContent = CONFIG.project.title;
            document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
            document.getElementById('product-name').textContent = CONFIG.project.title;
            document.getElementById('product-description').textContent = CONFIG.project.description;
        },
-
+       
        attachEventListeners() {
            document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
            document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
@@ -561,10 +558,10 @@
            document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
            document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
        },
-
+       
        async loadData(showLoading = true) {
            if (showLoading) this.showLoading();
-
+           
            try {
                await this.loadBookings();
                this.updateUI();
@@ -575,16 +572,16 @@
                if (showLoading) this.hideLoading();
            }
        },
-
+       
        async refreshData() {
            await this.loadData(false);
        },
-
+       
        async loadBookings() {
            try {
                const timestamp = Date.now();
                const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
-
+               
                const response = await fetch(url, {
                    cache: 'no-store',
                    headers: {
@@ -592,98 +589,98 @@
                        'Pragma': 'no-cache'
                    }
                });
-
+               
                if (!response.ok) {
                    throw new Error(`HTTP error! status: ${response.status}`);
                }
-
+               
                const csvText = await response.text();
                this.bookingsData = this.parseCSV(csvText);
-
+               
                this.totalBooked = this.bookingsData
-                   .filter(booking =>
-                       (booking['entry.1414374653'] === CONFIG.project.name ||
+                   .filter(booking => 
+                       (booking['entry.1414374653'] === CONFIG.project.name || 
                         booking['projectName'] === CONFIG.project.name)
                    )
                    .reduce((total, booking) => {
-                       const quantity =
-                           parseInt(booking['הזמן']) ||
-                           parseInt(booking['כמות']) ||
+                       const quantity = 
+                           parseInt(booking['הזמן']) || 
+                           parseInt(booking['כמות']) || 
                            parseInt(booking['entry.1406108683']) ||
-                           parseInt(booking['Quantity']) ||
+                           parseInt(booking['Quantity']) || 
                            parseInt(booking['quantity']) || 0;
-
+                       
                        return total + quantity;
                    }, 0);
-
+               
            } catch (error) {
                console.error('שגיאה בטעינת ההזמנות:', error);
                this.totalBooked = 0;
            }
        },
-
+       
        updateUI() {
            const totalBooked = this.totalBooked;
            const availableSlots = CONFIG.totalSlots - totalBooked;
            const progressPercentage = (totalBooked / CONFIG.totalSlots) * 100;
-
+           
            document.getElementById('total-slots').textContent = CONFIG.totalSlots;
            document.getElementById('booked-slots').textContent = totalBooked;
            document.getElementById('available-slots').textContent = availableSlots;
            document.getElementById('booking-progress').style.width = `${progressPercentage}%`;
-
+           
            const bookingBtn = document.getElementById('booking-btn');
            bookingBtn.disabled = availableSlots <= 0;
            bookingBtn.textContent = availableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
        },
-
+       
        openForm() {
            document.getElementById('error-message').textContent = '';
            document.getElementById('reservation-form').reset();
            document.getElementById('projectName').value = CONFIG.project.name;
-
+           
            this.updateQuantity(0, true);
-
+           
            document.getElementById('overlay').style.display = 'block';
            document.getElementById('booking-form').style.display = 'block';
        },
-
+       
        closeForm() {
            document.getElementById('overlay').style.display = 'none';
            document.getElementById('booking-form').style.display = 'none';
        },
-
+       
        updateQuantity(delta, reset = false) {
            const quantityValueEl = document.getElementById('quantity-value');
            const quantityInputEl = document.getElementById('quantity');
            const totalPriceEl = document.getElementById('total-price');
-
+           
            if (reset) {
                quantityValueEl.textContent = '1';
                quantityInputEl.value = '1';
                totalPriceEl.textContent = CONFIG.pricePerPerson;
                return;
            }
-
+           
            let currentValue = parseInt(quantityValueEl.textContent);
            let newValue = currentValue + delta;
-
+           
            if (newValue < 1) newValue = 1;
            if (newValue > CONFIG.maxSlotsPerBooking) newValue = CONFIG.maxSlotsPerBooking;
-
+           
            const availableSlots = parseInt(document.getElementById('available-slots').textContent);
            if (newValue > availableSlots) newValue = availableSlots;
-
+           
            quantityValueEl.textContent = newValue.toString();
            quantityInputEl.value = newValue.toString();
-
+           
            const totalPrice = newValue * CONFIG.pricePerPerson;
            totalPriceEl.textContent = totalPrice.toString();
        },
-
+       
        async handleSubmit(event) {
            event.preventDefault();
-
+           
            const formData = {
                firstName: document.getElementById('firstName').value,
                lastName: document.getElementById('lastName').value,
@@ -691,51 +688,51 @@
                quantity: document.getElementById('quantity').value,
                projectName: document.getElementById('projectName').value
            };
-
+           
            if (!formData.firstName || !formData.lastName || !formData.phone || !formData.quantity) {
                document.getElementById('error-message').textContent = 'יש למלא את כל השדות';
                return;
            }
-
+           
            if (!/^\d{10}$/.test(formData.phone)) {
                document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות)';
                return;
            }
-
+           
            await this.loadBookings();
            const availableSlots = CONFIG.totalSlots - this.totalBooked;
-
+           
            if (parseInt(formData.quantity) > availableSlots) {
                document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
                return;
            }
-
+           
            try {
                this.showLoading();
-
+               
                const googleFormData = new FormData();
                googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
                googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
                googleFormData.append(CONFIG.formFields.phone, formData.phone);
                googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
                googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
-
+               
                await fetch(CONFIG.urls.form, {
                    method: 'POST',
                    body: googleFormData,
                    mode: 'no-cors'
                });
-
+               
                this.closeForm();
                document.getElementById('success-message').style.display = 'block';
-
+               
                setTimeout(() => {
                    document.getElementById('success-message').style.display = 'none';
                }, 5000);
-
+               
                await this.delay(2000);
                await this.loadData();
-
+               
            } catch (error) {
                console.error('שגיאה בשליחת ההזמנה:', error);
                document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
@@ -743,19 +740,19 @@
                this.hideLoading();
            }
        },
-
+       
        parseCSV(csv) {
            try {
                const cleanCsv = csv.replace(/\\r/g, '').trim();
                const lines = cleanCsv.split('\n');
-
+               
                if (lines.length <= 1) {
                    return [];
                }
-
+               
                const headerLine = lines[0];
                let headers;
-
+               
                if (headerLine.includes(',')) {
                    headers = headerLine.split(',').map(h => h.trim());
                } else if (headerLine.includes('\t')) {
@@ -763,12 +760,12 @@
                } else {
                    headers = headerLine.split(/\s+/).map(h => h.trim());
                }
-
+               
                return lines.slice(1)
                    .filter(line => line.trim() !== '')
                    .map((line) => {
                        let values;
-
+                       
                        if (line.includes(',')) {
                            values = line.split(',');
                        } else if (line.includes('\t')) {
@@ -776,13 +773,13 @@
                        } else {
                            values = line.split(/\s+/);
                        }
-
+                       
                        const entry = {};
-
+                       
                        headers.forEach((header, i) => {
                            entry[header] = i < values.length && values[i] ? values[i].trim() : '';
                        });
-
+                       
                        return entry;
                    });
            } catch (error) {
@@ -790,20 +787,20 @@
                return [];
            }
        },
-
+       
        showLoading() {
            document.getElementById('loading-overlay').style.display = 'flex';
        },
-
+       
        hideLoading() {
            document.getElementById('loading-overlay').style.display = 'none';
        },
-
+       
        async delay(ms) {
            return new Promise(resolve => setTimeout(resolve, ms));
        }
    };
-
+   
    document.addEventListener('DOMContentLoaded', () => {
        bookingSystem.init();
    });
