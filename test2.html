@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>מחולל טפסים לאירועים</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            direction: rtl;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+        }
+        .preview {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+        }
+        .generate-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>מחולל טפסים לאירועים</h1>
+    
+    <form id="formGenerator">
+        <div class="form-group">
+            <label>שם האירוע:</label>
+            <input type="text" id="eventName" required>
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לוגו (אופציונלי):</label>
+            <input type="text" id="logoUrl">
+        </div>
+        
+        <div class="form-group">
+            <label>כמות מקסימלית של משתתפים:</label>
+            <input type="number" id="maxParticipants" required min="1" max="100">
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לטופס Google Forms:</label>
+            <input type="url" id="googleFormsLink" required>
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לגיליון Google Sheets:</label>
+            <input type="url" id="googleSheetsLink" required>
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לתשלום:</label>
+            <input type="url" id="paymentLink" required>
+        </div>
+        
+        <div class="form-group">
+            <label>מחיר למשתתף (בש"ח):</label>
+            <input type="number" id="pricePerParticipant" required min="0">
+        </div>
+        
+        <button type="button" onclick="generateForm()" class="generate-btn">
+            צור טופס
+        </button>
+    </form>
+
+    <div class="preview" id="previewArea">
+        <!-- תצוגה מקדימה של הטופס יופיע כאן -->
+    </div>
+
+    <script>
+        function generateForm() {
+            // אחזור נתונים
+            const eventName = document.getElementById('eventName').value;
+            const logoUrl = document.getElementById('logoUrl').value;
+            const maxParticipants = document.getElementById('maxParticipants').value;
+            const googleFormsLink = document.getElementById('googleFormsLink').value;
+            const googleSheetsLink = document.getElementById('googleSheetsLink').value;
+            const paymentLink = document.getElementById('paymentLink').value;
+            const pricePerParticipant = document.getElementById('pricePerParticipant').value;
+
+            // בדיקות תקינות
+            if (!eventName || !maxParticipants || !googleFormsLink || 
+                !googleSheetsLink || !paymentLink || !pricePerParticipant) {
+                alert('אנא מלא את כל השדות החובה');
+                return;
+            }
+
+            // יצירת קונפיגורציה
+            const config = {
+                eventName,
+                logoUrl,
+                maxParticipants: parseInt(maxParticipants),
+                googleFormsLink,
+                googleSheetsLink,
+                paymentLink,
+                pricePerParticipant: parseFloat(pricePerParticipant)
+            };
+
+            // הצגת תצוגה מקדימה
+            const previewArea = document.getElementById('previewArea');
+            previewArea.innerHTML = `
+                <h2>תצוגה מקדימה של הגדרות הטופס</h2>
+                <p><strong>שם האירוע:</strong> ${config.eventName}</p>
+                <p><strong>כמות מקסימלית:</strong> ${config.maxParticipants}</p>
+                <p><strong>מחיר למשתתף:</strong> ${config.pricePerParticipant} ש"ח</p>
+                <button onclick="copyConfigCode()">העתק קוד הגדרות</button>
+            `;
+        }
+
+        function copyConfigCode() {
+            // יצירת קוד קונפיגורציה להעתקה
+            const config = {
+                eventName: document.getElementById('eventName').value,
+                logoUrl: document.getElementById('logoUrl').value,
+                maxParticipants: document.getElementById('maxParticipants').value,
+                googleFormsLink: document.getElementById('googleFormsLink').value,
+                googleSheetsLink: document.getElementById('googleSheetsLink').value,
+                paymentLink: document.getElementById('paymentLink').value,
+                pricePerParticipant: document.getElementById('pricePerParticipant').value
+            };
+
+            navigator.clipboard.writeText(JSON.stringify(config, null, 2)).then(() => {
+                alert('קוד ההגדרות הועתק בהצלחה!');
+            });
+        }
+    </script>
+</body>
+</html>
