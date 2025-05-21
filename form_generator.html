@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מחולל טפסי הזמנה לאירועים</title>
+    <title>מחולל טפסי הזמנה</title>
     <style>
         :root {
             --primary-color: #2196F3;
@@ -18,7 +18,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 30px;
             direction: rtl;
             background-color: var(--light-color);
             line-height: 1.6;
@@ -27,722 +27,781 @@
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            padding: 20px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
         }
 
-        .header {
-            background: linear-gradient(to left, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 20px 0;
+        h1, h2, h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        h1 {
             text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-radius: 0 0 10px 10px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 2.2em;
-        }
-
-        .form-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .form-title {
-            font-size: 1.8em;
-            color: var(--dark-color);
-            margin: 0 0 15px 0;
-            padding-bottom: 10px;
             border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .section-toggle {
+            font-size: 1.5em;
+            color: var(--primary-color);
+        }
+
+        .section-content {
+            display: block;
         }
 
         .form-group {
             margin-bottom: 20px;
         }
 
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
             color: #555;
         }
 
-        .form-group input, .form-group textarea, .form-group select {
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        input[type="color"],
+        input[type="tel"],
+        textarea,
+        select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1em;
             transition: border 0.3s ease;
+            box-sizing: border-box;
         }
 
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="url"]:focus,
+        input[type="color"]:focus,
+        input[type="tel"]:focus,
+        textarea:focus,
+        select:focus {
             border-color: var(--primary-color);
             outline: none;
         }
 
-        .form-row {
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        .checkbox-label {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            align-items: center;
+            font-weight: normal;
         }
 
-        .form-col {
-            flex: 1;
+        textarea {
+            min-height: 100px;
+            resize: vertical;
         }
 
-        .section-title {
-            margin-top: 25px;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            font-size: 1.3em;
-            border-right: 4px solid var(--primary-color);
-            padding-right: 10px;
+        .color-input-group {
+            display: flex;
+            align-items: center;
         }
 
         .color-preview {
-            display: inline-block;
             width: 30px;
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
-            vertical-align: middle;
             border: 1px solid #ddd;
         }
 
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
+            padding: 12px 24px;
+            font-size: 1.1em;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1em;
             transition: all 0.3s ease;
-            margin: 5px;
+            border: none;
+            margin-right: 10px;
         }
 
-        .btn:hover {
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
             background-color: var(--secondary-color);
-            transform: translateY(-2px);
         }
 
         .btn-success {
             background-color: var(--success-color);
+            color: white;
         }
 
         .btn-success:hover {
             background-color: #3d9140;
         }
 
-        .actions {
-            margin-top: 30px;
-            text-align: center;
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
         }
 
-        .form-info {
-            background-color: #e8f5e9;
-            padding: 15px;
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .error {
+            color: var(--danger-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .code-preview {
+            background-color: #f5f5f5;
+            padding: 20px;
             border-radius: 5px;
             margin-top: 20px;
-            font-size: 0.9em;
+            height: 300px;
+            overflow: auto;
+            font-family: monospace;
+            white-space: pre;
+            display: none;
         }
 
-        .form-info h4 {
-            margin-top: 0;
+        .preview-container {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .status-success {
+            background-color: #e8f5e9;
             color: var(--success-color);
         }
 
-        .form-info ul {
-            padding-right: 20px;
-        }
-
-        .form-info li {
-            margin-bottom: 5px;
-        }
-
-        .result-container {
-            display: none;
-            margin-top: 30px;
-        }
-
-        .result-box {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            height: 300px;
-            overflow: auto;
-            margin-bottom: 15px;
-            direction: ltr;
-            text-align: left;
-            font-family: monospace;
-            white-space: pre;
-            font-size: 12px;
-        }
-
-        .result-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .loading .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .help-tip {
-            font-size: 0.85em;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
-            background-color: #f5f5f5;
-        }
-        
-        .tab.active {
-            background-color: white;
-            border-color: #ddd;
-            border-bottom: 2px solid var(--primary-color);
-            font-weight: bold;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-
-        #templateUploadContainer {
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        #templateUploadContainer.template-loaded {
-            border-color: var(--success-color);
-            background-color: rgba(76, 175, 80, 0.1);
-        }
-
-        .template-status {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .template-status.error {
+        .status-error {
+            background-color: #ffebee;
             color: var(--danger-color);
         }
 
-        .template-status.success {
-            color: var(--success-color);
+        .tip {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 5px;
+            font-style: italic;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
+        .inline-fields {
+            display: flex;
+            gap: 15px;
+        }
 
-            .form-row {
+        .inline-fields .form-group {
+            flex: 1;
+        }
+
+        /* Responsive changes */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .inline-fields {
                 flex-direction: column;
                 gap: 0;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <h1>מחולל טפסי הזמנה לאירועים</h1>
-        </div>
-    </div>
-
     <div class="container">
-        <div id="templateUploadContainer">
-            <h3>קובץ תבנית (base_template.html)</h3>
-            <p>יש לבחור את קובץ התבנית כדי להמשיך</p>
-            <input type="file" id="templateFileInput" accept=".html">
-            <div id="templateStatus" class="template-status"></div>
-        </div>
-
-        <div class="form-card">
-            <h2 class="form-title">הגדרות טופס ההזמנה</h2>
-            
-            <div class="tabs">
-                <div class="tab active" data-tab="basic-info">מידע בסיסי</div>
-                <div class="tab" data-tab="google-form">טופס Google</div>
-                <div class="tab" data-tab="design">עיצוב</div>
-            </div>
-            
-            <div class="tab-content active" id="basic-info">
-                <h3 class="section-title">פרטי האירוע</h3>
-                <div class="form-group">
-                    <label for="projectName">שם מלא של הפרויקט/האירוע:</label>
-                    <input type="text" id="projectName" placeholder="לדוגמה: אפיית מצות בבית הכנסת דורש טוב התשפ״ה" value="אפיית מצות בבית הכנסת דורש טוב התשפ״ה">
-                    <div class="help-tip">שם מלא של האירוע כפי שירשם במערכת</div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="projectTitle">כותרת ראשית:</label>
-                            <input type="text" id="projectTitle" placeholder="לדוגמה: אפיית מצות - בית הכנסת דורש טוב" value="אפיית מצות - בית הכנסת דורש טוב">
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="projectSubtitle">כותרת משנה:</label>
-                            <input type="text" id="projectSubtitle" placeholder="לדוגמה: הזמנת מקומות לאפיית מצות לקראת חג הפסח" value="הזמנת מקומות לאפיית מצות לקראת חג הפסח התשפ״ה">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="projectDescription">תיאור האירוע:</label>
-                    <textarea id="projectDescription" placeholder="תיאור מפורט של האירוע...">שלום לכולם!
-פרויקט קהילות של עיריית שדרות שמח להזמין את ציבור הגברים בקהילת "דורש טוב" לאפיית מצות מהודרות ביום שני, ט' בניסן בשעה 19:00 ברחבת בית הכנסת "משכן בניה".
-שימו לב! מס' המקומות מוגבל, כל הקודם זוכה.
-ההשתתפות בעלות מסובסדת בסך 10 ש"ח.
-הרב יניב וועד בית הכנסת</textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="decorationText">משפט קישוט (אופציונלי):</label>
-                    <input type="text" id="decorationText" placeholder="ציטוט או משפט שיופיע בתחתית הטופס" value="הא לחמא עניא די אכלו אבהתנא בארעא דמצרים">
-                    <div class="help-tip">משפט קישוטי שיופיע בתחתית הטופס (למשל ציטוט מתאים לאירוע)</div>
-                </div>
-
-                <h3 class="section-title">הגדרות הזמנה</h3>
-                <div class="form-row">
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="totalSlots">מספר מקומות כולל:</label>
-                            <input type="number" id="totalSlots" min="1" value="30">
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="maxSlotsPerBooking">מקסימום מקומות להזמנה בודדת:</label>
-                            <input type="number" id="maxSlotsPerBooking" min="1" max="20" value="5">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="isPaid">האם האירוע בתשלום?</label>
-                            <select id="isPaid">
-                                <option value="yes">כן</option>
-                                <option value="no">לא</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="pricePerPerson">מחיר לאדם (בש"ח):</label>
-                            <input type="number" id="pricePerPerson" min="0" value="10">
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="paymentLink">קישור לתשלום:</label>
-                            <input type="url" id="paymentLink" placeholder="https://..." value="https://pe4ch.com/ref/2DKFWoG22che?lang=he">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="tab-content" id="google-form">
-                <h3 class="section-title">הגדרות טופס Google</h3>
-                <div class="form-group">
-                    <label for="googleFormUrl">קישור לטופס Google:</label>
-                    <input type="url" id="googleFormUrl" placeholder="https://docs.google.com/forms/d/e/..." value="https://docs.google.com/forms/d/e/1FAIpQLSfMRzTBNEKqeg_ubQwhPNr9u78h5a3ynPdsq7q77azwKF9S9g/formResponse">
-                    <div class="help-tip">הקישור המלא של ה-Google Form שנוצר (נדרש להכיל 'formResponse' בסוף)</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="googleSheetUrl">קישור לפרסום הטבלה (CSV):</label>
-                    <input type="url" id="googleSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/e/..." value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuqwnqomuxxsB2lIcXp4VHBQqwzEoHJ9t99Kb057hIr8GQEOnbmw9NxLkztaER59W572o3kVymiyx/pub?output=csv">
-                    <div class="help-tip">קישור לטבלת Google Sheets המפורסמת כ-CSV</div>
-                </div>
-                
-                <h3 class="section-title">מזהי שדות טופס Google</h3>
-                <div class="form-info">
-                    <h4>כיצד למצוא את מזהי השדות?</h4>
-                    <ol>
-                        <li>פתח את הטופס ב-Google Forms במצב עריכה</li>
-                        <li>לחץ על כפתור הצפייה (עין) כדי לראות את הטופס במצב תצוגה מקדימה</li>
-                        <li>לחץ קליק ימני ובחר "צפה בקוד מקור של העמוד" (View Page Source)</li>
-                        <li>חפש את מזהי השדות בפורמט "entry.XXXXXXXXXX"</li>
-                    </ol>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="formFieldFirstName">מזהה שדה שם פרטי:</label>
-                            <input type="text" id="formFieldFirstName" placeholder="entry.XXXXXXXXXX" value="entry.1726269772">
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="formFieldLastName">מזהה שדה שם משפחה:</label>
-                            <input type="text" id="formFieldLastName" placeholder="entry.XXXXXXXXXX" value="entry.1766470893">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="formFieldPhone">מזהה שדה טלפון:</label>
-                            <input type="text" id="formFieldPhone" placeholder="entry.XXXXXXXXXX" value="entry.2028941780">
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="formFieldQuantity">מזהה שדה כמות:</label>
-                            <input type="text" id="formFieldQuantity" placeholder="entry.XXXXXXXXXX" value="entry.1406108683">
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="formFieldProjectName">מזהה שדה שם הפרויקט:</label>
-                            <input type="text" id="formFieldProjectName" placeholder="entry.XXXXXXXXXX" value="entry.1414374653">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <button class="btn" id="parseGoogleFormBtn">חלץ מזהים אוטומטית מקישור הטופס</button>
-                    <div class="help-tip">לחיצה על כפתור זה תנסה לחלץ את מזהי השדות אוטומטית מקישור הטופס</div>
-                </div>
-            </div>
-            
-            <div class="tab-content" id="design">
-                <h3 class="section-title">הגדרות עיצוב</h3>
-                <div class="form-row">
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="primaryColor">צבע ראשי:</label>
-                            <div>
-                                <div class="color-preview" id="primaryColorPreview" style="background-color: #2196F3;"></div>
-                                <input type="color" id="primaryColor" value="#2196F3">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-col">
-                        <div class="form-group">
-                            <label for="secondaryColor">צבע משני:</label>
-                            <div>
-                                <div class="color-preview" id="secondaryColorPreview" style="background-color: #4b6cb7;"></div>
-                                <input type="color" id="secondaryColor" value="#4b6cb7">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="useLogo">האם להשתמש בלוגו?</label>
-                    <select id="useLogo">
-                        <option value="no">לא</option>
-                        <option value="yes">כן</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="logoUrlGroup" style="display: none;">
-                    <label for="logoUrl">קישור ללוגו:</label>
-                    <input type="url" id="logoUrl" placeholder="https://example.com/logo.jpg">
-                    <div class="help-tip">נדרש להיות קישור ישיר לתמונת הלוגו. גודל מומלץ: 150px רוחב</div>
-                </div>
-            </div>
-            
-            <div class="actions">
-                <button class="btn btn-success" id="generateBtn" disabled>צור קוד טופס</button>
-            </div>
-        </div>
+        <h1>מחולל טפסי הזמנה</h1>
         
-        <div class="form-card result-container" id="resultContainer">
-            <h2 class="form-title">הקוד נוצר בהצלחה!</h2>
-            <p>העתק את הקוד הבא ושמור אותו כקובץ HTML:</p>
-            
-            <div class="result-box" id="resultCode"></div>
-            
-            <div class="result-actions">
-                <button class="btn" id="copyBtn">העתק קוד</button>
-                <button class="btn" id="downloadBtn">הורד כקובץ HTML</button>
-            </div>
-        </div>
+        <div class="status-message" id="status-message"></div>
         
-        <div class="loading" id="loadingIndicator">
-            <div class="spinner"></div>
-            <p>מייצר את הקוד...</p>
+        <form id="generator-form">
+            <!-- פרטי אירוע בסיסיים -->
+            <div class="section">
+                <div class="section-title">
+                    <h2>פרטי אירוע בסיסיים</h2>
+                    <div class="section-toggle">▼</div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="title">שם האירוע:</label>
+                        <input type="text" id="title" name="title" placeholder="לדוגמה: ערב נשים קהילת אש הבנים" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subtitle">כותרת משנה:</label>
+                        <input type="text" id="subtitle" name="subtitle" placeholder="לדוגמה: הזמנת מקומות לערב נשים קהילת אש הבנים התשפ'ה" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">תיאור האירוע (אופציונלי):</label>
+                        <textarea id="description" name="description" placeholder="הוסף תיאור לאירוע (יוצג בדף ההזמנה)"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logo_path">נתיב לתמונת לוגו (אופציונלי):</label>
+                        <input type="text" id="logo_path" name="logo_path" placeholder="לדוגמה: logo.jpg">
+                        <p class="tip">מיקום הלוגו יחסי לקובץ הטופס. השאר ריק אם אין לוגו.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="decoration_text">טקסט קישוטי (אופציונלי):</label>
+                        <input type="text" id="decoration_text" name="decoration_text" placeholder="טקסט קישוטי שיוצג בדף">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show_decoration" name="show_decoration" checked>
+                            הצג טקסט קישוטי
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- פרטי הזמנה -->
+            <div class="section">
+                <div class="section-title">
+                    <h2>פרטי הזמנה</h2>
+                    <div class="section-toggle">▼</div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="total_slots">מספר מקומות מקסימלי:</label>
+                        <input type="number" id="total_slots" name="total_slots" min="1" value="40" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max_slots_per_booking">מספר מקומות מקסימלי להזמנה בודדת:</label>
+                        <input type="number" id="max_slots_per_booking" name="max_slots_per_booking" min="1" max="20" value="1" required>
+                        <p class="tip">קבע 1 כדי לאפשר רישום למקום בודד בלבד</p>
+                    </div>
+                    
+                    <div class="inline-fields">
+                        <div class="form-group">
+                            <label for="price">מחיר למקום:</label>
+                            <input type="number" id="price" name="price" min="0" value="20" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="price_label">תווית מחיר:</label>
+                            <input type="text" id="price_label" name="price_label" placeholder="אשה/איש/ילד/משתתף" value="אשה" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show_quantity_selector" name="show_quantity_selector">
+                            הצג בוחר כמות
+                        </label>
+                        <p class="tip">כאשר לא מסומן, המשתמש יוכל להזמין מקום אחד בלבד</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- פרטי קישורים -->
+            <div class="section">
+                <div class="section-title">
+                    <h2>פרטי קישורים</h2>
+                    <div class="section-toggle">▼</div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="payment_link">קישור לתשלום:</label>
+                        <input type="url" id="payment_link" name="payment_link" placeholder="https://payboxapp.page.link/XXXX" required>
+                        <p class="tip">קישור לאתר תשלומים (PayBox, Bit וכו')</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="form_url">קישור לטופס Google:</label>
+                        <input type="url" id="form_url" name="form_url" placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" required>
+                        <p class="tip">אם אין לך את הקישור המלא, הזן את מזהה הטופס ואנחנו נבנה את הקישור בשבילך</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="form_view_url">קישור לצפייה בטופס Google (אופציונלי):</label>
+                        <input type="url" id="form_view_url" name="form_view_url" placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform">
+                        <p class="tip">השאר ריק לייצור אוטומטי מהקישור הראשי</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sheet_url">קישור לגליון Google:</label>
+                        <input type="url" id="sheet_url" name="sheet_url" placeholder="https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv" required>
+                        <p class="tip">וודא שהגליון מפורסם לאינטרנט בפורמט CSV</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- שדות טופס Google -->
+            <div class="section">
+                <div class="section-title">
+                    <h2>שדות טופס Google</h2>
+                    <div class="section-toggle">▼</div>
+                </div>
+                <div class="section-content">
+                    <p>הגדר את המזהים של שדות הטופס ב-Google Forms:</p>
+                    
+                    <div class="form-group">
+                        <label for="field_first_name">שדה שם פרטי:</label>
+                        <input type="text" id="field_first_name" name="field_first_name" placeholder="entry.1726269772" value="entry.1726269772" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="field_last_name">שדה שם משפחה:</label>
+                        <input type="text" id="field_last_name" name="field_last_name" placeholder="entry.1766470893" value="entry.1766470893" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="field_phone">שדה מספר טלפון:</label>
+                        <input type="text" id="field_phone" name="field_phone" placeholder="entry.2028941780" value="entry.2028941780" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="field_quantity">שדה כמות:</label>
+                        <input type="text" id="field_quantity" name="field_quantity" placeholder="entry.1406108683" value="entry.1406108683" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="field_project_name">שדה שם הפרויקט:</label>
+                        <input type="text" id="field_project_name" name="field_project_name" placeholder="entry.1414374653" value="entry.1414374653" required>
+                    </div>
+                    
+                    <p class="tip">ניתן למצוא את מזהי השדות על ידי צפייה בקוד המקור של טופס Google או שימוש בכלי בדיקת אלמנטים בדפדפן.</p>
+                </div>
+            </div>
+            
+            <!-- הגדרות מראה -->
+            <div class="section">
+                <div class="section-title">
+                    <h2>הגדרות מראה</h2>
+                    <div class="section-toggle">▼</div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="primary_color">צבע ראשי:</label>
+                        <div class="color-input-group">
+                            <div class="color-preview" id="primary-color-preview"></div>
+                            <input type="color" id="primary_color" name="primary_color" value="#2196F3">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="secondary_color">צבע משני:</label>
+                        <div class="color-input-group">
+                            <div class="color-preview" id="secondary-color-preview"></div>
+                            <input type="color" id="secondary_color" name="secondary_color" value="#4b6cb7">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="success_color">צבע הצלחה:</label>
+                        <div class="color-input-group">
+                            <div class="color-preview" id="success-color-preview"></div>
+                            <input type="color" id="success_color" name="success_color" value="#4CAF50">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show_debug" name="show_debug">
+                            הצג כפתור דיבוג
+                        </label>
+                        <p class="tip">כפתור דיבוג מאפשר לבדוק מידע על הנתונים בזמן אמת</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- הגדרות מערכת -->
+            <div class="section">
+                <div class="section-title">
+                    <h2>הגדרות מערכת</h2>
+                    <div class="section-toggle">▼</div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="temp_booking_timeout">זמן פג תוקף להזמנה זמנית (בדקות):</label>
+                        <input type="number" id="temp_booking_timeout" name="temp_booking_timeout" min="1" value="10" required>
+                        <p class="tip">הזמן בדקות שבו הזמנה נשמרת לפני הרישום הסופי</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="auto_refresh_interval">זמן רענון אוטומטי (בשניות):</label>
+                        <input type="number" id="auto_refresh_interval" name="auto_refresh_interval" min="10" value="60" required>
+                        <p class="tip">תדירות הרענון האוטומטי של נתוני ההזמנות</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="storage_key_suffix">מזהה ייחודי לאחסון מקומי:</label>
+                        <input type="text" id="storage_key_suffix" name="storage_key_suffix" placeholder="Event2025" required>
+                        <p class="tip">מזהה לשמירת נתונים באחסון מקומי. יש להשתמש במזהה שונה לכל טופס.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="preview-btn">תצוגה מקדימה של הקוד</button>
+                <button type="submit" class="btn btn-success" id="generate-btn">צור טופס</button>
+                <button type="button" class="btn btn-warning" id="reset-btn">איפוס טופס</button>
+            </div>
+        </form>
+        
+        <div class="preview-container" id="preview-container">
+            <h3>תצוגה מקדימה של הקוד</h3>
+            <div class="code-preview" id="code-preview"></div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="copy-btn">העתק קוד</button>
+                <button type="button" class="btn btn-success" id="download-btn">הורד קובץ HTML</button>
+                <button type="button" class="btn btn-danger" id="close-preview-btn">סגור תצוגה מקדימה</button>
+            </div>
         </div>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let templateContent = '';
-        const generateBtn = document.getElementById('generateBtn');
-        const templateFileInput = document.getElementById('templateFileInput');
-        const templateStatus = document.getElementById('templateStatus');
-        const templateContainer = document.getElementById('templateUploadContainer');
-        
-        // טעינת קובץ התבנית
-        templateFileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) {
-                templateStatus.textContent = 'לא נבחר קובץ';
-                templateStatus.className = 'template-status';
-                generateBtn.disabled = true;
-                templateContainer.classList.remove('template-loaded');
-                return;
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            // קריאת הגלופה הבסיסית
+            let baseTemplate = '';
             
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                templateContent = e.target.result;
-                
-                if (templateContent && templateContent.includes('{{PROJECT_TITLE}}')) {
-                    templateStatus.textContent = 'קובץ התבנית נטען בהצלחה!';
-                    templateStatus.className = 'template-status success';
-                    generateBtn.disabled = false;
-                    templateContainer.classList.add('template-loaded');
-                } else {
-                    templateStatus.textContent = 'הקובץ שנבחר אינו תבנית תקינה. אנא וודא שזהו קובץ base_template.html תקין.';
-                    templateStatus.className = 'template-status error';
-                    generateBtn.disabled = true;
-                    templateContainer.classList.remove('template-loaded');
-                }
-            };
-            
-            reader.onerror = function() {
-                templateStatus.textContent = 'שגיאה בטעינת הקובץ, אנא נסה שנית';
-                templateStatus.className = 'template-status error';
-                generateBtn.disabled = true;
-                templateContainer.classList.remove('template-loaded');
-            };
-            
-            reader.readAsText(file);
-        });
-        
-        // מעבר בין לשוניות
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // הסרת הקלאס מכל הלשוניות
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                
-                // הסתרת כל התוכן של הלשוניות
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
+            fetch('base_template.html')
+                .then(response => response.text())
+                .then(data => {
+                    baseTemplate = data;
+                    console.log('Loaded base template successfully');
+                })
+                .catch(error => {
+                    console.error('Error loading template:', error);
+                    showStatus('שגיאה בטעינת הגלופה. אנא ודא שקובץ base_template.html קיים בתיקייה.', false);
                 });
-                
-                // הצגת הלשונית הנוכחית
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
+            
+            // אירועי UI
+            const sections = document.querySelectorAll('.section-title');
+            sections.forEach(section => {
+                section.addEventListener('click', () => {
+                    const content = section.nextElementSibling;
+                    const toggle = section.querySelector('.section-toggle');
+                    
+                    if (content.style.display === 'none') {
+                        content.style.display = 'block';
+                        toggle.textContent = '▼';
+                    } else {
+                        content.style.display = 'none';
+                        toggle.textContent = '►';
+                    }
+                });
             });
-        });
-        
-        // עדכון תצוגה מקדימה של צבעים
-        document.getElementById('primaryColor').addEventListener('input', function() {
-            document.getElementById('primaryColorPreview').style.backgroundColor = this.value;
-        });
-        
-        document.getElementById('secondaryColor').addEventListener('input', function() {
-            document.getElementById('secondaryColorPreview').style.backgroundColor = this.value;
-        });
-        
-        // טיפול בלוגו
-        document.getElementById('useLogo').addEventListener('change', function() {
-            document.getElementById('logoUrlGroup').style.display = this.value === 'yes' ? 'block' : 'none';
-        });
-        
-        // חילוץ מזהים מקישור טופס
-        document.getElementById('parseGoogleFormBtn').addEventListener('click', function() {
-            alert('תכונה זו תהיה זמינה בקרוב. כרגע יש להזין את המזהים ידנית.');
-        });
-        
-        // יצירת הקוד
-        document.getElementById('generateBtn').addEventListener('click', function() {
-            if (!templateContent) {
-                alert('אנא טען את קובץ התבנית תחילה');
-                return;
+            
+            // הצג קדימון צבע
+            const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
+            colorInputs.forEach(id => {
+                const input = document.getElementById(id);
+                const preview = document.getElementById(`${id.replace('_', '-')}-preview`);
+                
+                preview.style.backgroundColor = input.value;
+                
+                input.addEventListener('input', () => {
+                    preview.style.backgroundColor = input.value;
+                });
+            });
+            
+            // טיפול בשינוי הגדרת בוחר כמות
+            const maxSlotsInput = document.getElementById('max_slots_per_booking');
+            const showQuantitySelector = document.getElementById('show_quantity_selector');
+            
+            maxSlotsInput.addEventListener('change', () => {
+                if (parseInt(maxSlotsInput.value) > 1) {
+                    showQuantitySelector.checked = true;
+                } else {
+                    showQuantitySelector.checked = false;
+                }
+            });
+            
+            showQuantitySelector.addEventListener('change', () => {
+                if (!showQuantitySelector.checked) {
+                    maxSlotsInput.value = 1;
+                }
+            });
+            
+            // טיפול בתצוגה מקדימה
+            const previewBtn = document.getElementById('preview-btn');
+            const closePreviewBtn = document.getElementById('close-preview-btn');
+            const previewContainer = document.getElementById('preview-container');
+            const codePreview = document.getElementById('code-preview');
+            
+            previewBtn.addEventListener('click', () => {
+                if (!validateForm()) {
+                    return;
+                }
+                
+                const generated = generateHTML();
+                codePreview.textContent = generated;
+                previewContainer.style.display = 'block';
+                codePreview.style.display = 'block';
+                
+                // גלילה לתצוגה מקדימה
+                previewContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            closePreviewBtn.addEventListener('click', () => {
+                previewContainer.style.display = 'none';
+            });
+            
+            // העתקת קוד
+            const copyBtn = document.getElementById('copy-btn');
+            copyBtn.addEventListener('click', () => {
+                const text = codePreview.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    showStatus('הקוד הועתק בהצלחה!', true);
+                }).catch(err => {
+                    showStatus('שגיאה בהעתקת הקוד: ' + err, false);
+                });
+            });
+            
+            // הורדת קובץ
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.addEventListener('click', () => {
+                const text = codePreview.textContent;
+                const title = document.getElementById('title').value;
+                const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.html';
+                
+                const element = document.createElement('a');
+                element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+                
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                
+                element.click();
+                
+                document.body.removeChild(element);
+                showStatus('הקובץ הורד בהצלחה!', true);
+            });
+            
+            // איפוס טופס
+            const resetBtn = document.getElementById('reset-btn');
+            resetBtn.addEventListener('click', () => {
+                if (confirm('האם אתה בטוח שברצונך לאפס את הטופס?')) {
+                    document.getElementById('generator-form').reset();
+                    colorInputs.forEach(id => {
+                        const input = document.getElementById(id);
+                        const preview = document.getElementById(`${id.replace('_', '-')}-preview`);
+                        preview.style.backgroundColor = input.value;
+                    });
+                }
+            });
+            
+            // שליחת טופס
+            const form = document.getElementById('generator-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                if (!validateForm()) {
+                    return;
+                }
+                
+                const generated = generateHTML();
+                codePreview.textContent = generated;
+                previewContainer.style.display = 'block';
+                codePreview.style.display = 'block';
+                
+                // הצגת הודעת הצלחה
+                showStatus('הטופס נוצר בהצלחה! אנא הורד את הקובץ או העתק את הקוד.', true);
+                
+                // גלילה לתצוגה מקדימה
+                previewContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // פונקציית בדיקת תקינות טופס
+            function validateForm() {
+                const requiredFields = document.querySelectorAll('[required]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.style.borderColor = 'red';
+                        isValid = false;
+                        
+                        // סמן את השדה החסר
+                        field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        field.focus();
+                    } else {
+                        field.style.borderColor = '';
+                    }
+                });
+                
+                if (!isValid) {
+                    showStatus('אנא מלא את כל השדות הנדרשים.', false);
+                }
+                
+                return isValid;
             }
             
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const resultContainer = document.getElementById('resultContainer');
-            const resultCode = document.getElementById('resultCode');
+            // פונקציית יצירת HTML
+            function generateHTML() {
+                if (!baseTemplate) {
+                    showStatus('שגיאה: קובץ התבנית לא נטען.', false);
+                    return '';
+                }
+                
+                let html = baseTemplate;
+                
+                // המרת ערכים מהטופס
+                const formData = new FormData(form);
+                
+                // פרטי אירוע בסיסיים
+                html = html.replace(/{{TITLE}}/g, formData.get('title'));
+                html = html.replace(/{{SUBTITLE}}/g, formData.get('subtitle'));
+                html = html.replace(/{{LOGO_PATH}}/g, formData.get('logo_path') || 'logo.jpg');
+                
+                // תיאור האירוע
+                const description = formData.get('description').trim();
+                if (description) {
+                    html = html.replace(/{{DESCRIPTION_SECTION}}/g, `<p class="product-description">${description}</p>`);
+                } else {
+                    html = html.replace(/{{DESCRIPTION_SECTION}}/g, '');
+                }
+                
+                // טקסט קישוטי
+                html = html.replace(/{{DECORATION_TEXT}}/g, formData.get('decoration_text') || '');
+                html = html.replace(/{{SHOW_DECORATION}}/g, formData.get('show_decoration') ? 'block' : 'none');
+                
+                // פרטי הזמנה
+                html = html.replace(/{{TOTAL_SLOTS}}/g, formData.get('total_slots'));
+                html = html.replace(/{{MAX_SLOTS_PER_BOOKING}}/g, formData.get('max_slots_per_booking'));
+                html = html.replace(/{{PRICE}}/g, formData.get('price'));
+                html = html.replace(/{{PRICE_LABEL}}/g, formData.get('price_label'));
+                
+                // הגדרת בוחר כמות
+                const showQuantity = formData.get('show_quantity_selector') ? 'flex' : 'none';
+                html = html.replace(/{{SHOW_QUANTITY_COUNTER}}/g, showQuantity);
+                html = html.replace(/{{SHOW_QUANTITY_SELECTOR}}/g, formData.get('show_quantity_selector') ? 'true' : 'false');
+                
+                // פרטי קישורים
+                html = html.replace(/{{PAYMENT_LINK}}/g, formData.get('payment_link'));
+                
+                // עיבוד קישורי Google Forms
+                let formUrl = formData.get('form_url').trim();
+                let formViewUrl = formData.get('form_view_url').trim();
+                
+                // בדיקה האם הקישור הוא מזהה בלבד
+                if (!formUrl.includes('http')) {
+                    const formId = formUrl;
+                    formUrl = `https://docs.google.com/forms/d/e/${formId}/formResponse`;
+                }
+                
+                // יצירת קישור לצפייה אם לא סופק
+                if (!formViewUrl) {
+                    formViewUrl = formUrl.replace('/formResponse', '/viewform');
+                }
+                
+                html = html.replace(/{{FORM_URL}}/g, formUrl);
+                html = html.replace(/{{FORM_VIEW_URL}}/g, formViewUrl);
+                html = html.replace(/{{SHEET_URL}}/g, formData.get('sheet_url'));
+                
+                // שדות טופס Google
+                html = html.replace(/{{FIELD_FIRST_NAME}}/g, formData.get('field_first_name'));
+                html = html.replace(/{{FIELD_LAST_NAME}}/g, formData.get('field_last_name'));
+                html = html.replace(/{{FIELD_PHONE}}/g, formData.get('field_phone'));
+                html = html.replace(/{{FIELD_QUANTITY}}/g, formData.get('field_quantity'));
+                html = html.replace(/{{FIELD_PROJECT_NAME}}/g, formData.get('field_project_name'));
+                
+                // הגדרות מראה
+                html = html.replace(/{{PRIMARY_COLOR}}/g, formData.get('primary_color'));
+                html = html.replace(/{{SECONDARY_COLOR}}/g, formData.get('secondary_color'));
+                html = html.replace(/{{SUCCESS_COLOR}}/g, formData.get('success_color'));
+                html = html.replace(/{{SHOW_DEBUG}}/g, formData.get('show_debug') ? 'block' : 'none');
+                
+                // הגדרות מערכת
+                html = html.replace(/{{TEMP_BOOKING_TIMEOUT}}/g, formData.get('temp_booking_timeout'));
+                html = html.replace(/{{AUTO_REFRESH_INTERVAL}}/g, formData.get('auto_refresh_interval'));
+                
+                // מחרוזת אחסון מקומי
+                const storageSuffix = formData.get('storage_key_suffix');
+                html = html.replace(/{{STORAGE_KEY}}/g, `tempProductBookings_${storageSuffix}`);
+                
+                // שם הפרויקט
+                const projectName = formData.get('title') + ' ' + new Date().getFullYear();
+                html = html.replace(/{{PROJECT_NAME}}/g, projectName);
+                
+                return html;
+            }
             
-            loadingIndicator.style.display = 'block';
-            
-            // טיפול בערכים
-            setTimeout(() => {
-                const projectName = document.getElementById('projectName').value;
-                const projectTitle = document.getElementById('projectTitle').value;
-                const projectSubtitle = document.getElementById('projectSubtitle').value;
-                const projectDescription = document.getElementById('projectDescription').value;
-                const decorationText = document.getElementById('decorationText').value;
-                const totalSlots = document.getElementById('totalSlots').value;
-                const maxSlotsPerBooking = document.getElementById('maxSlotsPerBooking').value;
-                const isPaid = document.getElementById('isPaid').value;
-                const pricePerPerson = document.getElementById('pricePerPerson').value;
-                const paymentLink = document.getElementById('paymentLink').value;
-                const googleFormUrl = document.getElementById('googleFormUrl').value;
-                const googleSheetUrl = document.getElementById('googleSheetUrl').value;
-                const formFieldFirstName = document.getElementById('formFieldFirstName').value;
-                const formFieldLastName = document.getElementById('formFieldLastName').value;
-                const formFieldPhone = document.getElementById('formFieldPhone').value;
-                const formFieldQuantity = document.getElementById('formFieldQuantity').value;
-                const formFieldProjectName = document.getElementById('formFieldProjectName').value;
-                const primaryColor = document.getElementById('primaryColor').value;
-                const secondaryColor = document.getElementById('secondaryColor').value;
-                const useLogo = document.getElementById('useLogo').value;
-                const logoUrl = document.getElementById('logoUrl').value;
+            // פונקציית הצגת הודעת סטטוס
+            function showStatus(message, isSuccess) {
+                const statusElement = document.getElementById('status-message');
+                statusElement.textContent = message;
+                statusElement.className = 'status-message ' + (isSuccess ? 'status-success' : 'status-error');
+                statusElement.style.display = 'block';
                 
-                // יצירת HTML ללוגו אם נדרש
-                const logoHtml = useLogo === 'yes' && logoUrl 
-                    ? `<img src="${logoUrl}" alt="לוגו" class="logo">`
-                    : '';
-                
-                // יצירת HTML למחיר
-                const priceHtml = isPaid === 'yes' 
-                    ? `<div class="price-info">עלות: <span id="price-per-person">${pricePerPerson}</span> ₪ לאדם</div>`
-                    : `<div class="price-info">השתתפות ללא עלות</div>`;
-                
-                // יצירת HTML לקישור תשלום
-                const paymentLinkHtml = isPaid === 'yes' && paymentLink
-                    ? `<a href="${paymentLink}" class="payment-link" target="_blank">קישור לתשלום</a>`
-                    : '';
-                
-                // יצירת מפתח אחסון ייחודי
-                const storageKey = projectName
-                    .replace(/[^a-zA-Z0-9]/g, '_')
-                    .toLowerCase()
-                    .substring(0, 20) + '_' + new Date().getFullYear();
-                
-            // החלפת התגיות בתבנית
-                let generatedCode = templateContent
-                    .replace(/{{TITLE}}/g, projectTitle)
-                    .replace(/{{PROJECT_NAME}}/g, projectName)
-                    .replace(/{{PROJECT_TITLE}}/g, projectTitle)
-                    .replace(/{{PROJECT_SUBTITLE}}/g, projectSubtitle)
-                    .replace(/{{PROJECT_DESCRIPTION}}/g, projectDescription)
-                    .replace(/{{DECORATION_TEXT}}/g, decorationText)
-                    .replace(/{{TOTAL_SLOTS}}/g, totalSlots)
-                    .replace(/{{MAX_SLOTS_PER_BOOKING}}/g, maxSlotsPerBooking)
-                    .replace(/{{PRICE_PER_PERSON}}/g, pricePerPerson)
-                    .replace(/{{PAYMENT_LINK}}/g, paymentLink)
-                    .replace(/{{GOOGLE_FORM_URL}}/g, googleFormUrl)
-                    .replace(/{{GOOGLE_SHEET_URL}}/g, googleSheetUrl)
-                    .replace(/{{FORM_FIELD_FIRST_NAME}}/g, formFieldFirstName)
-                    .replace(/{{FORM_FIELD_LAST_NAME}}/g, formFieldLastName)
-                    .replace(/{{FORM_FIELD_PHONE}}/g, formFieldPhone)
-                    .replace(/{{FORM_FIELD_QUANTITY}}/g, formFieldQuantity)
-                    .replace(/{{FORM_FIELD_PROJECT_NAME}}/g, formFieldProjectName)
-                    .replace(/{{PRIMARY_COLOR}}/g, primaryColor)
-                    .replace(/{{SECONDARY_COLOR}}/g, secondaryColor)
-                    .replace(/{{LOGO_HTML}}/g, logoHtml)
-                    .replace(/{{PRICE_HTML}}/g, priceHtml)
-                    .replace(/{{PAYMENT_LINK_HTML}}/g, paymentLinkHtml)
-                    .replace(/{{PROJECT_STORAGE_KEY}}/g, storageKey);
-                
-                resultCode.textContent = generatedCode;
-                
-                loadingIndicator.style.display = 'none';
-                resultContainer.style.display = 'block';
-                
-                window.scrollTo({
-                    top: resultContainer.offsetTop - 20,
-                    behavior: 'smooth'
-                });
-            }, 1000);
+                // הסתרה אוטומטית אחרי 5 שניות
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
         });
-        
-        // העתקת קוד
-        document.getElementById('copyBtn').addEventListener('click', function() {
-            const resultCode = document.getElementById('resultCode');
-            
-            // יצירת אלמנט זמני לצורך העתקה
-            const tempTextarea = document.createElement('textarea');
-            tempTextarea.value = resultCode.textContent;
-            document.body.appendChild(tempTextarea);
-            tempTextarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextarea);
-            
-            this.textContent = 'הועתק!';
-            setTimeout(() => {
-                this.textContent = 'העתק קוד';
-            }, 2000);
-        });
-        
-        // הורדת קובץ HTML
-        document.getElementById('downloadBtn').addEventListener('click', function() {
-            const resultCode = document.getElementById('resultCode').textContent;
-            const projectTitle = document.getElementById('projectTitle').value;
-            const filename = projectTitle
-                .replace(/[^a-zA-Z0-9]/g, '_')
-                .toLowerCase() + '_form.html';
-            
-            const blob = new Blob([resultCode], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-    });
     </script>
 </body>
 </html>
