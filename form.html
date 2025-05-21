@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>רישום לערב נשים - בית הכנסת אש הבנים</title>
+    <title>מערכת הזמנת ערב נשים - קהילת אש הבנים התשפ"ה</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         :root {
@@ -255,11 +255,7 @@
         }
 
         .quantity-counter {
-            display: none; /* הסתרנו את כפתורי הכמות כי ניתן להזמין רק מקום אחד */
-            justify-content: space-between;
-            align-items: center;
-            width: 120px;
-            margin: 0 auto;
+            display: none; /* חסימת אפשרות להזמין יותר ממקום אחד */
         }
 
         .counter-btn {
@@ -415,12 +411,13 @@
             margin: 20px 0;
         }
 
-        .event-decoration {
+        .pesach-decoration {
             font-size: 1.2em;
             color: #8d6e63;
             text-align: center;
             margin: 15px 0;
             font-style: italic;
+            display: none; /* הסתרת הקישוט של פסח */
         }
 
         .debug-btn {
@@ -486,8 +483,9 @@
 <body>
     <div class="header">
         <div class="container">
-            <h1 id="project-title">רישום לערב נשים - בית הכנסת אש הבנים</h1>
-            <p id="project-subtitle">הזמנת מקומות לערב נשים</p>
+            <img src="logod.jpg" alt="לוגו" class="logo">
+            <h1 id="project-title">ערב נשים - קהילת אש הבנים</h1>
+            <p id="project-subtitle">הזמנת מקומות לערב נשים קהילת אש הבנים התשפ"ה</p>
         </div>
     </div>
 
@@ -499,11 +497,11 @@
         </div>
 
         <div class="product-card">
-            <h2 class="product-title" id="product-name">רישום לערב נשים - בית הכנסת אש הבנים</h2>
-            <p class="product-description" id="product-description"></p>
+            <h2 class="product-title" id="product-name">ערב נשים - קהילת אש הבנים</h2>
             
             <div class="product-details">
-                <div class="price-info">עלות: <span id="price-per-person">20</span> ₪ למשתתפת</div>
+                <div class="price-info">עלות: <span id="price-per-person">20</span> ₪ לאשה</div>
+              
                 <a href="https://payboxapp.page.link/mYU4bTgMwyGCBXWd6" class="payment-link" target="_blank">קישור לתשלום</a>
             </div>
 
@@ -514,7 +512,7 @@
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="booked-slots">0</div>
-                    <div class="stat-label">הזמנות שבוצעו</div>
+                    <div class="stat-label">מקומות שהוזמנו</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="available-slots">40</div>
@@ -527,14 +525,14 @@
             </div>
 
             <div class="actions">
-                <button class="booking-btn" id="booking-btn">הזמיני מקום עכשיו</button>
+                <button class="booking-btn" id="booking-btn">הזמן עכשיו</button>
             </div>
         </div>
     </div>
 
     <div class="overlay" id="overlay"></div>
     <div class="booking-form" id="booking-form">
-        <h3 id="form-title">הזמנת מקום לערב נשים</h3>
+        <h3 id="form-title">הזמנת מקום - ערב נשים</h3>
         <form id="reservation-form">
             <div class="form-group">
                 <label for="firstName">שם פרטי:</label>
@@ -558,7 +556,7 @@
             </div>
             
             <input type="hidden" id="quantity" value="1">
-            <input type="hidden" id="projectName" value="רישום לערב נשים - בית הכנסת אש הבנים">
+            <input type="hidden" id="projectName" value="">
             <div id="error-message" class="error"></div>
             <div class="form-actions">
                 <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
@@ -612,10 +610,9 @@
             
             // פרטי פרויקט
             project: {
-                name: "רישום לערב נשים - בית הכנסת אש הבנים",
-                title: "רישום לערב נשים - בית הכנסת אש הבנים",
-                subtitle: "הזמנת מקומות לערב נשים",
-                description: ""
+                name: "ערב נשים קהילת אש הבנים התשפ\"ה",
+                title: "ערב נשים - קהילת אש הבנים",
+                subtitle: "הזמנת מקומות לערב נשים קהילת אש הבנים התשפ\"ה"
             }
         };
 
@@ -625,7 +622,7 @@
             totalBooked: 0,
             
             tempBookingsManager: {
-                STORAGE_KEY: 'tempProductBookings_WomensEvent2025',
+                STORAGE_KEY: 'tempProductBookings_WomenEvent2025',
                 
                 getData() {
                     try {
@@ -646,13 +643,9 @@
                 
                 addBooking(booking) {
                     const bookings = this.getData();
-                    const key = booking.firstName + "_" + booking.lastName + "_" + booking.phone + "_" + Date.now();
+                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}_${Date.now()}`;
                     bookings[key] = {
-                        firstName: booking.firstName,
-                        lastName: booking.lastName,
-                        phone: booking.phone,
-                        quantity: booking.quantity,
-                        projectName: booking.projectName,
+                        ...booking,
                         expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
                     };
                     this.setData(bookings);
@@ -672,9 +665,7 @@
                     const now = Date.now();
                     const validBookings = {};
                     
-                    Object.entries(bookings).forEach(function(entry) {
-                        const key = entry[0];
-                        const booking = entry[1];
+                    Object.entries(bookings).forEach(([key, booking]) => {
                         if (booking.expiryTime > now) {
                             validBookings[key] = booking;
                         }
@@ -686,7 +677,7 @@
                 
                 getTotalTempQuantity() {
                     const bookings = this.getValidBookings();
-                    return Object.values(bookings).reduce(function(total, booking) {
+                    return Object.values(bookings).reduce((total, booking) => {
                         // וידוא שהכמות היא מספר חיובי
                         const quantity = parseInt(booking.quantity) || 0;
                         return total + (quantity > 0 ? quantity : 0);
@@ -701,8 +692,7 @@
                 this.updateProjectDetails();
                 this.attachEventListeners();
                 await this.loadData();
-                const self = this;
-                setInterval(function() { self.refreshData(); }, CONFIG.autoRefreshInterval * 1000);
+                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
             },
             
             updateProjectDetails() {
@@ -710,8 +700,7 @@
                 document.getElementById('project-title').textContent = CONFIG.project.title;
                 document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
                 document.getElementById('product-name').textContent = CONFIG.project.title;
-                document.getElementById('product-description').textContent = CONFIG.project.description;
-                document.getElementById('form-title').textContent = "הזמנת מקום ל" + CONFIG.project.title;
+                document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
                 document.getElementById('projectName').value = CONFIG.project.name;
                 document.getElementById('price-per-person').textContent = CONFIG.pricePerPerson;
                 document.getElementById('total-price').textContent = CONFIG.pricePerPerson;
@@ -719,13 +708,12 @@
             
             attachEventListeners() {
                 // אתחול לחצני טופס
-                const self = this;
-                document.getElementById('booking-btn').addEventListener('click', function() { self.openForm(); });
-                document.getElementById('cancel-btn').addEventListener('click', function() { self.closeForm(); });
-                document.getElementById('reservation-form').addEventListener('submit', function(e) { self.handleSubmit(e); });
+                document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
+                document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
+                document.getElementById('reservation-form').addEventListener('submit', (e) => this.handleSubmit(e));
                 
                 // כפתור דיבוג
-                document.getElementById('debug-btn').addEventListener('click', function() { self.debugData(); });
+                document.getElementById('debug-btn').addEventListener('click', () => this.debugData());
             },
             
             async loadData(showLoading = true) {
@@ -753,12 +741,12 @@
                     
                     // מוסיף timestamp כדי למנוע caching
                     const timestamp = Date.now();
-                    const url = CONFIG.urls.sheet + (CONFIG.urls.sheet.includes('?') ? '&' : '?') + "t=" + timestamp;
+                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
                     
                     try {
                         // ניסיון לקרוא את הנתונים מהגיליון עם תמיכה בתפיסת שגיאות
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(function() { controller.abort(); }, 10000); // timeout של 10 שניות
+                        const timeoutId = setTimeout(() => controller.abort(), 10000); // timeout של 10 שניות
                         
                         const response = await fetch(url, {
                             cache: 'no-store',
@@ -772,7 +760,7 @@
                         clearTimeout(timeoutId);
                         
                         if (!response.ok) {
-                            throw new Error("HTTP error! status: " + response.status);
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         
                         const csvText = await response.text();
@@ -793,7 +781,7 @@
                             return;
                         }
                         
-                        console.log("Parsed " + this.bookingsData.length + " bookings");
+                        console.log(`Parsed ${this.bookingsData.length} bookings`);
                         
                         // שמירת הנתונים בזכרון מקומי למקרה של כשל בחיבור בעתיד
                         localStorage.setItem('bookingsDataCache', JSON.stringify(this.bookingsData));
@@ -822,7 +810,7 @@
                             const booking = this.bookingsData[i];
                             
                             // הצגת נתוני ההזמנה לצורך דיבוג
-                            console.log("Booking " + (i+1) + ":", booking);
+                            console.log(`Booking ${i+1}:`, booking);
                             
                             // בדיקת שם הפרויקט (אין צורך לסנן לפי פרויקט ספציפי בשלב זה)
                             const projectField = booking['שם הפרוייקט'] || booking['entry.1414374653'] || '';
@@ -842,7 +830,7 @@
                             }
                             
                             if (quantity > 0) {
-                                console.log("Adding " + quantity + " from booking with project: " + projectField);
+                                console.log(`Adding ${quantity} from booking with project: ${projectField}`);
                                 this.totalBooked += quantity;
                             }
                         }
@@ -850,7 +838,7 @@
                         console.log("Total booked (all projects):", this.totalBooked);
                     }
                     
-             } catch (error) {
+                } catch (error) {
                     console.error('שגיאה כללית בטעינת ההזמנות:', error);
                     this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
                 }
@@ -862,9 +850,9 @@
                     const cleanCsv = csv.replace(/\r/g, '').trim();
                     const lines = cleanCsv.split('\n');
                     
-                    console.log("Found " + lines.length + " lines in CSV");
+                    console.log(`Found ${lines.length} lines in CSV`);
                     
-                    if (lines.length <= 1) {
+                if (lines.length <= 1) {
                         console.log("CSV is empty or has only headers");
                         return [];
                     }
@@ -875,20 +863,22 @@
                     
                     let headers;
                     if (headerLine.includes(',')) {
-                        headers = headerLine.split(',').map(function(h) { return h.trim(); });
+                        headers = headerLine.split(',').map(h => h.trim());
                     } else if (headerLine.includes('\t')) {
-                        headers = headerLine.split('\t').map(function(h) { return h.trim(); });
+                        headers = headerLine.split('\t').map(h => h.trim());
                     } else {
                         // אם אין מפריד ברור, ננסה לפצל לפי רווח
-                        headers = headerLine.split(/\s+/).map(function(h) { return h.trim(); });
+                        headers = headerLine.split(/\s+/).map(h => h.trim());
                     }
                     
                     console.log("Detected headers:", headers);
                     
                     // בדיקת שדות חובה
-                    const hasQuantityColumn = headers.some(function(h) { 
-                        return h.includes('הזמן') || h.includes('כמות') || h.includes('entry.1406108683');
-                    });
+                    const hasQuantityColumn = headers.some(h => 
+                        h.includes('הזמן') || 
+                        h.includes('כמות') || 
+                        h.includes('entry.1406108683')
+                    );
                     
                     if (!hasQuantityColumn) {
                         headers.push('כמות');
@@ -896,8 +886,8 @@
                     }
                     
                     return lines.slice(1)
-                        .filter(function(line) { return line.trim() !== ''; })
-                        .map(function(line, index) {
+                        .filter(line => line.trim() !== '')
+                        .map((line, index) => {
                             let values;
                             
                             // בדוק איזה מפריד יש בשורה
@@ -911,7 +901,7 @@
                             
                             const entry = {};
                             
-                            headers.forEach(function(header, i) {
+                            headers.forEach((header, i) => {
                                 // אם אין מספיק ערכים, השתמש בערך ריק
                                 entry[header] = i < values.length && values[i] ? values[i].trim() : '';
                                 
@@ -944,7 +934,7 @@
                 document.getElementById('total-slots').textContent = CONFIG.totalSlots;
                 document.getElementById('booked-slots').textContent = displayTotalBooked;
                 document.getElementById('available-slots').textContent = displayAvailableSlots;
-                document.getElementById('booking-progress').style.width = displayProgressPercentage + "%";
+                document.getElementById('booking-progress').style.width = `${displayProgressPercentage}%`;
                 
                 console.log("UI updated with:", {
                     totalSlots: CONFIG.totalSlots,
@@ -956,14 +946,13 @@
                 // כפתור הזמנה מושבת אם אין מקומות פנויים
                 const bookingBtn = document.getElementById('booking-btn');
                 bookingBtn.disabled = displayAvailableSlots <= 0;
-                bookingBtn.textContent = displayAvailableSlots > 0 ? 'הזמיני מקום עכשיו' : 'אזלו המקומות';
+                bookingBtn.textContent = displayAvailableSlots > 0 ? 'הזמן עכשיו' : 'אזלו המקומות';
             },
             
             openForm() {
                 document.getElementById('error-message').textContent = '';
                 document.getElementById('reservation-form').reset();
                 document.getElementById('projectName').value = CONFIG.project.name;
-                document.getElementById('quantity').value = "1"; // תמיד 1 כי אפשר להזמין רק מקום אחד
                 
                 document.getElementById('overlay').style.display = 'block';
                 document.getElementById('booking-form').style.display = 'block';
@@ -1006,7 +995,7 @@
                 const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
                 
                 if (parseInt(formData.quantity) > availableSlots) {
-                    document.getElementById('error-message').textContent = "אין מספיק מקומות פנויים. נותרו " + availableSlots + " מקומות.";
+                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
                     return;
                 }
                 
@@ -1035,14 +1024,15 @@
                     this.closeForm();
                     document.getElementById('success-message').style.display = 'block';
                     
-                    // הודעת הצלחה
-                    alert("ההרשמה בוצעה בהצלחה!\nתודה על ההרשמה לערב הנשים.\nנא לעבור לתשלום בקישור המצורף.");
+                    // שמירת ההזמנה לאחר שנשלחה בהצלחה
+                    const totalAmount = parseInt(formData.quantity) * CONFIG.pricePerPerson;
+                    alert(`הזמנתך התקבלה בהצלחה!\nמספר אנשים: ${formData.quantity}\nסכום לתשלום: ${totalAmount} ש"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.`);
                     
                     // פתיחת חלון תשלום בלשונית חדשה
                     window.open(CONFIG.paymentLink, '_blank');
                     
                     // הסתרת הודעת הצלחה אחרי 10 שניות
-                    setTimeout(function() {
+                    setTimeout(() => {
                         document.getElementById('success-message').style.display = 'none';
                     }, 10000);
                     
@@ -1069,8 +1059,7 @@
                 
                 // הצגת נתונים
                 const projectCounts = {};
-                const self = this;
-                this.bookingsData.forEach(function(booking) {
+                this.bookingsData.forEach(booking => {
                     const projectName = booking['שם הפרוייקט'] || booking['entry.1414374653'] || 'לא ידוע';
                     if (!projectCounts[projectName]) projectCounts[projectName] = 0;
                     projectCounts[projectName]++;
@@ -1078,12 +1067,12 @@
                 
                 console.log("Projects in data:", projectCounts);
                 
-                const totalCount = this.bookingsData.reduce(function(sum, booking) {
+                const totalCount = this.bookingsData.reduce((sum, booking) => {
                     const quantity = parseInt(booking['הזמן']) || parseInt(booking['כמות']) || 0;
                     return sum + quantity;
                 }, 0);
                 
-                alert("מידע דיבוג:\n- נמצאו " + this.bookingsData.length + " רשומות בסה\"כ\n- סה\"כ כמות: " + this.totalBooked + "\n- כמויות זמניות: " + this.tempBookingsManager.getTotalTempQuantity() + "\n\nמידע מפורט נמצא בקונסול (F12)");
+                alert(`מידע דיבוג:\n- נמצאו ${this.bookingsData.length} רשומות בסה"כ\n- סה"כ כמות: ${this.totalBooked}\n- כמויות זמניות: ${this.tempBookingsManager.getTotalTempQuantity()}\n\nמידע מפורט נמצא בקונסול (F12)`);
             },
             
             showLoading() {
@@ -1095,12 +1084,12 @@
             },
             
             async delay(ms) {
-                return new Promise(function(resolve) { setTimeout(resolve, ms); });
+                return new Promise(resolve => setTimeout(resolve, ms));
             }
         };
         
         // אתחול המערכת
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             bookingSystem.init();
         });
     </script>
