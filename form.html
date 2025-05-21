@@ -493,7 +493,9 @@
 
     <div class="container">
         <div class="success-message" id="success-message">
-            ההזמנה שלך התקבלה בהצלחה! נא להשלים את התשלום בהגעה לאירוע.
+            ההזמנה שלך התקבלה בהצלחה! נא להשלים את התשלום בקישור שלהלן.
+            <br>
+            <a href="https://payboxapp.page.link/mYU4bTgMwyGCBXWd6" class="payment-btn" target="_blank">מעבר לתשלום</a>
         </div>
 
         <div class="product-card">
@@ -502,6 +504,7 @@
             
             <div class="product-details">
                 <div class="price-info">עלות: <span id="price-per-person">20</span> ₪ למשתתפת</div>
+                <a href="https://payboxapp.page.link/mYU4bTgMwyGCBXWd6" class="payment-link" target="_blank">קישור לתשלום</a>
             </div>
 
             <div class="product-stats">
@@ -551,7 +554,7 @@
             </div>
             
             <div class="payment-note">
-                התשלום יתבצע במקום בערב האירוע.
+                לאחר שליחת טופס ההזמנה, יש להשלים את התשלום בקישור שיופיע.
             </div>
             
             <input type="hidden" id="quantity" value="1">
@@ -588,6 +591,9 @@
             
             // זמן רענון אוטומטי (בשניות)
             autoRefreshInterval: 60,
+            
+            // קישור לתשלום
+            paymentLink: 'https://payboxapp.page.link/mYU4bTgMwyGCBXWd6',
             
             // כתובות URL
             urls: {
@@ -844,13 +850,13 @@
                         console.log("Total booked (all projects):", this.totalBooked);
                     }
                     
-                } catch (error) {
+             } catch (error) {
                     console.error('שגיאה כללית בטעינת ההזמנות:', error);
                     this.totalBooked = 0; // במקרה של שגיאה, אפס את הערך
                 }
             },
             
-          parseCSV(csv) {
+            parseCSV(csv) {
                 try {
                     // נקה סיומת שורה ותווים מיוחדים
                     const cleanCsv = csv.replace(/\r/g, '').trim();
@@ -1030,7 +1036,10 @@
                     document.getElementById('success-message').style.display = 'block';
                     
                     // הודעת הצלחה
-                    alert("ההרשמה בוצעה בהצלחה!\nתודה על ההרשמה לערב הנשים.\nנשמח לראותך!");
+                    alert("ההרשמה בוצעה בהצלחה!\nתודה על ההרשמה לערב הנשים.\nנא לעבור לתשלום בקישור המצורף.");
+                    
+                    // פתיחת חלון תשלום בלשונית חדשה
+                    window.open(CONFIG.paymentLink, '_blank');
                     
                     // הסתרת הודעת הצלחה אחרי 10 שניות
                     setTimeout(function() {
