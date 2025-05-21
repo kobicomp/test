@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{TITLE}}</title>
+    <title>{{TITLE}} - {{SUBTITLE}}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         :root {
             --primary-color: {{PRIMARY_COLOR}};
             --secondary-color: {{SECONDARY_COLOR}};
-            --success-color: #4CAF50;
+            --success-color: {{SUCCESS_COLOR}};
             --danger-color: #f44336;
             --warning-color: #ff9800;
             --light-color: #f5f5f5;
@@ -255,7 +255,7 @@
         }
 
         .quantity-counter {
-            display: flex;
+            display: {{SHOW_QUANTITY_COUNTER}};
             justify-content: space-between;
             align-items: center;
             width: 120px;
@@ -421,6 +421,7 @@
             text-align: center;
             margin: 15px 0;
             font-style: italic;
+            display: {{SHOW_DECORATION}};
         }
 
         .debug-btn {
@@ -435,6 +436,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 0.8em;
+            display: {{SHOW_DEBUG}};
         }
 
         @media (max-width: 768px) {
@@ -486,9 +488,9 @@
 <body>
     <div class="header">
         <div class="container">
-            {{LOGO_HTML}}
-            <h1 id="project-title">{{PROJECT_TITLE}}</h1>
-            <p id="project-subtitle">{{PROJECT_SUBTITLE}}</p>
+            <img src="{{LOGO_PATH}}" alt="לוגו" class="logo">
+            <h1 id="project-title">{{TITLE}}</h1>
+            <p id="project-subtitle">{{SUBTITLE}}</p>
         </div>
     </div>
 
@@ -500,27 +502,28 @@
         </div>
 
         <div class="product-card">
-            <h2 class="product-title" id="product-name">{{PROJECT_TITLE}}</h2>
-            <p class="product-description" id="product-description">{{PROJECT_DESCRIPTION}}</p>
+            <h2 class="product-title" id="product-name">{{TITLE}}</h2>
+            
+            {{DESCRIPTION_SECTION}}
             
             <div class="product-details">
-                {{PRICE_HTML}}
+                <div class="price-info">עלות: <span id="price-per-person">{{PRICE}}</span> ₪ ל{{PRICE_LABEL}}</div>
               
-                {{PAYMENT_LINK_HTML}}
+                <a href="{{PAYMENT_LINK}}" class="payment-link" target="_blank">קישור לתשלום</a>
             </div>
 
             <div class="product-stats">
                 <div class="stat-box">
                     <div class="stat-value" id="total-slots">{{TOTAL_SLOTS}}</div>
-                    <div class="stat-label">סך ההזמנות</div>
+                    <div class="stat-label">סך המקומות</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="booked-slots">0</div>
-                    <div class="stat-label">הזמנות שבוצעו</div>
+                    <div class="stat-label">מקומות שהוזמנו</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value" id="available-slots">{{TOTAL_SLOTS}}</div>
-                    <div class="stat-label">הזמנות פנויות</div>
+                    <div class="stat-label">מקומות פנויים</div>
                 </div>
             </div>
 
@@ -529,7 +532,7 @@
             </div>
 
             <div class="event-decoration">
-                "{{DECORATION_TEXT}}"
+                {{DECORATION_TEXT}}
             </div>
 
             <div class="actions">
@@ -540,7 +543,7 @@
 
     <div class="overlay" id="overlay"></div>
     <div class="booking-form" id="booking-form">
-        <h3 id="form-title">הזמנת {{PROJECT_TITLE}}</h3>
+        <h3 id="form-title">הזמנת {{TITLE}}</h3>
         <form id="reservation-form">
             <div class="form-group">
                 <label for="firstName">שם פרטי:</label>
@@ -554,8 +557,8 @@
                 <label for="phone">מספר טלפון:</label>
                 <input type="tel" id="phone" required pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות">
             </div>
-            <div class="form-group">
-                <label for="quantity">מספר אנשים:</label>
+            <div class="form-group" id="quantity-group">
+                <label for="quantity">מספר מקומות:</label>
                 <div class="quantity-counter">
                     <button type="button" class="counter-btn" id="decrease-btn">-</button>
                     <span class="counter-value" id="quantity-value">1</span>
@@ -565,14 +568,14 @@
             </div>
             
             <div class="price-display">
-                סך הכל לתשלום: <span class="price-amount" id="total-price">{{PRICE_PER_PERSON}}</span> ₪
+                סך הכל לתשלום: <span class="price-amount" id="total-price">{{PRICE}}</span> ₪
             </div>
             
             <div class="payment-note">
                 לאחר שליחת טופס ההזמנה, יש להשלים את התשלום בקישור שיופיע.
             </div>
             
-            <input type="hidden" id="projectName" value="{{PROJECT_NAME}}">
+            <input type="hidden" id="projectName" value="">
             <div id="error-message" class="error"></div>
             <div class="form-actions">
                 <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
@@ -598,39 +601,42 @@
             maxSlotsPerBooking: {{MAX_SLOTS_PER_BOOKING}},
             
             // מחיר ליחידה
-            pricePerPerson: {{PRICE_PER_PERSON}},
+            pricePerPerson: {{PRICE}},
             
             // זמן עבור הזמנה זמנית (בדקות)
-            tempBookingTimeout: 10,
+            tempBookingTimeout: {{TEMP_BOOKING_TIMEOUT}},
             
             // זמן רענון אוטומטי (בשניות)
-            autoRefreshInterval: 60,
+            autoRefreshInterval: {{AUTO_REFRESH_INTERVAL}},
             
             // קישור לתשלום
             paymentLink: '{{PAYMENT_LINK}}',
             
             // כתובות URL
             urls: {
-                form: '{{GOOGLE_FORM_URL}}',
-                sheet: '{{GOOGLE_SHEET_URL}}'
+                form: '{{FORM_URL}}',
+                formViewUrl: '{{FORM_VIEW_URL}}',
+                sheet: '{{SHEET_URL}}'
             },
             
             // שדות טופס Google
             formFields: {
-                firstName: "{{FORM_FIELD_FIRST_NAME}}",
-                lastName: "{{FORM_FIELD_LAST_NAME}}",
-                phone: "{{FORM_FIELD_PHONE}}",
-                quantity: "{{FORM_FIELD_QUANTITY}}",
-                projectName: "{{FORM_FIELD_PROJECT_NAME}}"
+                firstName: "{{FIELD_FIRST_NAME}}",
+                lastName: "{{FIELD_LAST_NAME}}",
+                phone: "{{FIELD_PHONE}}",
+                quantity: "{{FIELD_QUANTITY}}",
+                projectName: "{{FIELD_PROJECT_NAME}}"
             },
             
             // פרטי פרויקט
             project: {
                 name: "{{PROJECT_NAME}}",
-                title: "{{PROJECT_TITLE}}",
-                subtitle: "{{PROJECT_SUBTITLE}}",
-                description: "{{PROJECT_DESCRIPTION}}"
-            }
+                title: "{{TITLE}}",
+                subtitle: "{{SUBTITLE}}"
+            },
+
+            // האם להציג בוחר כמות או להגביל ל-1
+            showQuantitySelector: {{SHOW_QUANTITY_SELECTOR}}
         };
 
         // מערכת הזמנה
@@ -639,7 +645,7 @@
             totalBooked: 0,
             
             tempBookingsManager: {
-                STORAGE_KEY: 'tempProductBookings_{{PROJECT_STORAGE_KEY}}',
+                STORAGE_KEY: '{{STORAGE_KEY}}',
                 
                 getData() {
                     try {
@@ -660,13 +666,9 @@
                 
                 addBooking(booking) {
                     const bookings = this.getData();
-                    const key = booking.firstName + "_" + booking.lastName + "_" + booking.phone + "_" + Date.now();
+                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}_${Date.now()}`;
                     bookings[key] = {
-                        firstName: booking.firstName,
-                        lastName: booking.lastName,
-                        phone: booking.phone,
-                        quantity: booking.quantity,
-                        projectName: booking.projectName,
+                        ...booking,
                         expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
                     };
                     this.setData(bookings);
@@ -686,9 +688,7 @@
                     const now = Date.now();
                     const validBookings = {};
                     
-                    Object.entries(bookings).forEach(function(entry) {
-                        const key = entry[0];
-                        const booking = entry[1];
+                    Object.entries(bookings).forEach(([key, booking]) => {
                         if (booking.expiryTime > now) {
                             validBookings[key] = booking;
                         }
@@ -700,7 +700,7 @@
                 
                 getTotalTempQuantity() {
                     const bookings = this.getValidBookings();
-                    return Object.values(bookings).reduce(function(total, booking) {
+                    return Object.values(bookings).reduce((total, booking) => {
                         // וידוא שהכמות היא מספר חיובי
                         const quantity = parseInt(booking.quantity) || 0;
                         return total + (quantity > 0 ? quantity : 0);
@@ -715,8 +715,7 @@
                 this.updateProjectDetails();
                 this.attachEventListeners();
                 await this.loadData();
-                const self = this;
-                setInterval(function() { self.refreshData(); }, CONFIG.autoRefreshInterval * 1000);
+                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
             },
             
             updateProjectDetails() {
@@ -724,26 +723,31 @@
                 document.getElementById('project-title').textContent = CONFIG.project.title;
                 document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
                 document.getElementById('product-name').textContent = CONFIG.project.title;
-                document.getElementById('product-description').textContent = CONFIG.project.description;
-                document.getElementById('form-title').textContent = "הזמנת " + CONFIG.project.title;
+                document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
                 document.getElementById('projectName').value = CONFIG.project.name;
                 document.getElementById('price-per-person').textContent = CONFIG.pricePerPerson;
                 document.getElementById('total-price').textContent = CONFIG.pricePerPerson;
+                
+                // הסתרת או הצגת בוחר הכמות בהתאם להגדרות
+                if (!CONFIG.showQuantitySelector) {
+                    document.getElementById('quantity-group').style.display = 'none';
+                }
             },
             
             attachEventListeners() {
                 // אתחול לחצני טופס
-                const self = this;
-                document.getElementById('booking-btn').addEventListener('click', function() { self.openForm(); });
-                document.getElementById('cancel-btn').addEventListener('click', function() { self.closeForm(); });
-                document.getElementById('reservation-form').addEventListener('submit', function(e) { self.handleSubmit(e); });
+                document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
+                document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
+                document.getElementById('reservation-form').addEventListener('submit', (e) => this.handleSubmit(e));
                 
-                // אתחול מונה כמות
-                document.getElementById('increase-btn').addEventListener('click', function() { self.updateQuantity(1); });
-                document.getElementById('decrease-btn').addEventListener('click', function() { self.updateQuantity(-1); });
+                // אתחול מונה כמות אם הוא מוצג
+                if (CONFIG.showQuantitySelector) {
+                    document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
+                    document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
+                }
                 
                 // כפתור דיבוג
-                document.getElementById('debug-btn').addEventListener('click', function() { self.debugData(); });
+                document.getElementById('debug-btn').addEventListener('click', () => this.debugData());
             },
             
             async loadData(showLoading = true) {
@@ -771,12 +775,12 @@
                     
                     // מוסיף timestamp כדי למנוע caching
                     const timestamp = Date.now();
-                    const url = CONFIG.urls.sheet + (CONFIG.urls.sheet.includes('?') ? '&' : '?') + "t=" + timestamp;
+                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
                     
                     try {
                         // ניסיון לקרוא את הנתונים מהגיליון עם תמיכה בתפיסת שגיאות
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(function() { controller.abort(); }, 10000); // timeout של 10 שניות
+                        const timeoutId = setTimeout(() => controller.abort(), 10000); // timeout של 10 שניות
                         
                         const response = await fetch(url, {
                             cache: 'no-store',
@@ -790,7 +794,7 @@
                         clearTimeout(timeoutId);
                         
                         if (!response.ok) {
-                            throw new Error("HTTP error! status: " + response.status);
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         
                         const csvText = await response.text();
@@ -811,7 +815,7 @@
                             return;
                         }
                         
-                        console.log("Parsed " + this.bookingsData.length + " bookings");
+                        console.log(`Parsed ${this.bookingsData.length} bookings`);
                         
                         // שמירת הנתונים בזכרון מקומי למקרה של כשל בחיבור בעתיד
                         localStorage.setItem('bookingsDataCache', JSON.stringify(this.bookingsData));
@@ -840,10 +844,16 @@
                             const booking = this.bookingsData[i];
                             
                             // הצגת נתוני ההזמנה לצורך דיבוג
-                            console.log("Booking " + (i+1) + ":", booking);
+                            console.log(`Booking ${i+1}:`, booking);
                             
-                            // בדיקת שם הפרויקט (אין צורך לסנן לפי פרויקט ספציפי בשלב זה)
-                            const projectField = booking['שם הפרוייקט'] || booking['entry.1414374653'] || '';
+                            // בדיקת שם הפרויקט (נסנן רק לפרויקט הנוכחי אם קיים)
+                            const projectField = booking['שם הפרוייקט'] || booking[CONFIG.formFields.projectName] || '';
+                            
+                            // בדיקה האם ההזמנה שייכת לפרויקט הנוכחי
+                            if (CONFIG.project.name && projectField && !projectField.includes(CONFIG.project.name)) {
+                                console.log(`Skipping booking with different project: ${projectField}`);
+                                continue;
+                            }
                             
                             // בדיקת הכמות
                             let quantity = 0;
@@ -851,7 +861,7 @@
                             try {
                                 quantity = parseInt(booking['הזמן']) || 
                                     parseInt(booking['כמות']) || 
-                                    parseInt(booking['entry.1406108683']) ||
+                                    parseInt(booking[CONFIG.formFields.quantity]) ||
                                     parseInt(booking['Quantity']) || 
                                     parseInt(booking['quantity']) || 0;
                             } catch (parseError) {
@@ -860,12 +870,12 @@
                             }
                             
                             if (quantity > 0) {
-                                console.log("Adding " + quantity + " from booking with project: " + projectField);
+                                console.log(`Adding ${quantity} from booking with project: ${projectField}`);
                                 this.totalBooked += quantity;
                             }
                         }
                         
-                        console.log("Total booked (all projects):", this.totalBooked);
+                        console.log("Total booked (filtered by project):", this.totalBooked);
                     }
                     
                 } catch (error) {
@@ -874,13 +884,13 @@
                 }
             },
             
-          parseCSV(csv) {
+            parseCSV(csv) {
                 try {
                     // נקה סיומת שורה ותווים מיוחדים
                     const cleanCsv = csv.replace(/\r/g, '').trim();
                     const lines = cleanCsv.split('\n');
                     
-                    console.log("Found " + lines.length + " lines in CSV");
+                    console.log(`Found ${lines.length} lines in CSV`);
                     
                     if (lines.length <= 1) {
                         console.log("CSV is empty or has only headers");
@@ -893,20 +903,22 @@
                     
                     let headers;
                     if (headerLine.includes(',')) {
-                        headers = headerLine.split(',').map(function(h) { return h.trim(); });
+                        headers = headerLine.split(',').map(h => h.trim());
                     } else if (headerLine.includes('\t')) {
-                        headers = headerLine.split('\t').map(function(h) { return h.trim(); });
+                        headers = headerLine.split('\t').map(h => h.trim());
                     } else {
                         // אם אין מפריד ברור, ננסה לפצל לפי רווח
-                        headers = headerLine.split(/\s+/).map(function(h) { return h.trim(); });
+                        headers = headerLine.split(/\s+/).map(h => h.trim());
                     }
                     
                     console.log("Detected headers:", headers);
                     
                     // בדיקת שדות חובה
-                    const hasQuantityColumn = headers.some(function(h) { 
-                        return h.includes('הזמן') || h.includes('כמות') || h.includes('entry.1406108683');
-                    });
+                    const hasQuantityColumn = headers.some(h => 
+                        h.includes('הזמן') || 
+                        h.includes('כמות') || 
+                        h.includes(CONFIG.formFields.quantity)
+                    );
                     
                     if (!hasQuantityColumn) {
                         headers.push('כמות');
@@ -914,8 +926,8 @@
                     }
                     
                     return lines.slice(1)
-                        .filter(function(line) { return line.trim() !== ''; })
-                        .map(function(line, index) {
+                        .filter(line => line.trim() !== '')
+                        .map((line, index) => {
                             let values;
                             
                             // בדוק איזה מפריד יש בשורה
@@ -929,7 +941,7 @@
                             
                             const entry = {};
                             
-                            headers.forEach(function(header, i) {
+                            headers.forEach((header, i) => {
                                 // אם אין מספיק ערכים, השתמש בערך ריק
                                 entry[header] = i < values.length && values[i] ? values[i].trim() : '';
                                 
@@ -962,7 +974,7 @@
                 document.getElementById('total-slots').textContent = CONFIG.totalSlots;
                 document.getElementById('booked-slots').textContent = displayTotalBooked;
                 document.getElementById('available-slots').textContent = displayAvailableSlots;
-                document.getElementById('booking-progress').style.width = displayProgressPercentage + "%";
+                document.getElementById('booking-progress').style.width = `${displayProgressPercentage}%`;
                 
                 console.log("UI updated with:", {
                     totalSlots: CONFIG.totalSlots,
@@ -983,7 +995,9 @@
                 document.getElementById('projectName').value = CONFIG.project.name;
                 
                 // איפוס מונה כמות
-                this.updateQuantity(0, true);
+                if (CONFIG.showQuantitySelector) {
+                    this.updateQuantity(0, true);
+                }
                 
                 document.getElementById('overlay').style.display = 'block';
                 document.getElementById('booking-form').style.display = 'block';
@@ -1057,7 +1071,7 @@
                 const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
                 
                 if (parseInt(formData.quantity) > availableSlots) {
-                    document.getElementById('error-message').textContent = "אין מספיק מקומות פנויים. נותרו " + availableSlots + " מקומות.";
+                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
                     return;
                 }
                 
@@ -1069,18 +1083,57 @@
                     // שליחת נתונים ל-Google Form
                     this.showLoading();
                     
-                    const googleFormData = new FormData();
-                    googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
-                    googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
-                    googleFormData.append(CONFIG.formFields.phone, formData.phone);
-                    googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
-                    googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
-                    
-                    await fetch(CONFIG.urls.form, {
-                        method: 'POST',
-                        body: googleFormData,
-                        mode: 'no-cors'
-                    });
+                    // ניסיון לשלוח נתונים באמצעות POST
+                    try {
+                        // שליחת הנתונים באמצעות FormData
+                        const googleFormData = new FormData();
+                        googleFormData.append(CONFIG.formFields.firstName, formData.firstName);
+                        googleFormData.append(CONFIG.formFields.lastName, formData.lastName);
+                        googleFormData.append(CONFIG.formFields.phone, formData.phone);
+                        googleFormData.append(CONFIG.formFields.quantity, formData.quantity);
+                        googleFormData.append(CONFIG.formFields.projectName, formData.projectName);
+                        
+                        const formResponse = await fetch(CONFIG.urls.form, {
+                            method: 'POST',
+                            body: googleFormData,
+                            mode: 'no-cors'
+                        });
+                        
+                        console.log("Form submitted successfully");
+                    } catch (formError) {
+                        console.warn("Could not submit form directly, trying with URL params:", formError);
+                        
+                        // במקרה של שגיאה, ננסה להשתמש ב-URL עם פרמטרים לטופס צפייה
+                        // שינוי הסיומת מ-formResponse ל-viewform
+                        const formViewUrl = CONFIG.urls.formViewUrl || CONFIG.urls.form.replace('/formResponse', '/viewform');
+                        const formUrl = new URL(formViewUrl);
+                        
+                        // הוספת פרמטרים לטופס
+                        // שים לב שבטופס צפייה משתמשים ב-entry_ במקום entry.
+                        formUrl.searchParams.append(CONFIG.formFields.firstName.replace('entry.', 'entry_'), formData.firstName);
+                        formUrl.searchParams.append(CONFIG.formFields.lastName.replace('entry.', 'entry_'), formData.lastName);
+                        formUrl.searchParams.append(CONFIG.formFields.phone.replace('entry.', 'entry_'), formData.phone);
+                        formUrl.searchParams.append(CONFIG.formFields.quantity.replace('entry.', 'entry_'), formData.quantity);
+                        formUrl.searchParams.append(CONFIG.formFields.projectName.replace('entry.', 'entry_'), formData.projectName);
+                        
+                        // פתיחת חלון חדש עם הטופס
+                        const formWindow = window.open(formUrl.toString(), '_blank', 'width=600,height=400');
+                        
+                        // ניסיון לשלוח את הטופס אוטומטית
+                        setTimeout(() => {
+                            try {
+                                if (formWindow) {
+                                    console.log("Trying to auto-submit the form");
+                                    formWindow.document.querySelector('form')?.submit();
+                                    setTimeout(() => {
+                                        formWindow.close();
+                                    }, 3000);
+                                }
+                            } catch (e) {
+                                console.error("Could not auto-submit the form:", e);
+                            }
+                        }, 2000);
+                    }
                     
                     // הצגת הודעת הצלחה
                     this.closeForm();
@@ -1088,13 +1141,13 @@
                     
                     // שמירת ההזמנה לאחר שנשלחה בהצלחה
                     const totalAmount = parseInt(formData.quantity) * CONFIG.pricePerPerson;
-                    alert("הזמנתך התקבלה בהצלחה!\nמספר אנשים: " + formData.quantity + "\nסכום לתשלום: " + totalAmount + " ש\"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.");
+                    alert(`הזמנתך התקבלה בהצלחה!\nמספר אנשים: ${formData.quantity}\nסכום לתשלום: ${totalAmount} ש"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.`);
                     
                     // פתיחת חלון תשלום בלשונית חדשה
                     window.open(CONFIG.paymentLink, '_blank');
                     
                     // הסתרת הודעת הצלחה אחרי 10 שניות
-                    setTimeout(function() {
+                    setTimeout(() => {
                         document.getElementById('success-message').style.display = 'none';
                     }, 10000);
                     
@@ -1121,21 +1174,20 @@
                 
                 // הצגת נתונים
                 const projectCounts = {};
-                const self = this;
-                this.bookingsData.forEach(function(booking) {
-                    const projectName = booking['שם הפרוייקט'] || booking['entry.1414374653'] || 'לא ידוע';
+                this.bookingsData.forEach(booking => {
+                    const projectName = booking['שם הפרוייקט'] || booking[CONFIG.formFields.projectName] || 'לא ידוע';
                     if (!projectCounts[projectName]) projectCounts[projectName] = 0;
                     projectCounts[projectName]++;
                 });
                 
                 console.log("Projects in data:", projectCounts);
                 
-                const totalCount = this.bookingsData.reduce(function(sum, booking) {
+                const totalCount = this.bookingsData.reduce((sum, booking) => {
                     const quantity = parseInt(booking['הזמן']) || parseInt(booking['כמות']) || 0;
                     return sum + quantity;
                 }, 0);
                 
-                alert("מידע דיבוג:\n- נמצאו " + this.bookingsData.length + " רשומות בסה\"כ\n- סה\"כ כמות: " + this.totalBooked + "\n- כמויות זמניות: " + this.tempBookingsManager.getTotalTempQuantity() + "\n\nמידע מפורט נמצא בקונסול (F12)");
+                alert(`מידע דיבוג:\n- נמצאו ${this.bookingsData.length} רשומות בסה"כ\n- סה"כ כמות: ${this.totalBooked}\n- כמויות זמניות: ${this.tempBookingsManager.getTotalTempQuantity()}\n\nמידע מפורט נמצא בקונסול (F12)`);
             },
             
             showLoading() {
@@ -1147,12 +1199,12 @@
             },
             
             async delay(ms) {
-                return new Promise(function(resolve) { setTimeout(resolve, ms); });
+                return new Promise(resolve => setTimeout(resolve, ms));
             }
         };
         
         // אתחול המערכת
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             bookingSystem.init();
         });
     </script>
