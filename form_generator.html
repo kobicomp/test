@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>מחולל טפסי הרשמה</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            direction: rtl;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>מחולל טפסי הרשמה</h1>
+    
+    <form id="formGenerator">
+        <div class="form-group">
+            <label>שם הפרויקט:</label>
+            <input type="text" id="projectTitle" required>
+        </div>
+        
+        <div class="form-group">
+            <label>תיאור הפרויקט:</label>
+            <textarea id="projectDescription" rows="4" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>מספר מקומות כולל:</label>
+            <input type="number" id="totalSlots" required min="1" max="500" value="20">
+        </div>
+        
+        <div class="form-group">
+            <label>מחיר למשתתף (ש"ח):</label>
+            <input type="number" id="pricePerPerson" required min="0" value="10">
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לטופס Google Forms:</label>
+            <input type="url" id="googleFormsUrl" required>
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לגיליון Google Sheets:</label>
+            <input type="url" id="googleSheetsUrl" required>
+        </div>
+        
+        <div class="form-group">
+            <label>קישור לתשלום:</label>
+            <input type="url" id="paymentUrl" required>
+        </div>
+        
+        <button type="button" class="btn" onclick="generateHTML()">צור טופס הרשמה</button>
+    </form>
+
+    <script>
+        async function generateHTML() {
+            // קריאת תוכן התבנית
+            const templateResponse = await fetch('base_template.html');
+            const templateContent = await templateResponse.text();
+
+            // נתוני הטופס
+            const formData = {
+                PROJECT_TITLE: document.getElementById('projectTitle').value,
+                PROJECT_DESCRIPTION: document.getElementById('projectDescription').value,
+                TOTAL_SLOTS: document.getElementById('totalSlots').value,
+                PRICE_PER_PERSON: document.getElementById('pricePerPerson').value,
+                GOOGLE_FORMS_URL: document.getElementById('googleFormsUrl').value,
+                GOOGLE_SHEETS_URL: document.getElementById('googleSheetsUrl').value,
+                PAYMENT_URL: document.getElementById('paymentUrl').value,
+                PROJECT_NAME: document.getElementById('projectTitle').value
+            };
+
+            // החלפת משתנים בתבנית
+            let processedHTML = templateContent;
+            Object.keys(formData).forEach(key => {
+                processedHTML = processedHTML.replace(new RegExp(`{{${key}}}`, 'g'), formData[key]);
+            });
+
+            // יצירת קובץ HTML להורדה
+            const blob = new Blob([processedHTML], {type: 'text/html'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${formData.PROJECT_NAME}_registration_form.html`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
