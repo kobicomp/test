@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             direction: rtl;
@@ -23,7 +23,6 @@
             padding: 8px;
         }
         .btn {
-            display: inline-block;
             background-color: #2196F3;
             color: white;
             padding: 10px 15px;
@@ -39,6 +38,11 @@
         <div class="form-group">
             <label>שם הפרויקט:</label>
             <input type="text" id="projectTitle" required>
+        </div>
+        
+        <div class="form-group">
+            <label>כותרת משנית:</label>
+            <input type="text" id="projectSubtitle" required>
         </div>
         
         <div class="form-group">
@@ -71,6 +75,31 @@
             <input type="url" id="paymentUrl" required>
         </div>
         
+        <div class="form-group">
+            <label>שדה שם פרטי (entry):</label>
+            <input type="text" id="entryFirstName" required placeholder="entry.1234567">
+        </div>
+        
+        <div class="form-group">
+            <label>שדה שם משפחה (entry):</label>
+            <input type="text" id="entryLastName" required placeholder="entry.2345678">
+        </div>
+        
+        <div class="form-group">
+            <label>שדה טלפון (entry):</label>
+            <input type="text" id="entryPhone" required placeholder="entry.3456789">
+        </div>
+        
+        <div class="form-group">
+            <label>שדה כמות (entry):</label>
+            <input type="text" id="entryQuantity" required placeholder="entry.4567890">
+        </div>
+        
+        <div class="form-group">
+            <label>שדה שם פרויקט (entry):</label>
+            <input type="text" id="entryProjectName" required placeholder="entry.5678901">
+        </div>
+        
         <button type="button" class="btn" onclick="generateHTML()">צור טופס הרשמה</button>
     </form>
 
@@ -83,13 +112,21 @@
             // נתוני הטופס
             const formData = {
                 PROJECT_TITLE: document.getElementById('projectTitle').value,
+                PROJECT_SUBTITLE: document.getElementById('projectSubtitle').value,
                 PROJECT_DESCRIPTION: document.getElementById('projectDescription').value,
                 TOTAL_SLOTS: document.getElementById('totalSlots').value,
                 PRICE_PER_PERSON: document.getElementById('pricePerPerson').value,
                 GOOGLE_FORMS_URL: document.getElementById('googleFormsUrl').value,
                 GOOGLE_SHEETS_URL: document.getElementById('googleSheetsUrl').value,
                 PAYMENT_URL: document.getElementById('paymentUrl').value,
-                PROJECT_NAME: document.getElementById('projectTitle').value
+                PROJECT_NAME: document.getElementById('projectTitle').value,
+                
+                // שדות entry
+                ENTRY_FIRST_NAME: document.getElementById('entryFirstName').value,
+                ENTRY_LAST_NAME: document.getElementById('entryLastName').value,
+                ENTRY_PHONE: document.getElementById('entryPhone').value,
+                ENTRY_QUANTITY: document.getElementById('entryQuantity').value,
+                ENTRY_PROJECT_NAME: document.getElementById('entryProjectName').value
             };
 
             // החלפת משתנים בתבנית
