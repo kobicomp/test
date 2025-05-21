@@ -660,9 +660,13 @@
                 
                 addBooking(booking) {
                     const bookings = this.getData();
-                    const key = `${booking.firstName}_${booking.lastName}_${booking.phone}_${Date.now()}`;
+                    const key = booking.firstName + "_" + booking.lastName + "_" + booking.phone + "_" + Date.now();
                     bookings[key] = {
-                        ...booking,
+                        firstName: booking.firstName,
+                        lastName: booking.lastName,
+                        phone: booking.phone,
+                        quantity: booking.quantity,
+                        projectName: booking.projectName,
                         expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
                     };
                     this.setData(bookings);
@@ -682,7 +686,9 @@
                     const now = Date.now();
                     const validBookings = {};
                     
-                    Object.entries(bookings).forEach(([key, booking]) => {
+                    Object.entries(bookings).forEach(function(entry) {
+                        const key = entry[0];
+                        const booking = entry[1];
                         if (booking.expiryTime > now) {
                             validBookings[key] = booking;
                         }
@@ -694,7 +700,7 @@
                 
                 getTotalTempQuantity() {
                     const bookings = this.getValidBookings();
-                    return Object.values(bookings).reduce((total, booking) => {
+                    return Object.values(bookings).reduce(function(total, booking) {
                         // וידוא שהכמות היא מספר חיובי
                         const quantity = parseInt(booking.quantity) || 0;
                         return total + (quantity > 0 ? quantity : 0);
@@ -709,7 +715,8 @@
                 this.updateProjectDetails();
                 this.attachEventListeners();
                 await this.loadData();
-                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
+                const self = this;
+                setInterval(function() { self.refreshData(); }, CONFIG.autoRefreshInterval * 1000);
             },
             
             updateProjectDetails() {
@@ -718,7 +725,7 @@
                 document.getElementById('project-subtitle').textContent = CONFIG.project.subtitle;
                 document.getElementById('product-name').textContent = CONFIG.project.title;
                 document.getElementById('product-description').textContent = CONFIG.project.description;
-                document.getElementById('form-title').textContent = `הזמנת ${CONFIG.project.title}`;
+                document.getElementById('form-title').textContent = "הזמנת " + CONFIG.project.title;
                 document.getElementById('projectName').value = CONFIG.project.name;
                 document.getElementById('price-per-person').textContent = CONFIG.pricePerPerson;
                 document.getElementById('total-price').textContent = CONFIG.pricePerPerson;
@@ -726,16 +733,17 @@
             
             attachEventListeners() {
                 // אתחול לחצני טופס
-                document.getElementById('booking-btn').addEventListener('click', () => this.openForm());
-                document.getElementById('cancel-btn').addEventListener('click', () => this.closeForm());
-                document.getElementById('reservation-form').addEventListener('submit', (e) => this.handleSubmit(e));
+                const self = this;
+                document.getElementById('booking-btn').addEventListener('click', function() { self.openForm(); });
+                document.getElementById('cancel-btn').addEventListener('click', function() { self.closeForm(); });
+                document.getElementById('reservation-form').addEventListener('submit', function(e) { self.handleSubmit(e); });
                 
                 // אתחול מונה כמות
-                document.getElementById('increase-btn').addEventListener('click', () => this.updateQuantity(1));
-                document.getElementById('decrease-btn').addEventListener('click', () => this.updateQuantity(-1));
+                document.getElementById('increase-btn').addEventListener('click', function() { self.updateQuantity(1); });
+                document.getElementById('decrease-btn').addEventListener('click', function() { self.updateQuantity(-1); });
                 
                 // כפתור דיבוג
-                document.getElementById('debug-btn').addEventListener('click', () => this.debugData());
+                document.getElementById('debug-btn').addEventListener('click', function() { self.debugData(); });
             },
             
             async loadData(showLoading = true) {
@@ -763,12 +771,12 @@
                     
                     // מוסיף timestamp כדי למנוע caching
                     const timestamp = Date.now();
-                    const url = `${CONFIG.urls.sheet}${CONFIG.urls.sheet.includes('?') ? '&' : '?'}t=${timestamp}`;
+                    const url = CONFIG.urls.sheet + (CONFIG.urls.sheet.includes('?') ? '&' : '?') + "t=" + timestamp;
                     
                     try {
                         // ניסיון לקרוא את הנתונים מהגיליון עם תמיכה בתפיסת שגיאות
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 10000); // timeout של 10 שניות
+                        const timeoutId = setTimeout(function() { controller.abort(); }, 10000); // timeout של 10 שניות
                         
                         const response = await fetch(url, {
                             cache: 'no-store',
@@ -782,7 +790,7 @@
                         clearTimeout(timeoutId);
                         
                         if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            throw new Error("HTTP error! status: " + response.status);
                         }
                         
                         const csvText = await response.text();
@@ -803,7 +811,7 @@
                             return;
                         }
                         
-                        console.log(`Parsed ${this.bookingsData.length} bookings`);
+                        console.log("Parsed " + this.bookingsData.length + " bookings");
                         
                         // שמירת הנתונים בזכרון מקומי למקרה של כשל בחיבור בעתיד
                         localStorage.setItem('bookingsDataCache', JSON.stringify(this.bookingsData));
@@ -832,7 +840,7 @@
                             const booking = this.bookingsData[i];
                             
                             // הצגת נתוני ההזמנה לצורך דיבוג
-                            console.log(`Booking ${i+1}:`, booking);
+                            console.log("Booking " + (i+1) + ":", booking);
                             
                             // בדיקת שם הפרויקט (אין צורך לסנן לפי פרויקט ספציפי בשלב זה)
                             const projectField = booking['שם הפרוייקט'] || booking['entry.1414374653'] || '';
@@ -852,7 +860,7 @@
                             }
                             
                             if (quantity > 0) {
-                                console.log(`Adding ${quantity} from booking with project: ${projectField}`);
+                                console.log("Adding " + quantity + " from booking with project: " + projectField);
                                 this.totalBooked += quantity;
                             }
                         }
@@ -872,7 +880,7 @@
                     const cleanCsv = csv.replace(/\r/g, '').trim();
                     const lines = cleanCsv.split('\n');
                     
-                    console.log(`Found ${lines.length} lines in CSV`);
+                    console.log("Found " + lines.length + " lines in CSV");
                     
                     if (lines.length <= 1) {
                         console.log("CSV is empty or has only headers");
@@ -885,22 +893,20 @@
                     
                     let headers;
                     if (headerLine.includes(',')) {
-                        headers = headerLine.split(',').map(h => h.trim());
+                        headers = headerLine.split(',').map(function(h) { return h.trim(); });
                     } else if (headerLine.includes('\t')) {
-                        headers = headerLine.split('\t').map(h => h.trim());
+                        headers = headerLine.split('\t').map(function(h) { return h.trim(); });
                     } else {
                         // אם אין מפריד ברור, ננסה לפצל לפי רווח
-                        headers = headerLine.split(/\s+/).map(h => h.trim());
+                        headers = headerLine.split(/\s+/).map(function(h) { return h.trim(); });
                     }
                     
                     console.log("Detected headers:", headers);
                     
                     // בדיקת שדות חובה
-                    const hasQuantityColumn = headers.some(h => 
-                        h.includes('הזמן') || 
-                        h.includes('כמות') || 
-                        h.includes('entry.1406108683')
-                    );
+                    const hasQuantityColumn = headers.some(function(h) { 
+                        return h.includes('הזמן') || h.includes('כמות') || h.includes('entry.1406108683');
+                    });
                     
                     if (!hasQuantityColumn) {
                         headers.push('כמות');
@@ -908,8 +914,8 @@
                     }
                     
                     return lines.slice(1)
-                        .filter(line => line.trim() !== '')
-                        .map((line, index) => {
+                        .filter(function(line) { return line.trim() !== ''; })
+                        .map(function(line, index) {
                             let values;
                             
                             // בדוק איזה מפריד יש בשורה
@@ -923,7 +929,7 @@
                             
                             const entry = {};
                             
-                            headers.forEach((header, i) => {
+                            headers.forEach(function(header, i) {
                                 // אם אין מספיק ערכים, השתמש בערך ריק
                                 entry[header] = i < values.length && values[i] ? values[i].trim() : '';
                                 
@@ -956,7 +962,7 @@
                 document.getElementById('total-slots').textContent = CONFIG.totalSlots;
                 document.getElementById('booked-slots').textContent = displayTotalBooked;
                 document.getElementById('available-slots').textContent = displayAvailableSlots;
-                document.getElementById('booking-progress').style.width = `${displayProgressPercentage}%`;
+                document.getElementById('booking-progress').style.width = displayProgressPercentage + "%";
                 
                 console.log("UI updated with:", {
                     totalSlots: CONFIG.totalSlots,
@@ -1051,7 +1057,7 @@
                 const availableSlots = CONFIG.totalSlots - this.totalBooked - tempQuantity;
                 
                 if (parseInt(formData.quantity) > availableSlots) {
-                    document.getElementById('error-message').textContent = `אין מספיק מקומות פנויים. נותרו ${availableSlots} מקומות.`;
+                    document.getElementById('error-message').textContent = "אין מספיק מקומות פנויים. נותרו " + availableSlots + " מקומות.";
                     return;
                 }
                 
@@ -1082,13 +1088,13 @@
                     
                     // שמירת ההזמנה לאחר שנשלחה בהצלחה
                     const totalAmount = parseInt(formData.quantity) * CONFIG.pricePerPerson;
-                    alert(`הזמנתך התקבלה בהצלחה!\nמספר אנשים: ${formData.quantity}\nסכום לתשלום: ${totalAmount} ש"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.`);
+                    alert("הזמנתך התקבלה בהצלחה!\nמספר אנשים: " + formData.quantity + "\nסכום לתשלום: " + totalAmount + " ש\"ח\n\nנא לגשת לקישור התשלום להשלמת ההזמנה.");
                     
                     // פתיחת חלון תשלום בלשונית חדשה
                     window.open(CONFIG.paymentLink, '_blank');
                     
                     // הסתרת הודעת הצלחה אחרי 10 שניות
-                    setTimeout(() => {
+                    setTimeout(function() {
                         document.getElementById('success-message').style.display = 'none';
                     }, 10000);
                     
@@ -1115,7 +1121,8 @@
                 
                 // הצגת נתונים
                 const projectCounts = {};
-                this.bookingsData.forEach(booking => {
+                const self = this;
+                this.bookingsData.forEach(function(booking) {
                     const projectName = booking['שם הפרוייקט'] || booking['entry.1414374653'] || 'לא ידוע';
                     if (!projectCounts[projectName]) projectCounts[projectName] = 0;
                     projectCounts[projectName]++;
@@ -1123,12 +1130,12 @@
                 
                 console.log("Projects in data:", projectCounts);
                 
-                const totalCount = this.bookingsData.reduce((sum, booking) => {
+                const totalCount = this.bookingsData.reduce(function(sum, booking) {
                     const quantity = parseInt(booking['הזמן']) || parseInt(booking['כמות']) || 0;
                     return sum + quantity;
                 }, 0);
                 
-                alert(`מידע דיבוג:\n- נמצאו ${this.bookingsData.length} רשומות בסה"כ\n- סה"כ כמות: ${this.totalBooked}\n- כמויות זמניות: ${this.tempBookingsManager.getTotalTempQuantity()}\n\nמידע מפורט נמצא בקונסול (F12)`);
+                alert("מידע דיבוג:\n- נמצאו " + this.bookingsData.length + " רשומות בסה\"כ\n- סה\"כ כמות: " + this.totalBooked + "\n- כמויות זמניות: " + this.tempBookingsManager.getTotalTempQuantity() + "\n\nמידע מפורט נמצא בקונסול (F12)");
             },
             
             showLoading() {
@@ -1140,12 +1147,12 @@
             },
             
             async delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
+                return new Promise(function(resolve) { setTimeout(resolve, ms); });
             }
         };
         
         // אתחול המערכת
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             bookingSystem.init();
         });
     </script>
