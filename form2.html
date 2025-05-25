@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>יום הורים כיתה א 1 - מחצית ב</title>
+    <title>פגישות סיכום שנה - פגישות סיכום שנה</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         :root {
@@ -411,9 +411,9 @@
 <body>
     <div class="header">
         <div class="container">
-            <img src="logodd.jpg" alt="לוגו" class="logo">
-            <h1 id="event-title">יום הורים כיתה א 1</h1>
-            <p id="event-subtitle">מחצית ב</p>
+            <img src="{{LOGO_PATH}}" alt="לוגו" class="logo">
+            <h1 id="event-title">פגישות סיכום שנה</h1>
+            <p id="event-subtitle">פגישות סיכום שנה</p>
         </div>
     </div>
 
@@ -426,64 +426,66 @@
 
         <div class="meeting-card">
             <h2 class="meeting-title">הזמנת פגישה</h2>
-
+            
             <div class="teacher-info">
                 <div class="teacher-details">
-                    <div class="teacher-name">קובי אבוחבוט</div>
-                    <div class="teacher-subject">מחנך</div>
-                    <div class="meeting-location">מיקום: כיתה א' בנים</div>
+                    <div class="teacher-name">נתנאל לוי</div>
+                    <div class="teacher-subject">מנהל</div>
+                    <div class="meeting-location">מיקום: חדר המנהל</div>
                 </div>
             </div>
-
+            
+            
+            
             <div class="booking-section">
                 <h3 class="section-title">בחירת מועד פגישה</h3>
-
+                
                 <div class="date-selector">
                     <label for="meeting-date">תאריך:</label>
                     <select id="meeting-date">
                         <option value="">-- בחר תאריך --</option>
                     </select>
                 </div>
-
+                
                 <div id="time-slots-container" style="display: none;">
                     <label>שעת פגישה:</label>
                     <div class="time-slots" id="time-slots">
                     </div>
                 </div>
-
+                
                 <div class="info-box" id="selection-info">
                     יש לבחור תאריך ושעה לפגישה
                 </div>
             </div>
-
+            
             <div class="booking-form" id="booking-form">
                 <div class="booking-summary">
                     <div class="summary-title">פרטי הפגישה:</div>
                     <div id="meeting-summary"></div>
                 </div>
-
+                
                 <div class="form-group">
                     <label for="student-name">שם התלמיד/ה:</label>
                     <input type="text" id="student-name" required>
                 </div>
-
+                
                 <div class="form-group">
                     <label for="parent-name">שם ההורה:</label>
                     <input type="text" id="parent-name" required>
                 </div>
-
+                
                 <div class="form-group">
                     <label for="phone">מספר טלפון:</label>
                     <input type="tel" id="phone" pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות" required>
                 </div>
-
+                
                 <div class="form-group" id="notes-field" style="display: block;">
                     <label for="notes">הערות (אופציונלי):</label>
                     <textarea id="notes"></textarea>
                 </div>
-
+                
                 <div class="error-message" id="error-message"></div>
-
+                
                 <button type="button" class="action-btn" id="submit-btn">שלח הזמנה</button>
             </div>
         </div>
@@ -500,28 +502,28 @@
         // הגדרות המערכת
         const CONFIG = {
             // פרטי האירוע והמורה
-            teacherName: "קובי אבוחבוט",
-            eventTitle: "יום הורים כיתה א 1",
-            eventSubtitle: "מחצית ב",
-            subject: "מחנך",
-            location: "כיתה א' בנים",
-
+            teacherName: "נתנאל לוי",
+            eventTitle: "פגישות סיכום שנה",
+            eventSubtitle: "פגישות סיכום שנה",
+            subject: "מנהל",
+            location: "חדר המנהל",
+            
             // מועדי פגישות
-            meetingDates: [{"date":"2025-05-27","startTime":"17:04","endTime":"22:04","meetingDuration":15,"breakDuration":0,"numberOfMeetings":20}],
-
-            // זמן עבור הזמנה זמנית (בדקות) - הוגדל ל-10 דקות
+            meetingDates: [{"date":"2025-06-01","startTime":"17:05","endTime":"22:05","meetingDuration":15,"breakDuration":5,"numberOfMeetings":15}],
+            
+            // זמן עבור הזמנה זמנית (בדקות)
             tempBookingTimeout: 10,
-
+            
             // זמן רענון אוטומטי (בשניות)
             autoRefreshInterval: 30,
-
+            
             // כתובות URL
             urls: {
                 form: "https://docs.google.com/forms/d/e/1FAIpQLSf7rSWWYoIgABMVchFUPOB-zvEGn_sAuMh5rkbTcilY-pTphg/formResponse?usp=header",
                 formViewUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf7rSWWYoIgABMVchFUPOB-zvEGn_sAuMh5rkbTcilY-pTphg/viewform?usp=header",
                 sheet: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwb-adremb1lfGwVOslAUz3B0tGkFpXoITs7--bS3qjuqTDT1Trq7Wr8paGLTjEmrS1rKnilTkkqt3/pub?output=csv"
             },
-
+            
             // שדות טופס Google
             formFields: {
                 studentName: "entry.1269117648",
@@ -531,10 +533,10 @@
                 time: "entry.1241076351",
                 notes: "entry.1531672687"
             },
-
+            
             // פרטי פרויקט
             project: {
-                name: "יום הורים כיתה א 1 2025"
+                name: "פגישות סיכום שנה 2025"
             }
         };
 
@@ -544,11 +546,10 @@
             allTimeSlots: {},
             selectedDate: null,
             selectedTime: null,
-
+            
             tempBookingsManager: {
-                // תיקון: מפתח ללא תווים עבריים ורווחים
-                STORAGE_KEY: 'tempMeetingBookings_class_a1',
-
+                STORAGE_KEY: 'tempMeetingBookings_בדיקה 1',
+                
                 getData() {
                     try {
                         const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -557,15 +558,15 @@
                         return {};
                     }
                 },
-
+                
                 clearAllData() {
                     localStorage.removeItem(this.STORAGE_KEY);
                 },
-
+                
                 setData(bookings) {
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
                 },
-
+                
                 addBooking(bookingData) {
                     const bookings = this.getData();
                     const key = `${bookingData.date}_${bookingData.time}`;
@@ -576,7 +577,7 @@
                     this.setData(bookings);
                     return key;
                 },
-
+                
                 removeBooking(key) {
                     const bookings = this.getData();
                     if (bookings[key]) {
@@ -584,94 +585,82 @@
                         this.setData(bookings);
                     }
                 },
-
+                
                 getValidBookings() {
                     const bookings = this.getData();
                     const now = Date.now();
                     const validBookings = {};
-
+                    
                     Object.entries(bookings).forEach(([key, booking]) => {
                         if (booking.expiryTime > now) {
                             validBookings[key] = booking;
                         }
                     });
-
+                    
                     this.setData(validBookings);
                     return validBookings;
                 },
-
+                
                 isTimeSlotTemporarilyBooked(date, time) {
                     const bookings = this.getValidBookings();
                     const key = `${date}_${time}`;
                     return !!bookings[key];
                 }
             },
-
+            
             async init() {
-                // ניקוי נתונים זמניים ישנים
                 this.tempBookingsManager.clearAllData();
-
-                // יצירת כל חלונות הזמן האפשריים
                 this.generateAllTimeSlots();
-
-                // אתחול רכיבי הממשק
                 this.initializeUI();
-
-                // טעינת נתוני ההזמנות הקיימות
                 await this.loadData();
-
-                // רענון אוטומטי של הנתונים
                 setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
             },
-
+            
             generateAllTimeSlots() {
                 this.allTimeSlots = {};
-
+                
                 CONFIG.meetingDates.forEach(dateInfo => {
                     const { date, startTime, endTime, meetingDuration, breakDuration } = dateInfo;
-
                     const startMinutes = this.convertTimeToMinutes(startTime);
                     const endMinutes = this.convertTimeToMinutes(endTime);
-
+                    
                     const timeSlots = [];
                     let currentMinutes = startMinutes;
-
+                    
                     while (currentMinutes + meetingDuration <= endMinutes) {
                         timeSlots.push({
                             time: this.convertMinutesToTime(currentMinutes),
                             booked: false
                         });
-
                         currentMinutes += meetingDuration + breakDuration;
                     }
-
+                    
                     this.allTimeSlots[date] = timeSlots;
                 });
-
+                
                 console.log("Generated all time slots:", this.allTimeSlots);
             },
-
+            
             convertTimeToMinutes(timeStr) {
                 const [hours, minutes] = timeStr.split(':').map(Number);
                 return hours * 60 + minutes;
             },
-
+            
             convertMinutesToTime(minutes) {
                 const hours = Math.floor(minutes / 60);
                 const mins = minutes % 60;
                 return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
             },
-
+            
             initializeUI() {
                 this.initializeDateSelector();
                 this.attachEventListeners();
             },
-
+            
             initializeDateSelector() {
                 const dateSelector = document.getElementById('meeting-date');
-
                 const sortedDates = Object.keys(this.allTimeSlots).sort();
-
+                
                 sortedDates.forEach(date => {
                     const dateObj = new Date(date);
                     const formattedDate = dateObj.toLocaleDateString('he-IL', {
@@ -680,13 +669,13 @@
                         year: 'numeric',
                         weekday: 'long'
                     });
-
+                    
                     const option = document.createElement('option');
                     option.value = date;
                     option.textContent = formattedDate;
                     dateSelector.appendChild(option);
                 });
-
+                
                 dateSelector.addEventListener('change', () => {
                     const selectedDate = dateSelector.value;
                     if (selectedDate) {
@@ -697,29 +686,29 @@
                         this.selectedDate = null;
                         document.getElementById('time-slots-container').style.display = 'none';
                     }
-
+                    
                     document.getElementById('booking-form').classList.remove('active');
                     this.updateSelectionInfo();
                 });
             },
-
+            
             updateTimeSlots(date) {
                 const timeSlotsContainer = document.getElementById('time-slots-container');
                 const timeSlotsElement = document.getElementById('time-slots');
-
+                
                 timeSlotsElement.innerHTML = '';
-
+                
                 if (!this.allTimeSlots[date] || this.allTimeSlots[date].length === 0) {
                     timeSlotsContainer.style.display = 'none';
                     return;
                 }
-
+                
                 this.allTimeSlots[date].forEach(slot => {
                     const button = document.createElement('button');
                     button.textContent = slot.time;
                     button.className = 'time-slot';
                     button.type = 'button';
-
+                    
                     if (slot.booked || this.tempBookingsManager.isTimeSlotTemporarilyBooked(date, slot.time)) {
                         button.classList.add('booked');
                         button.disabled = true;
@@ -728,35 +717,34 @@
                             document.querySelectorAll('.time-slot.selected').forEach(el => {
                                 el.classList.remove('selected');
                             });
-
+                            
                             button.classList.add('selected');
                             this.selectedTime = slot.time;
-
                             this.openBookingForm();
                         });
                     }
-
+                    
                     timeSlotsElement.appendChild(button);
                 });
-
+                
                 timeSlotsContainer.style.display = 'block';
             },
-
+            
             attachEventListeners() {
                 document.getElementById('submit-btn').addEventListener('click', () => {
                     this.submitBooking();
                 });
-
+                
                 document.getElementById('debug-btn').addEventListener('click', () => {
                     this.debugData();
                 });
             },
-
+            
             openBookingForm() {
                 if (!this.selectedDate || !this.selectedTime) {
                     return;
                 }
-
+                
                 const dateObj = new Date(this.selectedDate);
                 const formattedDate = dateObj.toLocaleDateString('he-IL', {
                     day: 'numeric',
@@ -764,32 +752,29 @@
                     year: 'numeric',
                     weekday: 'long'
                 });
-
+                
                 const summaryHtml = `
                     <div>יום ${formattedDate}</div>
                     <div>שעה: ${this.selectedTime}</div>
                     <div>מיקום: ${CONFIG.location || 'לא צוין'}</div>
                 `;
-
+                
                 document.getElementById('meeting-summary').innerHTML = summaryHtml;
-
+                
                 this.tempBookingsManager.addBooking({
                     date: this.selectedDate,
                     time: this.selectedTime
                 });
-
+                
                 this.updateTimeSlots(this.selectedDate);
-
                 document.getElementById('booking-form').classList.add('active');
-
                 this.updateSelectionInfo();
-
                 document.getElementById('student-name').focus();
             },
-
+            
             updateSelectionInfo() {
                 const infoElement = document.getElementById('selection-info');
-
+                
                 if (!this.selectedDate) {
                     infoElement.textContent = 'יש לבחור תאריך ושעה לפגישה';
                     infoElement.style.display = 'block';
@@ -800,7 +785,7 @@
                     infoElement.style.display = 'none';
                 }
             },
-
+            
             // *** תיקון עיקרי: פונקציה משופרת לשליחת הזמנה ***
             async submitBooking() {
                 const studentName = document.getElementById('student-name').value.trim();
@@ -1221,7 +1206,7 @@
 מידע מפורט נמצא בקונסול (F12)`);
             }
         };
-
+        
         // אתחול המערכת
         document.addEventListener('DOMContentLoaded', () => {
             meetingSystem.init();
