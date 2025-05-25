@@ -1661,8 +1661,8 @@
 
            parseCSV(csv) {
                try {
-                   const cleanCsv = csv.replace(/\\r/g, '').trim();
-                   const lines = cleanCsv.split('\\n');
+                   const cleanCsv = csv.replace(/\r/g, '').trim();
+                   const lines = cleanCsv.split('\n');
 
                    if (lines.length <= 1) {
                        return [];
@@ -1672,10 +1672,10 @@
                    let headers;
                    if (headerLine.includes(',')) {
                        headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
-                   } else if (headerLine.includes('\\t')) {
-                       headers = headerLine.split('\\t').map(h => h.trim
-                       } else {
-                       headers = headerLine.split(/\\s+/).map(h => h.trim().replace(/"/g, ''));
+                   } else if (headerLine.includes('\t')) {
+                       headers = headerLine.split('\t').map(h => h.trim().replace(/"/g, ''));
+                   } else {
+                       headers = headerLine.split(/\s+/).map(h => h.trim().replace(/"/g, ''));
                    }
 
                    return lines.slice(1)
@@ -1685,10 +1685,10 @@
 
                            if (line.includes(',')) {
                                values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-                           } else if (line.includes('\\t')) {
-                               values = line.split('\\t').map(v => v.trim().replace(/"/g, ''));
+                           } else if (line.includes('\t')) {
+                               values = line.split('\t').map(v => v.trim().replace(/"/g, ''));
                            } else {
-                               values = line.split(/\\s+/).map(v => v.trim().replace(/"/g, ''));
+                               values = line.split(/\s+/).map(v => v.trim().replace(/"/g, ''));
                            }
 
                            const entry = {};
@@ -1728,7 +1728,7 @@
        });
    </script>
 </body>
-</html>`;
+</html>\`;
 
        // פונקציות עזר למחולל
        function switchTab(tabId) {
@@ -1786,7 +1786,6 @@
            meetingDates.push(meetingDate);
            updateMeetingDatesTable();
            
-           // איפוס שדות
            dateInput.value = '';
            
            updateValidationStatus();
@@ -1921,7 +1920,6 @@
            if (confirm('האם אתה בטוח שברצונך לאפס את הטופס?')) {
                document.getElementById('generator-form').reset();
                
-               // איפוס צבעים
                const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
                colorInputs.forEach(id => {
                    const input = document.getElementById(id);
@@ -1973,7 +1971,6 @@
            let html = baseTemplate;
            const formData = new FormData(document.getElementById('generator-form'));
            
-           // החלפת ערכים
            html = html.replace(/{{TEACHER_NAME}}/g, formData.get('teacher_name'));
            html = html.replace(/{{EVENT_TITLE}}/g, formData.get('event_title'));
            html = html.replace(/{{EVENT_SUBTITLE}}/g, formData.get('event_subtitle'));
@@ -2063,7 +2060,6 @@
            updateMeetingDatesTable();
            updateValidationStatus();
            
-           // הגדרת תצוגה מקדימה של צבעים
            const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
            colorInputs.forEach(id => {
                const input = document.getElementById(id);
@@ -2076,12 +2072,10 @@
                });
            });
 
-           // מאזין לשינויים בשדות
            document.querySelectorAll('input, textarea, select').forEach(input => {
                input.addEventListener('input', updateValidationStatus);
            });
 
-           // טיפול בשליחת הטופס
            document.getElementById('generator-form').addEventListener('submit', (e) => {
                e.preventDefault();
                
@@ -2098,7 +2092,6 @@
                document.getElementById('preview-container').scrollIntoView({ behavior: 'smooth' });
            });
 
-           // ניהול כרטיסיות
            document.querySelectorAll('.tab').forEach(tab => {
                tab.addEventListener('click', () => {
                    const tabId = tab.getAttribute('data-tab');
