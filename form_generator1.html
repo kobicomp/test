@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>22מחולל זימון ימי הורים - מתוקן</title>
+    <title>מחולל זימון ימי הורים - מתוקן</title>
     <style>
         :root {
             --primary-color: #2196F3;
@@ -333,7 +333,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>2מחולל זימון ימי הורים - מתוקן</h1>
+        <h1>מחולל זימון ימי הורים - מתוקן</h1>
         
         <div class="status-message" id="status-message"></div>
         
@@ -640,8 +640,8 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-            document.getElementById(`${tabId}-content`).classList.add('active');
+            document.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
+            document.getElementById(tabId + '-content').classList.add('active');
         }
 
         function addMeetingDate() {
@@ -728,15 +728,13 @@
                         year: 'numeric'
                     });
                     
-                    row.innerHTML = `
-                        <td>${formattedDate}</td>
-                        <td>${meetingDate.startTime}</td>
-                        <td>${meetingDate.endTime}</td>
-                        <td>${meetingDate.meetingDuration} דקות</td>
-                        <td>${meetingDate.breakDuration} דקות</td>
-                        <td>${meetingDate.numberOfMeetings}</td>
-                        <td><button type="button" onclick="deleteMeetingDate('${meetingDate.date}', '${meetingDate.startTime}')">הסר</button></td>
-                    `;
+                    row.innerHTML = '<td>' + formattedDate + '</td>' +
+                        '<td>' + meetingDate.startTime + '</td>' +
+                        '<td>' + meetingDate.endTime + '</td>' +
+                        '<td>' + meetingDate.meetingDuration + ' דקות</td>' +
+                        '<td>' + meetingDate.breakDuration + ' דקות</td>' +
+                        '<td>' + meetingDate.numberOfMeetings + '</td>' +
+                        '<td><button type="button" onclick="deleteMeetingDate(\'' + meetingDate.date + '\', \'' + meetingDate.startTime + '\')">הסר</button></td>';
                     
                     meetingDatesBody.appendChild(row);
                 });
@@ -746,1324 +744,284 @@
             }
         }
 
-        function convertTimeToMinutes(timeStr) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes;
-        }
-
-        function updateValidationStatus() {
-            validateTab('basic-info');
-            validateTab('meeting-dates');
-            validateTab('links');
-            validateTab('form-fields');
-            validateTab('appearance');
-            validateTab('system-settings');
-        }
-        
-        function validateTab(tabId) {
-            const tabContent = document.getElementById(`${tabId}-content`);
-            const requiredFields = tabContent.querySelectorAll('[required]');
-            const indicator = document.getElementById(`${tabId}-indicator`);
-            
-            let isValid = true;
-            
-            if (tabId === 'meeting-dates') {
-                if (meetingDates.length === 0) {
-                    isValid = false;
-                }
-            }
-            
-            requiredFields.forEach(field => {
-                if (field.offsetParent !== null && !field.value.trim()) {
-                    isValid = false;
-                }
-            });
-            
-            indicator.className = `tab-indicator ${isValid ? 'valid' : 'invalid'}`;
-        }
-
-        function showPreview() {
-            if (!validateForm()) {
-                return;
-            }
-            
-            const generated = generateHTML();
-            document.getElementById('code-preview').textContent = generated;
-            document.getElementById('preview-container').style.display = 'block';
-            document.getElementById('code-preview').style.display = 'block';
-            document.getElementById('preview-container').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function closePreview() {
-            document.getElementById('preview-container').style.display = 'none';
-        }
-
-        function copyCode() {
-            const text = document.getElementById('code-preview').textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                showStatus('הקוד הועתק בהצלחה!', true);
-            }).catch(err => {
-                showStatus('שגיאה בהעתקת הקוד: ' + err, false);
-            });
-        }
-
-        function downloadFile() {
-            const text = document.getElementById('code-preview').textContent;
-            const title = document.getElementById('teacher_name').value || 'parent_teacher_meeting';
-            const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.html';
-            
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(text));
-            element.setAttribute('download', filename);
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            showStatus('הקובץ הורד בהצלחה!', true);
-        }
-
-        function resetForm() {
-            if (confirm('האם אתה בטוח שברצונך לאפס את הטופס?')) {
-                document.getElementById('generator-form').reset();
-                
-                const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
-                colorInputs.forEach(id => {
-                    const input = document.getElementById(id);
-                    const preview = document.getElementById(`${id.replace('_', '-')}-preview`);
-                    preview.style.backgroundColor = input.value;
-                });
-                
-                meetingDates.length = 0;
-                updateMeetingDatesTable();
-                updateValidationStatus();
-            }
-        }
-
-        function validateForm() {
-            const requiredFields = document.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (field.offsetParent !== null && !field.value.trim()) {
-                    field.style.borderColor = 'red';
-                    isValid = false;
-                    
-                    const tabContent = field.closest('.tab-content');
-                    if (tabContent) {
-                        const tabId = tabContent.id.replace('-content', '');
-                        switchTab(tabId);
-                        field.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        field.focus();
-                    }
-                } else {
-                    field.style.borderColor = '';
-                }
-            });
-            
-            if (meetingDates.length === 0) {
-                switchTab('meeting-dates');
-                showStatus('יש להגדיר לפחות מועד פגישות אחד.', false);
-                isValid = false;
-            }
-            
-            if (!isValid) {
-                showStatus('אנא מלא את כל השדות הנדרשים.', false);
-            }
-            
-            return isValid;
-        }
-
-        function generateHTML() {
-            const formData = new FormData(document.getElementById('generator-form'));
-            
-            // יצירת התבנית הבסיסית
-            let html = `<!DOCTYPE html>
-<html dir="rtl" lang="he">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${formData.get('event_title')} - ${formData.get('event_subtitle')}</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <style>
-        :root {
-            --primary-color: ${formData.get('primary_color')};
-            --secondary-color: ${formData.get('secondary_color')};
-            --success-color: ${formData.get('success_color')};
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-            --light-color: #f5f5f5;
-            --dark-color: #333;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            background-color: var(--light-color);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            background: linear-gradient(to left, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border-radius: 0 0 10px 10px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 2.2em;
-        }
-
-        .header p {
-            margin: 10px 0 0;
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .logo {
-            max-width: 400px;
-            margin-bottom: 15px;
-        }
-
-        .meeting-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            padding: 25px;
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .meeting-title {
-            font-size: 1.8em;
-            color: var(--dark-color);
-            margin: 0 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .teacher-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            border-right: 4px solid var(--primary-color);
-        }
-
-        .teacher-details {
-            flex: 1;
-        }
-
-        .teacher-name {
-            font-weight: bold;
-            font-size: 1.2em;
-            color: var(--dark-color);
-            margin-bottom: 5px;
-        }
-
-        .teacher-subject,
-        .meeting-location {
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .event-description {
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-            white-space: pre-line;
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .booking-section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 1.4em;
-            color: var(--dark-color);
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .date-selector {
-            margin-bottom: 20px;
-        }
-
-        .date-selector label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .date-selector select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border 0.3s ease;
-        }
-
-        .date-selector select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        .time-slots {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .time-slot {
-            padding: 10px 15px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background-color: white;
-            font-size: 1.1em;
-        }
-
-        .time-slot:hover {
-            border-color: var(--primary-color);
-            background-color: #f0f7ff;
-        }
-
-        .time-slot.selected {
-            border-color: var(--primary-color);
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .time-slot.booked {
-            background-color: #f5f5f5;
-            border-color: #ccc;
-            color: #999;
-            cursor: not-allowed;
-            text-decoration: line-through;
-        }
-
-        .booking-form {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            display: none;
-        }
-
-        .booking-form.active {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border 0.3s ease;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .booking-summary {
-            background-color: #f0f7ff;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border-right: 4px solid var(--primary-color);
-        }
-
-        .summary-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: var(--dark-color);
-        }
-
-        .action-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1.1em;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .action-btn:hover {
-            background-color: var(--secondary-color);
-            transform: scale(1.02);
-        }
-
-        .action-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255,255,255,0.9);
-            z-index: 1001;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            margin-top: 15px;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .status-message {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-            display: none;
-        }
-
-        .status-success {
-            background-color: #e8f5e9;
-            color: var(--success-color);
-        }
-
-        .status-error {
-            background-color: #ffebee;
-            color: var(--danger-color);
-        }
-
-        .success-message {
-            background-color: #e8f5e9;
-            color: var(--success-color);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-            display: none;
-        }
-
-        .error-message {
-            color: var(--danger-color);
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        .info-box {
-            background-color: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            text-align: center;
-        }
-
-        .debug-btn {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            z-index: 999;
-            padding: 8px 12px;
-            background-color: rgba(0,0,0,0.5);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8em;
-            display: ${formData.get('show_debug') ? 'block' : 'none'};
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .header p {
-                font-size: 1em;
-            }
-
-            .meeting-card {
-                padding: 15px;
-            }
-
-            .meeting-title {
-                font-size: 1.5em;
-            }
-
-            .time-slots {
-                gap: 8px;
-            }
-
-            .time-slot {
-                padding: 8px 12px;
-                font-size: 1em;
-            }
-
-            .logo {
-                max-width: 250px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="container">`;
-
-            // הוספת לוגו אם קיים
-            const logoPath = formData.get('logo_path');
-            if (logoPath) {
-                html += `<img src="${logoPath}" alt="לוגו" class="logo">`;
-            }
-
-            html += `
-            <h1 id="event-title">${formData.get('event_title')}</h1>
-            <p id="event-subtitle">${formData.get('event_subtitle')}</p>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="success-message" id="success-message">
-            ההזמנה שלך התקבלה בהצלחה! פרטי הפגישה נשלחו אליך.
-        </div>
-
-        <div class="status-message" id="status-message"></div>
-
-        <div class="meeting-card">
-            <h2 class="meeting-title">הזמנת פגישה</h2>
-            
-            <div class="teacher-info">
-                <div class="teacher-details">
-                    <div class="teacher-name">${formData.get('teacher_name')}</div>
-                    <div class="teacher-subject">${formData.get('subject') || ''}</div>
-                    <div class="meeting-location">מיקום: ${formData.get('location') || ''}</div>
-                </div>
-            </div>`;
-
-            // הוספת תיאור אם קיים
-            const description = formData.get('description');
-            if (description && description.trim()) {
-                html += `
-            <div class="event-description">${description}</div>`;
-            }
-
-            html += `
-            <div class="booking-section">
-                <h3 class="section-title">בחירת מועד פגישה</h3>
-                
-                <div class="date-selector">
-                    <label for="meeting-date">תאריך:</label>
-                    <select id="meeting-date">
-                        <option value="">-- בחר תאריך --</option>
-                    </select>
-                </div>
-                
-                <div id="time-slots-container" style="display: none;">
-                    <label>שעת פגישה:</label>
-                    <div class="time-slots" id="time-slots">
-                    </div>
-                </div>
-                
-                <div class="info-box" id="selection-info">
-                    יש לבחור תאריך ושעה לפגישה
-                </div>
-            </div>
-            
-            <div class="booking-form" id="booking-form">
-                <div class="booking-summary">
-                    <div class="summary-title">פרטי הפגישה:</div>
-                    <div id="meeting-summary"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="student-name">שם התלמיד/ה:</label>
-                    <input type="text" id="student-name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="parent-name">שם ההורה:</label>
-                    <input type="text" id="parent-name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="phone">מספר טלפון:</label>
-                    <input type="tel" id="phone" pattern="[0-9]{10}" title="יש להזין מספר טלפון בן 10 ספרות" required>
-                </div>`;
-
-            // שדה הערות רק אם הוגדר
-            const fieldNotes = formData.get('field_notes');
-            if (fieldNotes && fieldNotes.trim()) {
-                html += `
-                <div class="form-group" id="notes-field">
-                    <label for="notes">הערות (אופציונלי):</label>
-                    <textarea id="notes"></textarea>
-                </div>`;
-            }
-
-            html += `
-                <div class="error-message" id="error-message"></div>
-                
-                <button type="button" class="action-btn" id="submit-btn">שלח הזמנה</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="spinner"></div>
-        <div class="loading-text">טוען נתונים...</div>
-    </div>
-
-    <button class="debug-btn" id="debug-btn">בדוק נתונים</button>
-
-    <script>
-        const CONFIG = {
-            teacherName: "${formData.get('teacher_name')}",
-            eventTitle: "${formData.get('event_title')}",
-            eventSubtitle: "${formData.get('event_subtitle')}",
-            subject: "${formData.get('subject') || ''}",
-            location: "${formData.get('location') || ''}",
-            meetingDates: ${JSON.stringify(meetingDates)},
-            tempBookingTimeout: ${formData.get('temp_booking_timeout')},
-            autoRefreshInterval: ${formData.get('auto_refresh_interval')},
-            urls: {
-                form: "${this.normalizeFormUrl(formData.get('form_url'))}",
-                formViewUrl: "${this.normalizeViewUrl(formData.get('form_url'), formData.get('form_view_url'))}",
-                sheet: "${formData.get('sheet_url')}"
-            },
-            formFields: {
-                studentName: "${formData.get('field_student_name')}",
-                parentName: "${formData.get('field_parent_name')}",
-                phone: "${formData.get('field_phone')}",
-                date: "${formData.get('field_date')}",
-                time: "${formData.get('field_time')}",
-                notes: "${fieldNotes || ''}"
-            },
-            project: {
-                name: "${formData.get('event_title')} ${new Date().getFullYear()}"
-            }
-        };
-
-        const meetingSystem = {
-            bookingsData: [],
-            allTimeSlots: {},
-            selectedDate: null,
-            selectedTime: null,
-            
-            tempBookingsManager: {
-                STORAGE_KEY: 'tempMeetingBookings_${formData.get('storage_key_suffix')}',
-                
-                getData() {
-                    try {
-                        const stored = localStorage.getItem(this.STORAGE_KEY);
-                        return stored ? JSON.parse(stored) : {};
-                    } catch {
-                        return {};
-                    }
-                },
-                
-                clearAllData() {
-                    localStorage.removeItem(this.STORAGE_KEY);
-                },
-                
-                setData(bookings) {
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookings));
-                },
-                
-                addBooking(bookingData) {
-                    const bookings = this.getData();
-                    const key = bookingData.date + '_' + bookingData.time;
-                    bookings[key] = {
-                        ...bookingData,
-                        expiryTime: Date.now() + (CONFIG.tempBookingTimeout * 60 * 1000)
-                    };
-                    this.setData(bookings);
-                    return key;
-                },
-                
-                removeBooking(key) {
-                    const bookings = this.getData();
-                    if (bookings[key]) {
-                        delete bookings[key];
-                        this.setData(bookings);
-                    }
-                },
-                
-                getValidBookings() {
-                    const bookings = this.getData();
-                    const now = Date.now();
-                    const validBookings = {};
-                    
-                    Object.entries(bookings).forEach(([key, booking]) => {
-                        if (booking.expiryTime > now) {
-                            validBookings[key] = booking;
-                        }
-                    });
-                    
-                    this.setData(validBookings);
-                    return validBookings;
-                },
-                
-                isTimeSlotTemporarilyBooked(date, time) {
-                    const bookings = this.getValidBookings();
-                    const key = date + '_' + time;
-                    return !!bookings[key];
-                }
-            },
-            
-            async init() {
-                this.tempBookingsManager.clearAllData();
-                this.generateAllTimeSlots();
-                this.initializeUI();
-                await this.loadData();
-                setInterval(() => this.refreshData(), CONFIG.autoRefreshInterval * 1000);
-            },
-            
-            generateAllTimeSlots() {
-                this.allTimeSlots = {};
-                
-                CONFIG.meetingDates.forEach(dateInfo => {
-                    const { date, startTime, endTime, meetingDuration, breakDuration } = dateInfo;
-                    const startMinutes = this.convertTimeToMinutes(startTime);
-                    const endMinutes = this.convertTimeToMinutes(endTime);
-                    
-                    const timeSlots = [];
-                    let currentMinutes = startMinutes;
-                    
-                    while (currentMinutes + meetingDuration <= endMinutes) {
-                        timeSlots.push({
-                            time: this.convertMinutesToTime(currentMinutes),
-                            booked: false
-                        });
-                        currentMinutes += meetingDuration + breakDuration;
-                    }
-                    
-                    this.allTimeSlots[date] = timeSlots;
-                });
-            },
-            
-            convertTimeToMinutes(timeStr) {
-                const [hours, minutes] = timeStr.split(':').map(Number);
-                return hours * 60 + minutes;
-            },
-            
-            convertMinutesToTime(minutes) {
-                const hours = Math.floor(minutes / 60);
-                const mins = minutes % 60;
-                return hours.toString().padStart(2, '0') + ':' + mins.toString().padStart(2, '0');
-            },
-            
-            initializeUI() {
-                this.initializeDateSelector();
-                this.attachEventListeners();
-            },
-            
-            initializeDateSelector() {
-                const dateSelector = document.getElementById('meeting-date');
-                const sortedDates = Object.keys(this.allTimeSlots).sort();
-                
-                sortedDates.forEach(date => {
-                    const dateObj = new Date(date);
-                    const formattedDate = dateObj.toLocaleDateString('he-IL', {
-                        day: 'numeric',
-                        month: 'numeric',
-                        year: 'numeric',
-                        weekday: 'long'
-                    });
-                    
-                    const option = document.createElement('option');
-                    option.value = date;
-                    option.textContent = formattedDate;
-                    dateSelector.appendChild(option);
-                });
-                
-                dateSelector.addEventListener('change', () => {
-                    const selectedDate = dateSelector.value;
-                    if (selectedDate) {
-                        this.selectedDate = selectedDate;
-                        this.selectedTime = null;
-                        this.updateTimeSlots(selectedDate);
-                    } else {
-                        this.selectedDate = null;
-                        document.getElementById('time-slots-container').style.display = 'none';
-                    }
-                    
-                    document.getElementById('booking-form').classList.remove('active');
-                    this.updateSelectionInfo();
-                });
-            },
-            
-            updateTimeSlots(date) {
-                const timeSlotsContainer = document.getElementById('time-slots-container');
-                const timeSlotsElement = document.getElementById('time-slots');
-                
-                timeSlotsElement.innerHTML = '';
-                
-                if (!this.allTimeSlots[date] || this.allTimeSlots[date].length === 0) {
-                    timeSlotsContainer.style.display = 'none';
-                    return;
-                }
-                
-                this.allTimeSlots[date].forEach(slot => {
-                    const button = document.createElement('button');
-                    button.textContent = slot.time;
-                    button.className = 'time-slot';
-                    button.type = 'button';
-                    
-                    if (slot.booked || this.tempBookingsManager.isTimeSlotTemporarilyBooked(date, slot.time)) {
-                        button.classList.add('booked');
-                        button.disabled = true;
-                    } else {
-                        button.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slot.selected').forEach(el => {
-                                el.classList.remove('selected');
-                            });
-                            
-                            button.classList.add('selected');
-                            this.selectedTime = slot.time;
-                            this.openBookingForm();
-                        });
-                    }
-                    
-                    timeSlotsElement.appendChild(button);
-                });
-                
-                timeSlotsContainer.style.display = 'block';
-            },
-            
-            attachEventListeners() {
-                document.getElementById('submit-btn').addEventListener('click', () => {
-                    this.submitBooking();
-                });
-                
-                document.getElementById('debug-btn').addEventListener('click', () => {
-                    this.debugData();
-                });
-            },
-            
-            openBookingForm() {
-                if (!this.selectedDate || !this.selectedTime) {
-                    return;
-                }
-                
-                const dateObj = new Date(this.selectedDate);
-                const formattedDate = dateObj.toLocaleDateString('he-IL', {
-                    day: 'numeric',
-                    month: 'numeric',
-                    year: 'numeric',
-                    weekday: 'long'
-                });
-                
-                const summaryHtml = '<div>יום ' + formattedDate + '</div><div>שעה: ' + this.selectedTime + '</div><div>מיקום: ' + (CONFIG.location || 'לא צוין') + '</div>';
-                
-                document.getElementById('meeting-summary').innerHTML = summaryHtml;
-                
-                this.tempBookingsManager.addBooking({
-                    date: this.selectedDate,
-                    time: this.selectedTime
-                });
-                
-                this.updateTimeSlots(this.selectedDate);
-                document.getElementById('booking-form').classList.add('active');
-                this.updateSelectionInfo();
-                document.getElementById('student-name').focus();
-            },
-            
-            updateSelectionInfo() {
-                const infoElement = document.getElementById('selection-info');
-                
-                if (!this.selectedDate) {
-                    infoElement.textContent = 'יש לבחור תאריך ושעה לפגישה';
-                    infoElement.style.display = 'block';
-                } else if (!this.selectedTime) {
-                    infoElement.textContent = 'יש לבחור שעת פגישה';
-                    infoElement.style.display = 'block';
-                } else {
-                    infoElement.style.display = 'none';
-                }
-            },
-            
-            async submitBooking() {
-                const studentName = document.getElementById('student-name').value.trim();
-                const parentName = document.getElementById('parent-name').value.trim();
-                const phone = document.getElementById('phone').value.trim();
-                const notes = document.getElementById('notes') ? document.getElementById('notes').value.trim() : '';
-
-                document.getElementById('error-message').textContent = '';
-
-                if (!studentName || !parentName || !phone) {
-                    document.getElementById('error-message').textContent = 'יש למלא את כל השדות החובה';
-                    return;
-                }
-
-                if (!/^0\\d{9}$/.test(phone)) {
-                    document.getElementById('error-message').textContent = 'יש להזין מספר טלפון תקין (10 ספרות המתחיל ב-0)';
-                    return;
-                }
-
-                if (!this.selectedDate || !this.selectedTime) {
-                    document.getElementById('error-message').textContent = 'יש לבחור תאריך ושעה לפגישה';
-                    return;
-                }
-
-                const currentBookingKey = this.selectedDate + '_' + this.selectedTime;
-                this.tempBookingsManager.removeBooking(currentBookingKey);
-
-                await this.loadData();
-
-                const isBookedInData = this.isTimeSlotBookedInServerData(this.selectedDate, this.selectedTime);
-                const isBookedTemporarily = this.tempBookingsManager.isTimeSlotTemporarilyBooked(this.selectedDate, this.selectedTime);
-                
-                if (isBookedInData || isBookedTemporarily) {
-                    document.getElementById('error-message').textContent = 'מצטערים, המועד שבחרת כבר הוזמן. אנא בחר מועד אחר.';
-                    this.tempBookingsManager.addBooking({
-                        date: this.selectedDate,
-                        time: this.selectedTime
-                    });
-                    this.updateTimeSlots(this.selectedDate);
-                    return;
-                }
-
-                this.showLoading();
-
-                try {
-                    const bookingData = {
-                        studentName,
-                        parentName,
-                        phone,
-                        date: this.selectedDate,
-                        time: this.selectedTime,
-                        notes
-                    };
-
-                    try {
-                        const googleFormData = new FormData();
-                        googleFormData.append(CONFIG.formFields.studentName, bookingData.studentName);
-                        googleFormData.append(CONFIG.formFields.parentName, bookingData.parentName);
-                        googleFormData.append(CONFIG.formFields.phone, bookingData.phone);
-                        googleFormData.append(CONFIG.formFields.date, bookingData.date);
-                        googleFormData.append(CONFIG.formFields.time, bookingData.time);
-
-                        if (CONFIG.formFields.notes && bookingData.notes) {
-                            googleFormData.append(CONFIG.formFields.notes, bookingData.notes);
-                        }
-
-                        await fetch(CONFIG.urls.form, {
-                            method: 'POST',
-                            body: googleFormData,
-                            mode: 'no-cors'
-                        });
-                    } catch (formError) {
-                        const formViewUrl = CONFIG.urls.formViewUrl;
-                        const formUrl = new URL(formViewUrl);
-
-                        formUrl.searchParams.append(CONFIG.formFields.studentName.replace('entry.', 'entry_'), bookingData.studentName);
-                        formUrl.searchParams.append(CONFIG.formFields.parentName.replace('entry.', 'entry_'), bookingData.parentName);
-                        formUrl.searchParams.append(CONFIG.formFields.phone.replace('entry.', 'entry_'), bookingData.phone);
-                        formUrl.searchParams.append(CONFIG.formFields.date.replace('entry.', 'entry_'), bookingData.date);
-                        formUrl.searchParams.append(CONFIG.formFields.time.replace('entry.', 'entry_'), bookingData.time);
-
-                        if (CONFIG.formFields.notes && bookingData.notes) {
-                            formUrl.searchParams.append(CONFIG.formFields.notes.replace('entry.', 'entry_'), bookingData.notes);
-                        }
-
-                        window.open(formUrl.toString(), '_blank', 'width=600,height=600');
-                    }
-
-                    document.getElementById('success-message').style.display = 'block';
-                    document.getElementById('booking-form').classList.remove('active');
-
-                    this.selectedDate = null;
-                    this.selectedTime = null;
-
-                    document.getElementById('student-name').value = '';
-                    document.getElementById('parent-name').value = '';
-                    document.getElementById('phone').value = '';
-                    if (document.getElementById('notes')) {
-                        document.getElementById('notes').value = '';
-                    }
-
-                    document.getElementById('meeting-date').value = '';
-                    document.getElementById('time-slots-container').style.display = 'none';
-
-                    await this.loadData();
-
-                    setTimeout(() => {
-                        document.getElementById('success-message').style.display = 'none';
-                    }, 5000);
-
-                } catch (error) {
-                    document.getElementById('error-message').textContent = 'אירעה שגיאה בעת שליחת ההזמנה. נא לנסות שוב.';
-                    
-                    this.tempBookingsManager.addBooking({
-                        date: this.selectedDate,
-                        time: this.selectedTime
-                    });
-                } finally {
-                    this.hideLoading();
-                }
-            },
-            
-            isTimeSlotBookedInServerData(date, time) {
-                if (!this.allTimeSlots[date]) {
-                    return false;
-                }
-                
-                const slot = this.allTimeSlots[date].find(s => s.time === time);
-                return slot && slot.booked;
-            },
-
-            async loadData(showLoading = true) {
-                if (showLoading) this.showLoading();
-
-                try {
-                    await this.loadBookings();
-                    this.updateBookedTimeSlots();
-
-                    if (this.selectedDate) {
-                        this.updateTimeSlots(this.selectedDate);
-                    }
-                } catch (error) {
-                    console.error('שגיאה בטעינת הנתונים:', error);
-                } finally {
-                    if (showLoading) this.hideLoading();
-                }
-            },
-
-            async refreshData() {
-                await this.loadData(false);
-            },
-
-            async loadBookings() {
-                try {
-                    const timestamp = Date.now();
-                    const url = CONFIG.urls.sheet + (CONFIG.urls.sheet.includes('?') ? '&' : '?') + 't=' + timestamp;
-
-                    try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-                        const response = await fetch(url, {
-                            cache: 'no-store',
-                            headers: {
-                                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                                'Pragma': 'no-cache'
-                            },
-                            signal: controller.signal
-                        });
-
-                        clearTimeout(timeoutId);
-
-                        if (!response.ok) {
-                            throw new Error('HTTP error! status: ' + response.status);
-                        }
-
-                        const csvText = await response.text();
-
-                        if (csvText.trim().length === 0) {
-                            this.bookingsData = [];
-                            return;
-                        }
-
-                        this.bookingsData = this.parseCSV(csvText);
-
-                        if (!Array.isArray(this.bookingsData)) {
-                            this.bookingsData = [];
-                        }
-
-                        localStorage.setItem('bookingsDataCache', JSON.stringify(this.bookingsData));
-                    } catch (fetchError) {
-                        const cachedData = localStorage.getItem('bookingsDataCache');
-                        if (cachedData) {
-                            this.bookingsData = JSON.parse(cachedData);
-                        } else {
-                            this.bookingsData = [];
-                        }
-                    }
-                } catch (error) {
-                    this.bookingsData = [];
-                }
-            },
-
-            updateBookedTimeSlots() {
-                Object.keys(this.allTimeSlots).forEach(date => {
-                    this.allTimeSlots[date].forEach(slot => {
-                        slot.booked = false;
-                    });
-                });
-
-                this.bookingsData.forEach(booking => {
-                    let date = '';
-                    let time = '';
-
-                    const dateFields = [
-                        'תאריך פגישה', 
-                        'date', 
-                        'Date',
-                        Object.keys(booking).find(key => key.includes(CONFIG.formFields.date.replace('entry.', ''))),
-                        Object.keys(booking).find(key => key.toLowerCase().includes('date')),
-                        Object.keys(booking).find(key => key.includes('תאריך'))
-                    ].filter(Boolean);
-
-                    const timeFields = [
-                        'שעת פגישה',
-                        'time',
-                        'Time', 
-                        Object.keys(booking).find(key => key.includes(CONFIG.formFields.time.replace('entry.', ''))),
-                        Object.keys(booking).find(key => key.toLowerCase().includes('time')),
-                        Object.keys(booking).find(key => key.includes('שעה'))
-                    ].filter(Boolean);
-
-                    for (let field of dateFields) {
-                        if (field && booking[field]) {
-                            date = booking[field].trim();
-                            break;
-                        }
-                    }
-
-                    for (let field of timeFields) {
-                        if (field && booking[field]) {
-                            time = booking[field].trim();
-                            break;
-                        }
-                    }
-
-                    if (date && time && this.allTimeSlots[date]) {
-                        const slot = this.allTimeSlots[date].find(s => s.time === time);
-                        if (slot) {
-                            slot.booked = true;
-                        }
-                    }
-                });
-            },
-
-            parseCSV(csv) {
-                try {
-                    const cleanCsv = csv.replace(/\\r/g, '').trim();
-                    const lines = cleanCsv.split('\\n');
-
-                    if (lines.length <= 1) {
-                        return [];
-                    }
-
-                    const headerLine = lines[0].trim();
-                    let headers;
-                    if (headerLine.includes(',')) {
-                        headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
-                    } else if (headerLine.includes('\\t')) {
-                        headers = headerLine.split('\\t').map(h => h.trim().replace(/"/g, ''));
-                    } else {
-                        headers = headerLine.split(/\\s+/).map(h => h.trim().replace(/"/g, ''));
-                    }
-
-                    return lines.slice(1)
-                        .filter(line => line.trim() !== '')
-                        .map(line => {
-                            let values;
-
-                            if (line.includes(',')) {
-                                values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-                            } else if (line.includes('\\t')) {
-                                values = line.split('\\t').map(v => v.trim().replace(/"/g, ''));
-                            } else {
-                                values = line.split(/\\s+/).map(v => v.trim().replace(/"/g, ''));
-                            }
-
-                            const entry = {};
-                            headers.forEach((header, i) => {
-                                entry[header] = i < values.length && values[i] ? values[i] : '';
-                            });
-
-                            return entry;
-                        });
-                } catch (error) {
-                    return [];
-                }
-            },
-
-            showLoading() {
-                document.getElementById('loading-overlay').style.display = 'flex';
-            },
-
-            hideLoading() {
-                document.getElementById('loading-overlay').style.display = 'none';
-            },
-
-            debugData() {
-                console.clear();
-                console.log("----- DEBUG INFO -----");
-                console.log("Config:", CONFIG);
-                console.log("All time slots:", this.allTimeSlots);
-                console.log("Bookings data:", this.bookingsData);
-                console.log("Selected date:", this.selectedDate);
-                console.log("Selected time:", this.selectedTime);
-                console.log("Temp bookings:", this.tempBookingsManager.getValidBookings());
-            }
-        };
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            meetingSystem.init();
-        });
-    </script>
-</body>
-</html>`;
-
-            return html;
-        }
-
-        // פונקציות עזר לטיפוס ב-URLs
-        normalizeFormUrl(url) {
-            if (!url.includes('http')) {
-                return `https://docs.google.com/forms/d/e/${url}/formResponse`;
-            }
-            if (url.includes('/viewform')) {
-                return url.replace('/viewform', '/formResponse');
-            }
-            return url;
-        }
-
-        normalizeViewUrl(formUrl, viewUrl) {
-            if (viewUrl && viewUrl.trim()) {
-                if (viewUrl.includes('/formResponse')) {
-                    return viewUrl.replace('/formResponse', '/viewform');
-                }
-                return viewUrl;
-            }
-            
-            const normalizedFormUrl = this.normalizeFormUrl(formUrl);
-            return normalizedFormUrl.replace('/formResponse', '/viewform');
-        }
-        
-        function showStatus(message, isSuccess) {
-            const statusElement = document.getElementById('status-message');
-            statusElement.textContent = message;
-            statusElement.className = 'status-message ' + (isSuccess ? 'status-success' : 'status-error');
-            statusElement.style.display = 'block';
-            
-            setTimeout(() => {
-                statusElement.style.display = 'none';
-            }, 5000);
-        }
-
-        // אתחול המערכת
-        document.addEventListener('DOMContentLoaded', function() {
-            updateMeetingDatesTable();
-            updateValidationStatus();
-            
-            const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
-            colorInputs.forEach(id => {
-                const input = document.getElementById(id);
-                const preview = document.getElementById(`${id.replace('_', '-')}-preview`);
-                
-                preview.style.backgroundColor = input.value;
-                
-                input.addEventListener('input', () => {
-                    preview.style.backgroundColor = input.value;
-                });
-            });
-
-            document.querySelectorAll('input, textarea, select').forEach(input => {
-                input.addEventListener('input', updateValidationStatus);
-            });
-
-            document.getElementById('generator-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                if (!validateForm()) {
-                    return;
-                }
-                
-                const generated = generateHTML();
-                document.getElementById('code-preview').textContent = generated;
-                document.getElementById('preview-container').style.display = 'block';
-                document.getElementById('code-preview').style.display = 'block';
-                
-                showStatus('הטופס נוצר בהצלחה! אנא הורד את הקובץ או העתק את הקוד.', true);
-                document.getElementById('preview-container').scrollIntoView({ behavior: 'smooth' });
-            });
-
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.getAttribute('data-tab');
-                    switchTab(tabId);
-                });
-            });
-        });
-    </script>
+   function convertTimeToMinutes(timeStr) {
+           const parts = timeStr.split(':');
+           return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+       }
+
+       function updateValidationStatus() {
+           validateTab('basic-info');
+           validateTab('meeting-dates');
+           validateTab('links');
+           validateTab('form-fields');
+           validateTab('appearance');
+           validateTab('system-settings');
+       }
+       
+       function validateTab(tabId) {
+           const tabContent = document.getElementById(tabId + '-content');
+           const requiredFields = tabContent.querySelectorAll('[required]');
+           const indicator = document.getElementById(tabId + '-indicator');
+           
+           let isValid = true;
+           
+           if (tabId === 'meeting-dates') {
+               if (meetingDates.length === 0) {
+                   isValid = false;
+               }
+           }
+           
+           requiredFields.forEach(field => {
+               if (field.offsetParent !== null && !field.value.trim()) {
+                   isValid = false;
+               }
+           });
+           
+           indicator.className = 'tab-indicator ' + (isValid ? 'valid' : 'invalid');
+       }
+
+       function showPreview() {
+           if (!validateForm()) {
+               return;
+           }
+           
+           const generated = generateHTML();
+           document.getElementById('code-preview').textContent = generated;
+           document.getElementById('preview-container').style.display = 'block';
+           document.getElementById('code-preview').style.display = 'block';
+           document.getElementById('preview-container').scrollIntoView({ behavior: 'smooth' });
+       }
+
+       function closePreview() {
+           document.getElementById('preview-container').style.display = 'none';
+       }
+
+       function copyCode() {
+           const text = document.getElementById('code-preview').textContent;
+           navigator.clipboard.writeText(text).then(() => {
+               showStatus('הקוד הועתק בהצלחה!', true);
+           }).catch(err => {
+               showStatus('שגיאה בהעתקת הקוד: ' + err, false);
+           });
+       }
+
+       function downloadFile() {
+           const text = document.getElementById('code-preview').textContent;
+           const title = document.getElementById('teacher_name').value || 'parent_teacher_meeting';
+           const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.html';
+           
+           const element = document.createElement('a');
+           element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(text));
+           element.setAttribute('download', filename);
+           element.style.display = 'none';
+           document.body.appendChild(element);
+           element.click();
+           document.body.removeChild(element);
+           showStatus('הקובץ הורד בהצלחה!', true);
+       }
+
+       function resetForm() {
+           if (confirm('האם אתה בטוח שברצונך לאפס את הטופס?')) {
+               document.getElementById('generator-form').reset();
+               
+               const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
+               colorInputs.forEach(id => {
+                   const input = document.getElementById(id);
+                   const preview = document.getElementById(id.replace('_', '-') + '-preview');
+                   preview.style.backgroundColor = input.value;
+               });
+               
+               meetingDates.length = 0;
+               updateMeetingDatesTable();
+               updateValidationStatus();
+           }
+       }
+
+       function validateForm() {
+           const requiredFields = document.querySelectorAll('[required]');
+           let isValid = true;
+           
+           requiredFields.forEach(field => {
+               if (field.offsetParent !== null && !field.value.trim()) {
+                   field.style.borderColor = 'red';
+                   isValid = false;
+                   
+                   const tabContent = field.closest('.tab-content');
+                   if (tabContent) {
+                       const tabId = tabContent.id.replace('-content', '');
+                       switchTab(tabId);
+                       field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                       field.focus();
+                   }
+               } else {
+                   field.style.borderColor = '';
+               }
+           });
+           
+           if (meetingDates.length === 0) {
+               switchTab('meeting-dates');
+               showStatus('יש להגדיר לפחות מועד פגישות אחד.', false);
+               isValid = false;
+           }
+           
+           if (!isValid) {
+               showStatus('אנא מלא את כל השדות הנדרשים.', false);
+           }
+           
+           return isValid;
+       }
+
+       async function generateHTML() {
+           try {
+               // טעינת התבנית מהקובץ
+               const response = await fetch('parent_teacher_template.html');
+               if (!response.ok) {
+                   throw new Error('לא ניתן לטעון את קובץ התבנית');
+               }
+               
+               let template = await response.text();
+               
+               // איסוף נתונים מהטופס
+               const formData = new FormData(document.getElementById('generator-form'));
+               
+               // החלפת ערכים בתבנית
+               template = template.replace(/{{TEACHER_NAME}}/g, formData.get('teacher_name') || '');
+               template = template.replace(/{{EVENT_TITLE}}/g, formData.get('event_title') || '');
+               template = template.replace(/{{EVENT_SUBTITLE}}/g, formData.get('event_subtitle') || '');
+               template = template.replace(/{{SUBJECT}}/g, formData.get('subject') || '');
+               template = template.replace(/{{LOCATION}}/g, formData.get('location') || '');
+               
+               // הטיפול בתיאור
+               const description = formData.get('description') || '';
+               if (description.trim()) {
+                   template = template.replace(/{{DESCRIPTION_SECTION}}/g, '<div class="event-description">' + description + '</div>');
+               } else {
+                   template = template.replace(/{{DESCRIPTION_SECTION}}/g, '');
+               }
+               
+               // מועדי פגישות
+               template = template.replace(/{{MEETING_DATES_JSON}}/g, JSON.stringify(meetingDates));
+               
+               // קישורים
+               let formUrl = formData.get('form_url') || '';
+               let formViewUrl = formData.get('form_view_url') || '';
+               
+               // נרמול URLs
+               if (!formUrl.includes('http')) {
+                   formUrl = 'https://docs.google.com/forms/d/e/' + formUrl + '/formResponse';
+               }
+               if (formUrl.includes('/viewform')) {
+                   formUrl = formUrl.replace('/viewform', '/formResponse');
+               }
+               
+               if (!formViewUrl) {
+                   formViewUrl = formUrl.replace('/formResponse', '/viewform');
+               }
+               if (formViewUrl.includes('/formResponse')) {
+                   formViewUrl = formViewUrl.replace('/formResponse', '/viewform');
+               }
+               
+               template = template.replace(/{{FORM_URL}}/g, formUrl);
+               template = template.replace(/{{FORM_VIEW_URL}}/g, formViewUrl);
+               template = template.replace(/{{SHEET_URL}}/g, formData.get('sheet_url') || '');
+               
+               // שדות טופס
+               template = template.replace(/{{FIELD_STUDENT_NAME}}/g, formData.get('field_student_name') || '');
+               template = template.replace(/{{FIELD_PARENT_NAME}}/g, formData.get('field_parent_name') || '');
+               template = template.replace(/{{FIELD_PHONE}}/g, formData.get('field_phone') || '');
+               template = template.replace(/{{FIELD_DATE}}/g, formData.get('field_date') || '');
+               template = template.replace(/{{FIELD_TIME}}/g, formData.get('field_time') || '');
+               
+               const fieldNotes = formData.get('field_notes') || '';
+               template = template.replace(/{{FIELD_NOTES}}/g, fieldNotes);
+               template = template.replace(/{{SHOW_NOTES_FIELD}}/g, fieldNotes ? 'block' : 'none');
+               
+               // צבעים
+               template = template.replace(/{{PRIMARY_COLOR}}/g, formData.get('primary_color') || '#2196F3');
+               template = template.replace(/{{SECONDARY_COLOR}}/g, formData.get('secondary_color') || '#4b6cb7');
+               template = template.replace(/{{SUCCESS_COLOR}}/g, formData.get('success_color') || '#4CAF50');
+               template = template.replace(/{{SHOW_DEBUG}}/g, formData.get('show_debug') ? 'block' : 'none');
+               
+               // הגדרות מערכת
+               template = template.replace(/{{TEMP_BOOKING_TIMEOUT}}/g, formData.get('temp_booking_timeout') || '10');
+               template = template.replace(/{{AUTO_REFRESH_INTERVAL}}/g, formData.get('auto_refresh_interval') || '30');
+               
+               const storageSuffix = formData.get('storage_key_suffix') || 'MeetingBookings2025';
+               template = template.replace(/{{STORAGE_KEY}}/g, 'tempMeetingBookings_' + storageSuffix);
+               
+               const projectName = (formData.get('event_title') || '') + ' ' + new Date().getFullYear();
+               template = template.replace(/{{PROJECT_NAME}}/g, projectName);
+               
+               return template;
+               
+           } catch (error) {
+               console.error('שגיאה ביצירת הקוד:', error);
+               showStatus('שגיאה ביצירת הקוד: ' + error.message, false);
+               return '';
+           }
+       }
+       
+       function showStatus(message, isSuccess) {
+           const statusElement = document.getElementById('status-message');
+           statusElement.textContent = message;
+           statusElement.className = 'status-message ' + (isSuccess ? 'status-success' : 'status-error');
+           statusElement.style.display = 'block';
+           
+           setTimeout(() => {
+               statusElement.style.display = 'none';
+           }, 5000);
+       }
+
+       // אתחול המערכת
+       document.addEventListener('DOMContentLoaded', function() {
+           updateMeetingDatesTable();
+           updateValidationStatus();
+           
+           // הגדרת תצוגה מקדימה של צבעים
+           const colorInputs = ['primary_color', 'secondary_color', 'success_color'];
+           colorInputs.forEach(id => {
+               const input = document.getElementById(id);
+               const preview = document.getElementById(id.replace('_', '-') + '-preview');
+               
+               preview.style.backgroundColor = input.value;
+               
+               input.addEventListener('input', () => {
+                   preview.style.backgroundColor = input.value;
+               });
+           });
+
+           // מאזין לשינויים בשדות
+           document.querySelectorAll('input, textarea, select').forEach(input => {
+               input.addEventListener('input', updateValidationStatus);
+           });
+
+           // טיפול בשליחת הטופס
+           document.getElementById('generator-form').addEventListener('submit', async (e) => {
+               e.preventDefault();
+               
+               if (!validateForm()) {
+                   return;
+               }
+               
+               const generated = await generateHTML();
+               if (generated) {
+                   document.getElementById('code-preview').textContent = generated;
+                   document.getElementById('preview-container').style.display = 'block';
+                   document.getElementById('code-preview').style.display = 'block';
+                   
+                   showStatus('הטופס נוצר בהצלחה! אנא הורד את הקובץ או העתק את הקוד.', true);
+                   document.getElementById('preview-container').scrollIntoView({ behavior: 'smooth' });
+               }
+           });
+
+           // ניהול כרטיסיות
+           document.querySelectorAll('.tab').forEach(tab => {
+               tab.addEventListener('click', () => {
+                   const tabId = tab.getAttribute('data-tab');
+                   switchTab(tabId);
+               });
+           });
+       });
+   </script>
 </body>
 </html>
