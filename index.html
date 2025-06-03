@@ -90,6 +90,29 @@
             box-shadow: 0 2px 10px rgba(74, 108, 247, 0.05);
         }
         
+        .campaign-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .campaign-info h2 {
+            color: white !important;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .campaign-info p {
+            font-size: 18px;
+            margin-bottom: 0;
+            line-height: 1.8;
+            color: white;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -684,7 +707,15 @@
     </div>
 
     <div class="container">
-        <h1>מערכת הזנת תלמידים מרובים (משופרת)</h1>
+        <h1>מבצע הנני התשפ"ה</h1>
+        
+        <div class="campaign-info" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);">
+            <h2 style="color: white; margin-bottom: 15px; font-size: 24px;">מערכת הזנת תלמידים מרובים</h2>
+            <p style="font-size: 18px; margin-bottom: 0; line-height: 1.8;">
+                רשמו כאן כל מי שהשיג 50 חתימות בחוברת הנני (לא מוגבל לעשרה)<br>
+                ובמידה ואין לכם ילדים כאלה תוכלו לרשום עד עשרה ילדים שמובילים אצלכם במבצע.
+            </p>
+        </div>
         
         <div class="instructions">
             <h3>
@@ -693,10 +724,11 @@
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                הוראות שימוש (גרסה משופרת)
+                הוראות שימוש - מבצע הנני
             </h3>
             <ol>
                 <li>הזן את פרטי בית הספר והעיר (הפרטים יישמרו אוטומטית לשימוש הבא)</li>
+                <li>רשם תלמידים שהשיגו 50 חתימות בחוברת הנני, או עד 10 ילדים מובילים במבצע</li>
                 <li>הוסף את פרטי התלמידים בטבלה (אפשר להוסיף שורות על ידי לחיצה על TAB בסוף שורה)</li>
                 <li>השתמש בפעולות מרובות: בחר תלמידים ומחק/שכפל אותם בבת אחת</li>
                 <li>לחץ על "שלח את כל התלמידים" - המערכת תנסה שוב אוטומטית במקרה של כשל</li>
@@ -725,7 +757,7 @@
             </div>
         </div>
         
-        <h2>פרטי התלמידים</h2>
+        <h2>תלמידים במבצע הנני</h2>
         <div class="student-counter" id="studentCounter">
             סה"כ תלמידים: <span id="studentCount">0</span>
         </div>
@@ -760,7 +792,7 @@
                 <thead>
                     <tr>
                         <th width="40">בחר</th>
-                        <th>שם התלמיד</th>
+                        <th>שם התלמיד/ה</th>
                         <th>כיתה</th>
                         <th class="action-column">פעולות</th>
                     </tr>
@@ -768,7 +800,7 @@
                 <tbody id="studentsTableBody">
                     <tr>
                         <td><input type="checkbox" class="student-checkbox"></td>
-                        <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="1"></td>
+                        <td><input type="text" name="studentName" placeholder="שם התלמיד/ה" tabindex="1"></td>
                         <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="2"></td>
                         <td class="action-column">
                             <button class="btn btn-danger" onclick="removeRow(this)" tabindex="3">
@@ -845,7 +877,7 @@
     </div>
     
     <footer>
-        © כל הזכויות שמורות - מערכת שליחת תלמידים מרובים לגוגל פורמס (גרסה משופרת)
+        © כל הזכויות שמורות - מערכת הזנת תלמידים למבצע הנני התשפ"ה
     </footer>
     
     <script>
@@ -1011,7 +1043,7 @@
             tableBody.innerHTML = `
                 <tr>
                     <td><input type="checkbox" class="student-checkbox"></td>
-                    <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="1"></td>
+                    <td><input type="text" name="studentName" placeholder="שם התלמיד/ה" tabindex="1"></td>
                     <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="2"></td>
                     <td class="action-column">
                         <button class="btn btn-danger" onclick="removeRow(this)" tabindex="3">
@@ -1205,7 +1237,7 @@
             
             newRow.innerHTML = `
                 <td><input type="checkbox" class="student-checkbox"></td>
-                <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="${tabIndexBase+1}"></td>
+                <td><input type="text" name="studentName" placeholder="שם התלמיד/ה" tabindex="${tabIndexBase+1}"></td>
                 <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="${tabIndexBase+2}"></td>
                 <td class="action-column">
                     <button class="btn btn-danger" onclick="removeRow(this)" tabindex="${tabIndexBase+3}">
@@ -1619,7 +1651,7 @@
             const timeStr = now.toLocaleTimeString('he-IL').replace(/:/g, '-');
             
             link.setAttribute('href', url);
-            link.setAttribute('download', `תלמידים_${dateStr}_${timeStr}.csv`);
+            link.setAttribute('download', `מבצע_הנני_תשפה_${dateStr}_${timeStr}.csv`);
             link.style.display = 'none';
             
             document.body.appendChild(link);
