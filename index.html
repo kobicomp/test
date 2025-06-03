@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>טופס הזנת תלמידים מרובים - שליחה אוטומטית</title>
+    <title>טופס הזנת תלמידים מרובים - שליחה אוטומטית (משופר)</title>
     <style>
         :root {
             --primary-color: #4a6cf7;
@@ -13,6 +13,7 @@
             --secondary-dark: #18a278;
             --error-color: #fa5252;
             --warning-color: #fd7e14;
+            --success-color: #51cf66;
             --text-color: #343a40;
             --text-secondary: #6c757d;
             --background-color: #f8f9fa;
@@ -111,7 +112,7 @@
             color: var(--primary-dark);
         }
         
-        input[type="text"] {
+        input[type="text"], input[type="email"], input[type="tel"] {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid var(--border-color);
@@ -121,10 +122,31 @@
             background-color: white;
         }
         
-        input[type="text"]:focus {
+        input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus {
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.25);
+        }
+        
+        /* שיפור אימות שדות */
+        .input-group {
+            position: relative;
+        }
+        
+        .input-error {
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 0 3px rgba(250, 82, 82, 0.25) !important;
+        }
+        
+        .input-success {
+            border-color: var(--success-color) !important;
+        }
+        
+        .field-error {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
         }
         
         .students-table-container {
@@ -210,6 +232,13 @@
             align-items: center;
             justify-content: center;
             min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         
         .btn svg {
@@ -223,7 +252,7 @@
             color: white;
         }
         
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background-color: var(--primary-dark);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(74, 108, 247, 0.3);
@@ -234,7 +263,7 @@
             color: white;
         }
         
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             background-color: var(--secondary-dark);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(32, 201, 151, 0.3);
@@ -247,7 +276,7 @@
             min-width: auto;
         }
         
-        .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             background-color: #e03131;
             transform: translateY(-2px);
         }
@@ -257,7 +286,7 @@
             color: white;
         }
         
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background-color: #484e53;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(90, 98, 104, 0.3);
@@ -502,12 +531,10 @@
             resize: vertical;
         }
         
-        /* מסגרת מודגשת לשדה פעיל */
         .active-row {
             background-color: var(--primary-light) !important;
         }
         
-        /* אנימציה להצגת אזור סטטוס */
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -517,7 +544,6 @@
             animation: slideDown 0.3s ease forwards;
         }
         
-        /* אנימציה לכפתור שליחה */
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
@@ -528,12 +554,14 @@
             animation: pulse 0.5s ease;
         }
         
-        /* תיבת התראה בסגנון חדש */
         .alert {
             padding: 15px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .alert-success {
@@ -548,19 +576,103 @@
             color: var(--primary-dark);
         }
         
-        /* תוספת צללית בהרחפה */
+        .alert-error {
+            background-color: rgba(250, 82, 82, 0.15);
+            border: 1px solid rgba(250, 82, 82, 0.3);
+            color: var(--error-color);
+        }
+        
         .hover-shadow:hover {
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
         }
         
-        /* מעברים חלקים */
         .students-table-container, .submission-status, .csv-export, .instructions, .school-info {
             transition: var(--transition);
+        }
+        
+        /* שיפורים חדשים */
+        .retry-btn {
+            background-color: var(--warning-color);
+            color: white;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .retry-btn:hover {
+            background-color: #e8590c;
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1001;
+            display: none;
+        }
+        
+        .connection-online {
+            background-color: rgba(32, 201, 151, 0.9);
+            color: white;
+        }
+        
+        .connection-offline {
+            background-color: rgba(250, 82, 82, 0.9);
+            color: white;
+        }
+        
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .student-counter {
+            background-color: var(--primary-light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+
+        /* הוספת תמיכה בקליק ימני */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+            padding: 5px 0;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .context-menu-item:hover {
+            background-color: var(--primary-light);
         }
     </style>
 </head>
 <body>
+    <div class="connection-status" id="connectionStatus">
+        <span id="connectionText">מחובר</span>
+    </div>
+
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loader-container">
             <div class="loader"><div></div><div></div></div>
@@ -572,7 +684,7 @@
     </div>
 
     <div class="container">
-        <h1>מערכת הזנת תלמידים מרובים</h1>
+        <h1>מערכת הזנת תלמידים מרובים (משופרת)</h1>
         
         <div class="instructions">
             <h3>
@@ -581,13 +693,14 @@
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                הוראות שימוש
+                הוראות שימוש (גרסה משופרת)
             </h3>
             <ol>
                 <li>הזן את פרטי בית הספר והעיר (הפרטים יישמרו אוטומטית לשימוש הבא)</li>
                 <li>הוסף את פרטי התלמידים בטבלה (אפשר להוסיף שורות על ידי לחיצה על TAB בסוף שורה)</li>
-                <li>לחץ על "שלח את כל התלמידים" כדי לשלוח את כל הנתונים <strong>אוטומטית</strong></li>
-                <li>המערכת תייצא קובץ CSV באופן אוטומטי עם סיום השליחה ותנקה את רשימת התלמידים</li>
+                <li>השתמש בפעולות מרובות: בחר תלמידים ומחק/שכפל אותם בבת אחת</li>
+                <li>לחץ על "שלח את כל התלמידים" - המערכת תנסה שוב אוטומטית במקרה של כשל</li>
+                <li>המערכת תייצא קובץ CSV באופן אוטומטי עם סיום השליחה</li>
             </ol>
         </div>
         
@@ -596,23 +709,57 @@
             <div class="school-info-row">
                 <div class="form-group-compact">
                     <label for="schoolName">שם בית הספר:</label>
-                    <input type="text" id="schoolName" name="schoolName" required placeholder="הזן את שם בית הספר">
+                    <div class="input-group">
+                        <input type="text" id="schoolName" name="schoolName" required placeholder="הזן את שם בית הספר">
+                        <div class="field-error" id="schoolNameError">שדה חובה</div>
+                    </div>
                 </div>
                 
                 <div class="form-group-compact">
                     <label for="city">העיר:</label>
-                    <input type="text" id="city" name="city" required placeholder="הזן את שם העיר">
+                    <div class="input-group">
+                        <input type="text" id="city" name="city" required placeholder="הזן את שם העיר">
+                        <div class="field-error" id="cityError">שדה חובה</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <h2>פרטי התלמידים</h2>
-        <p>הזן את פרטי התלמידים בטבלה. ניתן להוסיף שורות נוספות בלחיצה על TAB בסוף השורה או על ידי כפתור "הוסף תלמיד".</p>
+        <div class="student-counter" id="studentCounter">
+            סה"כ תלמידים: <span id="studentCount">0</span>
+        </div>
+        
+        <div class="bulk-actions">
+            <button class="btn btn-secondary" onclick="selectAllStudents()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="m21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.51 0 2.93.37 4.18 1.03"></path>
+                </svg>
+                בחר הכל
+            </button>
+            <button class="btn btn-secondary" onclick="clearAllStudents()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+                נקה הכל
+            </button>
+            <button class="btn btn-primary" onclick="addMultipleRows()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                הוסף 5 שורות
+            </button>
+        </div>
         
         <div class="students-table-container hover-shadow">
             <table class="students-table" id="studentsTable">
                 <thead>
                     <tr>
+                        <th width="40">בחר</th>
                         <th>שם התלמיד</th>
                         <th>כיתה</th>
                         <th class="action-column">פעולות</th>
@@ -620,6 +767,7 @@
                 </thead>
                 <tbody id="studentsTableBody">
                     <tr>
+                        <td><input type="checkbox" class="student-checkbox"></td>
                         <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="1"></td>
                         <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="2"></td>
                         <td class="action-column">
@@ -658,7 +806,17 @@
                 </svg>
                 ייצא ל-CSV
             </button>
+            <button class="btn btn-primary" onclick="importFromCsv()" id="importBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                יבא מ-CSV
+            </button>
         </div>
+        
+        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
         
         <div class="submission-status" id="submissionStatus">
             <h3>סטטוס שליחה</h3>
@@ -681,64 +839,59 @@
         </div>
     </div>
     
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="duplicateRow()">שכפל שורה</div>
+        <div class="context-menu-item" onclick="removeRow(currentRightClickRow)">מחק שורה</div>
+    </div>
+    
     <footer>
-        © כל הזכויות שמורות - מערכת שליחת תלמידים מרובים לגוגל פורמס
+        © כל הזכויות שמורות - מערכת שליחת תלמידים מרובים לגוגל פורמס (גרסה משופרת)
     </footer>
     
     <script>
         // ===== הגדרות קלות לשינוי =====
         const CONFIG = {
-            // קישור לטופס גוגל - מזהה הטופס
             FORM_ID: '1FAIpQLSfBjlwPghJsQbhKQFDIzKSMx9iHppzsnkUSu9FJObN999f0cA',
-            
-            // קישור מלא למילוי טופס גוגל (לבדיקות)
             FORM_VIEW_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfBjlwPghJsQbhKQFDIzKSMx9iHppzsnkUSu9FJObN999f0cA/viewform',
-            
-            // קישור לשליחת נתונים לטופס גוגל
             FORM_SUBMIT_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSfBjlwPghJsQbhKQFDIzKSMx9iHppzsnkUSu9FJObN999f0cA/formResponse',
             
-            // מיפוי השדות
             FORM_FIELDS: {
-                schoolName: 'entry.1691548632',   // שם בית הספר
-                city: 'entry.2146493326',         // העיר
-                studentName: 'entry.648923336',   // שם התלמיד
-                studentClass: 'entry.1577451299'  // כיתה
+                schoolName: 'entry.1691548632',
+                city: 'entry.2146493326',
+                studentName: 'entry.648923336',
+                studentClass: 'entry.1577451299'
             },
             
-            // השהייה בין שליחות (במילישניות)
             DELAY_BETWEEN_SUBMISSIONS: 800,
-            
-            // האם להוריד את קובץ ה-CSV אוטומטית בסיום השליחה
             AUTO_DOWNLOAD_CSV: true,
-            
-            // האם לנקות את פרטי התלמידים אחרי שליחה
             CLEAR_STUDENTS_AFTER_SUBMISSION: true,
+            MAX_RETRY_ATTEMPTS: 3,
             
-            // מפתחות לשמירה ב-localStorage
             STORAGE_KEYS: {
                 schoolName: 'students_form_school_name',
                 city: 'students_form_city'
             }
         };
         
+        // משתנים גלובליים
+        let currentRightClickRow = null;
+        let failedSubmissions = [];
+        
         // ----- אתחול לאחר טעינת הדף -----
         document.addEventListener('DOMContentLoaded', function() {
-            // טען נתונים שמורים מ-localStorage
             loadSavedSchoolInfo();
-            
-            // הוסף מאזין אירועים לטאב בטבלת התלמידים
             setupTabNavigation();
-            
-            // הוסף מאזין אירועים לשמירת נתוני בית הספר
             setupSchoolInfoStorage();
+            setupConnectionMonitor();
+            setupContextMenu();
+            setupFileImport();
+            updateStudentCounter();
             
-            // מיקוד אוטומטי בשדה הראשון (אם ריק)
             if (!document.getElementById('schoolName').value) {
                 document.getElementById('schoolName').focus();
             } else if (!document.getElementById('city').value) {
                 document.getElementById('city').focus();
             } else {
-                // אם יש בית ספר ועיר, מקד את שדה התלמיד הראשון
                 const firstStudentField = document.querySelector('input[name="studentName"]');
                 if (firstStudentField) {
                     firstStudentField.focus();
@@ -746,9 +899,200 @@
             }
         });
         
-        // ----- פונקציות לטעינה ושמירה של נתוני בית הספר -----
+        // ----- פונקציות חדשות משופרות -----
         
-        // טעינת פרטי בית הספר והעיר מה-localStorage
+        // מוניטור חיבור לאינטרנט
+        function setupConnectionMonitor() {
+            const statusDiv = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('connectionText');
+            
+            function updateConnectionStatus() {
+                if (navigator.onLine) {
+                    statusDiv.className = 'connection-status connection-online';
+                    statusText.textContent = 'מחובר';
+                    statusDiv.style.display = 'block';
+                    setTimeout(() => statusDiv.style.display = 'none', 2000);
+                } else {
+                    statusDiv.className = 'connection-status connection-offline';
+                    statusText.textContent = 'לא מחובר לאינטרנט';
+                    statusDiv.style.display = 'block';
+                }
+            }
+            
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+        }
+        
+        // הגדרת תפריט קליק ימני
+        function setupContextMenu() {
+            const studentsTable = document.getElementById('studentsTable');
+            const contextMenu = document.getElementById('contextMenu');
+            
+            studentsTable.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                if (row && row.parentNode.tagName === 'TBODY') {
+                    currentRightClickRow = row.querySelector('button');
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                    contextMenu.style.display = 'block';
+                }
+            });
+            
+            document.addEventListener('click', function() {
+                contextMenu.style.display = 'none';
+            });
+        }
+        
+        // הגדרת יבוא קבצים
+        function setupFileImport() {
+            document.getElementById('csvFileInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const csvData = e.target.result;
+                        parseAndImportCsv(csvData);
+                    };
+                    reader.readAsText(file, 'UTF-8');
+                }
+            });
+        }
+        
+        // ניתוח ויבוא CSV
+        function parseAndImportCsv(csvData) {
+            try {
+                const lines = csvData.split('\n').filter(line => line.trim());
+                const header = lines[0];
+                
+                // נקה טבלה קיימת
+                clearAllStudents();
+                
+                // הוסף נתונים
+                for (let i = 1; i < lines.length; i++) {
+                    const data = lines[i].split(',').map(cell => cell.replace(/"/g, '').trim());
+                    if (data.length >= 4 && data[2] && data[3]) {
+                        if (i > 1) addRow(); // הוסף שורה חדשה (פרט לראשונה)
+                        
+                        const rows = document.getElementById('studentsTableBody').rows;
+                        const currentRow = rows[rows.length - 1];
+                        
+                        currentRow.querySelector('input[name="studentName"]').value = data[2];
+                        currentRow.querySelector('input[name="studentClass"]').value = data[3];
+                    }
+                }
+                
+                updateStudentCounter();
+                showAlert('הנתונים יובאו בהצלחה!', 'success');
+            } catch (error) {
+                showAlert('שגיאה ביבוא הקובץ', 'error');
+                console.error('Import error:', error);
+            }
+        }
+        
+        // עדכון מונה תלמידים
+        function updateStudentCounter() {
+            const studentsData = collectFormData();
+            document.getElementById('studentCount').textContent = studentsData.length;
+        }
+        
+        // פונקציות פעולות מרובות
+        function selectAllStudents() {
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+        }
+        
+        function clearAllStudents() {
+            const tableBody = document.getElementById('studentsTableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td><input type="checkbox" class="student-checkbox"></td>
+                    <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="1"></td>
+                    <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="2"></td>
+                    <td class="action-column">
+                        <button class="btn btn-danger" onclick="removeRow(this)" tabindex="3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            updateStudentCounter();
+        }
+        
+        function addMultipleRows() {
+            for (let i = 0; i < 5; i++) {
+                addRow();
+            }
+        }
+        
+        function duplicateRow() {
+            if (currentRightClickRow) {
+                const row = currentRightClickRow.closest('tr');
+                const studentName = row.querySelector('input[name="studentName"]').value;
+                const studentClass = row.querySelector('input[name="studentClass"]').value;
+                
+                const newRow = addRow();
+                newRow.querySelector('input[name="studentName"]').value = studentName + ' (עותק)';
+                newRow.querySelector('input[name="studentClass"]').value = studentClass;
+                updateStudentCounter();
+            }
+        }
+        
+        function importFromCsv() {
+            document.getElementById('csvFileInput').click();
+        }
+        
+        // אימות משופר עם הדגשה ויזואלית
+        function validateField(fieldId, errorId, value, errorMessage) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(errorId);
+            
+            if (!value.trim()) {
+                field.classList.add('input-error');
+                field.classList.remove('input-success');
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = errorMessage;
+                return false;
+            } else {
+                field.classList.remove('input-error');
+                field.classList.add('input-success');
+                errorDiv.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // שליחה מחדש עם מנגנון retry
+        async function retryFailedSubmissions() {
+            if (failedSubmissions.length === 0) return;
+            
+            showAlert(`מנסה שוב לשלוח ${failedSubmissions.length} תלמידים...`, 'info');
+            
+            const retryList = [...failedSubmissions];
+            failedSubmissions = [];
+            
+            for (const data of retryList) {
+                const result = await submitSingleForm(data);
+                if (!result.success) {
+                    failedSubmissions.push(data);
+                }
+            }
+            
+            if (failedSubmissions.length === 0) {
+                showAlert('כל התלמידים נשלחו בהצלחה!', 'success');
+            } else {
+                showAlert(`עדיין נכשלו ${failedSubmissions.length} תלמידים`, 'error');
+            }
+        }
+        
+        // ----- פונקציות מקוריות משופרות -----
+        
         function loadSavedSchoolInfo() {
             try {
                 const schoolName = localStorage.getItem(CONFIG.STORAGE_KEYS.schoolName);
@@ -766,21 +1110,20 @@
             }
         }
         
-        // הגדרת מאזיני אירועים לשמירת נתוני בית הספר
         function setupSchoolInfoStorage() {
             const schoolNameInput = document.getElementById('schoolName');
             const cityInput = document.getElementById('city');
             
-            // הוסף האזנה לשינוי בשדות
             schoolNameInput.addEventListener('input', debounce(function() {
                 saveSchoolInfo();
+                updateStudentCounter();
             }, 500));
             
             cityInput.addEventListener('input', debounce(function() {
                 saveSchoolInfo();
+                updateStudentCounter();
             }, 500));
             
-            // הוסף האזנה לעזיבת השדה
             schoolNameInput.addEventListener('blur', function() {
                 saveSchoolInfo();
             });
@@ -790,7 +1133,6 @@
             });
         }
         
-        // שמירת פרטי בית הספר והעיר ב-localStorage
         function saveSchoolInfo() {
             try {
                 const schoolName = document.getElementById('schoolName').value.trim();
@@ -808,7 +1150,6 @@
             }
         }
         
-        // פונקציית debounce לשיפור ביצועים
         function debounce(func, wait) {
             let timeout;
             return function() {
@@ -820,24 +1161,18 @@
             };
         }
         
-        // ----- הגדרת ניווט באמצעות TAB -----
         function setupTabNavigation() {
             const tableBody = document.getElementById('studentsTableBody');
             
-            // הוסף האזנה לאירועי מקלדת לכל הטבלה
             tableBody.addEventListener('keydown', function(event) {
-                // בדוק אם לחצו על TAB בשדה אחרון בשורה האחרונה
                 if (event.key === 'Tab' && !event.shiftKey) {
-                    const inputs = tableBody.querySelectorAll('input');
+                    const inputs = tableBody.querySelectorAll('input[type="text"]');
                     const lastInput = inputs[inputs.length - 1];
                     
                     if (event.target === lastInput) {
-                        // מניעת ברירת המחדל כדי שהמיקוד לא יעבור לכפתור ההסרה
                         event.preventDefault();
-                        // הוסף שורה חדשה
                         addRow();
-                        // מקד את השדה הראשון בשורה החדשה
-                        const newRowInputs = tableBody.querySelectorAll('tr:last-child input');
+                        const newRowInputs = tableBody.querySelectorAll('tr:last-child input[type="text"]');
                         if (newRowInputs.length > 0) {
                             newRowInputs[0].focus();
                         }
@@ -845,34 +1180,31 @@
                 }
             });
             
-            // הוסף האזנה למיקוד בשדות
             tableBody.addEventListener('focusin', function(event) {
                 if (event.target.tagName === 'INPUT') {
-                    // הסר את המחלקה 'active-row' מכל השורות
                     const allRows = tableBody.querySelectorAll('tr');
                     allRows.forEach(row => row.classList.remove('active-row'));
                     
-                    // הוסף את המחלקה 'active-row' לשורה הנוכחית
                     const currentRow = event.target.closest('tr');
                     if (currentRow) {
                         currentRow.classList.add('active-row');
                     }
                 }
             });
+            
+            // הוסף מאזין לשינויים בשדות לעדכון המונה
+            tableBody.addEventListener('input', debounce(updateStudentCounter, 300));
         }
         
-        // ----- פונקציות לניהול טבלת התלמידים -----
-        
-        // פונקציה להוספת שורה חדשה לטבלה
         function addRow() {
             const tableBody = document.getElementById('studentsTableBody');
             const rowCount = tableBody.querySelectorAll('tr').length;
             const newRow = document.createElement('tr');
             
-            // הגדרת אינדקס טאב חדש לשורה החדשה
-            const tabIndexBase = rowCount * 3;
+            const tabIndexBase = rowCount * 4;
             
             newRow.innerHTML = `
+                <td><input type="checkbox" class="student-checkbox"></td>
                 <td><input type="text" name="studentName" placeholder="שם התלמיד" tabindex="${tabIndexBase+1}"></td>
                 <td><input type="text" name="studentClass" placeholder="כיתה" tabindex="${tabIndexBase+2}"></td>
                 <td class="action-column">
@@ -887,7 +1219,6 @@
             
             tableBody.appendChild(newRow);
             
-            // אנימציה קלה לשורה החדשה
             setTimeout(() => {
                 newRow.style.transition = "background-color 0.5s ease";
                 newRow.style.backgroundColor = "rgba(74, 108, 247, 0.1)";
@@ -897,51 +1228,53 @@
                 }, 800);
             }, 10);
             
+            // הוסף מאזין לעדכון המונה
+            const inputs = newRow.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', debounce(updateStudentCounter, 300));
+            });
+            
             return newRow;
         }
         
-        // פונקציה להסרת שורה מהטבלה
         function removeRow(button) {
             const row = button.closest('tr');
             const tableBody = document.getElementById('studentsTableBody');
             
-            // ודא שיש לפחות שורה אחת בטבלה
             if (tableBody.rows.length > 1) {
-                // אנימציה להסרת השורה
                 row.style.transition = "opacity 0.3s, transform 0.3s";
                 row.style.opacity = "0";
                 row.style.transform = "translateX(20px)";
                 
                 setTimeout(() => {
                     row.remove();
-                    // עדכון אינדקסי טאב
                     updateTabIndexes();
+                    updateStudentCounter();
                 }, 300);
             } else {
-                // אפס את הערכים בשורה אם זו השורה האחרונה
-                const inputs = row.querySelectorAll('input');
+                const inputs = row.querySelectorAll('input[type="text"]');
                 inputs.forEach(input => {
                     input.value = '';
                 });
                 
-                // אנימציה קלה לניקוי
                 row.style.transition = "background-color 0.5s ease";
                 row.style.backgroundColor = "rgba(250, 82, 82, 0.1)";
                 
                 setTimeout(() => {
                     row.style.backgroundColor = "";
                 }, 500);
+                
+                updateStudentCounter();
             }
         }
         
-        // עדכון אינדקסי טאב לכל השורות בטבלה
         function updateTabIndexes() {
             const tableBody = document.getElementById('studentsTableBody');
             const rows = tableBody.querySelectorAll('tr');
             
             rows.forEach((row, rowIndex) => {
                 const inputs = row.querySelectorAll('input, button');
-                const tabIndexBase = rowIndex * 3;
+                const tabIndexBase = rowIndex * 4;
                 
                 inputs.forEach((input, inputIndex) => {
                     input.tabIndex = tabIndexBase + inputIndex + 1;
@@ -949,23 +1282,18 @@
             });
         }
         
-        // ----- פונקציות לאימות וקבלת הנתונים -----
-        
-        // אימות נתונים בסיסי
         function validateData() {
             const schoolName = document.getElementById('schoolName').value.trim();
             const city = document.getElementById('city').value.trim();
             
-            if (!schoolName) {
-                showAlert('אנא הזן את שם בית הספר', 'error');
-                document.getElementById('schoolName').focus();
-                return false;
+            let isValid = true;
+            
+            if (!validateField('schoolName', 'schoolNameError', schoolName, 'שדה חובה')) {
+                isValid = false;
             }
             
-            if (!city) {
-                showAlert('אנא הזן את שם העיר', 'error');
-                document.getElementById('city').focus();
-                return false;
+            if (!validateField('city', 'cityError', city, 'שדה חובה')) {
+                isValid = false;
             }
             
             const rows = document.getElementById('studentsTableBody').rows;
@@ -983,30 +1311,28 @@
             
             if (!validStudents) {
                 showAlert('אנא הזן פרטים של לפחות תלמיד אחד', 'error');
-                return false;
+                isValid = false;
             }
             
-            return true;
+            return isValid;
         }
         
-        // הצגת התראה למשתמש
         function showAlert(message, type = 'error') {
-            // בדוק אם כבר קיימת התראה ומחק אותה
             const existingAlert = document.querySelector('.alert');
             if (existingAlert) {
                 existingAlert.remove();
             }
             
-            // יצירת אלמנט ההתראה
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
-            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type}`;
             
-            // הוספת ההתראה בראש הטופס
+            // הוסף אייקון
+            const icon = type === 'success' ? '✓' : type === 'error' ? '⚠' : 'ℹ';
+            alertDiv.innerHTML = `<span style="font-weight: bold; margin-left: 5px;">${icon}</span>${message}`;
+            
             const container = document.querySelector('.container');
             container.insertBefore(alertDiv, container.firstChild);
             
-            // הגדרת טיימר להסרת ההתראה
             setTimeout(() => {
                 if (alertDiv.parentNode === container) {
                     alertDiv.style.opacity = '0';
@@ -1020,7 +1346,6 @@
                 }
             }, 5000);
             
-            // אנימציית הופעה
             setTimeout(() => {
                 alertDiv.style.transition = 'opacity 0.3s, transform 0.3s';
                 alertDiv.style.opacity = '1';
@@ -1028,7 +1353,6 @@
             }, 10);
         }
         
-        // איסוף כל הנתונים מהטופס
         function collectFormData() {
             const schoolName = document.getElementById('schoolName').value.trim();
             const city = document.getElementById('city').value.trim();
@@ -1053,28 +1377,21 @@
             return studentsData;
         }
         
-        // ----- פונקציות לשליחת הטפסים -----
-        
-        // שליחת טופס בודד
         async function submitSingleForm(data) {
             try {
-                // יצירת אובייקט FormData
                 const formData = new FormData();
                 
-                // הוספת הנתונים לפי המיפוי
                 formData.append(CONFIG.FORM_FIELDS.schoolName, data.schoolName);
                 formData.append(CONFIG.FORM_FIELDS.city, data.city);
                 formData.append(CONFIG.FORM_FIELDS.studentName, data.studentName);
                 formData.append(CONFIG.FORM_FIELDS.studentClass, data.studentClass);
                 
-                // שליחת הנתונים לגוגל פורמס באמצעות fetch עם מצב no-cors
                 await fetch(CONFIG.FORM_SUBMIT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     body: formData
                 });
                 
-                // ב-no-cors לא ניתן לבדוק את הסטטוס, אז אנחנו מניחים שהשליחה הצליחה אם לא נזרקה שגיאה
                 return { success: true, data: data };
                 
             } catch (error) {
@@ -1083,7 +1400,6 @@
             }
         }
         
-        // הצגת/הסתרת מסך טעינה
         function toggleLoadingOverlay(show, total = 0, current = 0) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
             
@@ -1093,12 +1409,10 @@
             }
         }
         
-        // עדכון ספירת התלמידים במסך הטעינה
         function updateLoadingCount(count) {
             document.getElementById('loadingCount').textContent = count;
         }
         
-        // עדכון סטטוס השליחה בממשק
         function updateStatusUI(sent, total) {
             document.getElementById('sentCount').textContent = sent;
             document.getElementById('totalCount').textContent = total;
@@ -1112,21 +1426,27 @@
             }
         }
         
-        // הוספת סטטוס לרשימת הסטטוס
         function addStatusMessage(message, type) {
             const statusList = document.getElementById('statusList');
             const statusItem = document.createElement('div');
             statusItem.className = `status-item status-${type}`;
-            statusItem.textContent = message;
             
-            // הוספת האלמנט בראש הרשימה
+            // הוסף כפתור נסה שוב לשגיאות
+            if (type === 'error') {
+                statusItem.innerHTML = `
+                    ${message}
+                    <button class="retry-btn" onclick="retryFailedSubmissions()">נסה שוב</button>
+                `;
+            } else {
+                statusItem.textContent = message;
+            }
+            
             if (statusList.firstChild) {
                 statusList.insertBefore(statusItem, statusList.firstChild);
             } else {
                 statusList.appendChild(statusItem);
             }
             
-            // אנימציית הופעה
             statusItem.style.opacity = '0';
             statusItem.style.transform = 'translateY(-10px)';
             
@@ -1136,146 +1456,129 @@
                 statusItem.style.transform = 'translateY(0)';
             }, 10);
             
-            // החזר את האובייקט שנוצר כדי שניתן יהיה לעדכן אותו בהמשך
             return statusItem;
         }
         
-        // ניקוי רשימת התלמידים
         function clearStudentsData() {
             const tableBody = document.getElementById('studentsTableBody');
             
-            // שמור שורה אחת ואפס את הערכים בה
             while (tableBody.rows.length > 1) {
                 tableBody.deleteRow(tableBody.rows.length - 1);
             }
             
-            // נקה את הערכים בשורה שנותרה
-            const inputs = tableBody.querySelector('tr').querySelectorAll('input');
+            const inputs = tableBody.querySelector('tr').querySelectorAll('input[type="text"]');
             inputs.forEach(input => {
                 input.value = '';
             });
             
-            // עדכן את אינדקסי הטאב
             updateTabIndexes();
+            updateStudentCounter();
         }
         
-        // שליחת כל הטפסים
         async function submitAllForms() {
-            // אימות נתונים
             if (!validateData()) {
                 return;
             }
             
-            // אנימציה לכפתור השליחה
+            // בדוק חיבור לאינטרנט
+            if (!navigator.onLine) {
+                showAlert('אין חיבור לאינטרנט. אנא בדוק את החיבור ונסה שוב.', 'error');
+                return;
+            }
+            
             document.getElementById('submitBtn').classList.add('animate-pulse');
+            document.getElementById('submitBtn').disabled = true;
             
             const studentsData = collectFormData();
             
             if (studentsData.length === 0) {
                 showAlert('אין תלמידים חוקיים לשליחה', 'error');
+                document.getElementById('submitBtn').disabled = false;
                 return;
             }
             
-            // הצג את מסך הטעינה
             toggleLoadingOverlay(true, studentsData.length, 0);
             
-            // הצג את פאנל הסטטוס
             const statusPanel = document.getElementById('submissionStatus');
             statusPanel.style.display = 'block';
             statusPanel.classList.add('animate-slide-down');
             document.getElementById('statusList').innerHTML = '';
             
-            // עדכון מוני הסטטוס
             let sentCount = 0;
             const totalCount = studentsData.length;
+            failedSubmissions = [];
             
             updateStatusUI(sentCount, totalCount);
-            
-            // הוסף הודעה על התחלת התהליך
             addStatusMessage(`מתחיל לשלוח ${totalCount} תלמידים...`, 'pending');
-            
-            // גלול אל אזור הסטטוס
             statusPanel.scrollIntoView({ behavior: 'smooth' });
             
-            // יצירת רשימת תלמידים ששלחנו בהצלחה (לייצוא CSV)
             const successfulSubmissions = [];
             
-            // עבור על כל התלמידים ושלח אותם בהדרגה
             for (let i = 0; i < studentsData.length; i++) {
                 const studentData = studentsData[i];
                 
-                // הוספת הודעת סטטוס עבור התלמיד הנוכחי
                 const statusMessage = addStatusMessage(`שולח את הנתונים של ${studentData.studentName}...`, 'pending');
                 
                 try {
-                    // עדכון ספירה במסך הטעינה
                     updateLoadingCount(i);
                     
-                    // שלח את הנתונים
                     const result = await submitSingleForm(studentData);
                     
                     if (result.success) {
-                        // הוסף לרשימת השליחות המוצלחות
                         successfulSubmissions.push(studentData);
-                        
-                        // עדכן סטטוס
                         sentCount++;
                         updateStatusUI(sentCount, totalCount);
                         updateLoadingCount(sentCount);
                         
-                        // עדכן את הודעת הסטטוס
                         statusMessage.className = 'status-item status-success';
                         statusMessage.textContent = `הנתונים של ${studentData.studentName} נשלחו בהצלחה`;
                     } else {
-                        // עדכן את הודעת הסטטוס במקרה של שגיאה
+                        failedSubmissions.push(studentData);
                         statusMessage.className = 'status-item status-error';
-                        statusMessage.textContent = `שגיאה בשליחת הנתונים של ${studentData.studentName}: ${result.error}`;
+                        statusMessage.innerHTML = `
+                            שגיאה בשליחת הנתונים של ${studentData.studentName}
+                            <button class="retry-btn" onclick="retryFailedSubmissions()">נסה שוב</button>
+                        `;
                     }
                     
-                    // המתן מעט בין שליחות כדי למנוע חסימה
                     if (i < studentsData.length - 1) {
                         await new Promise(resolve => setTimeout(resolve, CONFIG.DELAY_BETWEEN_SUBMISSIONS));
                     }
                 } catch (error) {
-                    // עדכן את הודעת הסטטוס במקרה של שגיאה
+                    failedSubmissions.push(studentData);
                     statusMessage.className = 'status-item status-error';
-                    statusMessage.textContent = `שגיאה בשליחת הנתונים של ${studentData.studentName}`;
+                    statusMessage.innerHTML = `
+                        שגיאה בשליחת הנתונים של ${studentData.studentName}
+                        <button class="retry-btn" onclick="retryFailedSubmissions()">נסה שוב</button>
+                    `;
                     console.error('שגיאה בשליחת נתונים:', error);
                 }
             }
             
-            // הסתר את מסך הטעינה
             toggleLoadingOverlay(false);
+            document.getElementById('submitBtn').disabled = false;
             
-            // הוסף הודעת סיכום
             if (sentCount === totalCount) {
                 addStatusMessage(`כל ${sentCount} התלמידים נשלחו בהצלחה!`, 'success');
                 showAlert(`כל ${sentCount} התלמידים נשלחו בהצלחה!`, 'success');
             } else {
-                addStatusMessage(`${sentCount} מתוך ${totalCount} תלמידים נשלחו בהצלחה`, 
+                addStatusMessage(`${sentCount} מתוך ${totalCount} תלמידים נשלחו בהצלחה. ${failedSubmissions.length} נכשלו.`, 
                     sentCount > 0 ? 'partial' : 'error');
             }
             
-            // הורד קובץ CSV אוטומטית אם הוגדר כך
             if (CONFIG.AUTO_DOWNLOAD_CSV && successfulSubmissions.length > 0) {
                 exportToCsv(true, successfulSubmissions);
             }
             
-            // נקה את רשימת התלמידים אם הוגדר כך
-            if (CONFIG.CLEAR_STUDENTS_AFTER_SUBMISSION) {
+            if (CONFIG.CLEAR_STUDENTS_AFTER_SUBMISSION && sentCount === totalCount) {
                 clearStudentsData();
             }
         }
         
-        // ----- פונקציות לייצוא נתונים -----
-        
-        // יצירת תוכן CSV מנתוני התלמידים
         function createCsvContent(studentsData) {
-            // יצירת כותרות ה-CSV
-            let csvContent = '\uFEFF'; // הוספת BOM לתמיכה נכונה בעברית
+            let csvContent = '\uFEFF';
             csvContent += 'שם בית הספר,עיר,שם התלמיד,כיתה\n';
             
-            // הוספת שורות הנתונים
             studentsData.forEach(student => {
                 csvContent += `"${student.schoolName}","${student.city}","${student.studentName}","${student.studentClass}"\n`;
             });
@@ -1283,9 +1586,7 @@
             return csvContent;
         }
         
-        // ייצוא הנתונים ל-CSV
         function exportToCsv(autoDownload = false, specificData = null) {
-            // השתמש בנתונים ספציפיים שסופקו או אסוף את כל הנתונים מהטופס
             const studentsData = specificData || collectFormData();
             
             if (studentsData.length === 0) {
@@ -1295,31 +1596,24 @@
                 return;
             }
             
-            // יצירת תוכן ה-CSV
             const csvContent = createCsvContent(studentsData);
             
-            // אם זו לא הורדה אוטומטית, הצג את ה-CSV בממשק
             if (!autoDownload) {
-                // הצגת ה-CSV בתיבת הטקסט
                 const csvTextarea = document.getElementById('csvContent');
                 csvTextarea.value = csvContent;
                 
-                // הצגת אזור הייצוא
                 const csvExport = document.getElementById('csvExport');
                 csvExport.style.display = 'block';
                 csvExport.classList.add('animate-slide-down');
                 csvTextarea.scrollIntoView({ behavior: 'smooth' });
                 
-                // בחירת כל הטקסט בתיבה
                 csvTextarea.select();
             }
             
-            // יצירת קובץ CSV להורדה
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             
-            // הגדרת שם הקובץ עם תאריך ושעה נוכחיים
             const now = new Date();
             const dateStr = now.toLocaleDateString('he-IL').replace(/\./g, '-');
             const timeStr = now.toLocaleTimeString('he-IL').replace(/:/g, '-');
