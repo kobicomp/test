@@ -651,10 +651,9 @@
                 }
             });
             
-            // Sort by total schools and take top 10
+            // Sort by total schools (show all cities, not just top 10)
             const sortedCities = Object.entries(cityData)
-                .sort(([,a], [,b]) => b.total - a.total)
-                .slice(0, 10);
+                .sort(([,a], [,b]) => b.total - a.total);
             
             const labels = sortedCities.map(([city]) => city);
             const kodeshData = sortedCities.map(([,data]) => data.withKodesh);
@@ -692,15 +691,26 @@
                     plugins: {
                         legend: {
                             position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `התפלגות רכזי קודש לפי עיר (${Object.keys(cityData).length} ערים)`
                         }
                     },
                     scales: {
                         x: {
-                            stacked: true
+                            stacked: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
                         },
                         y: {
                             stacked: true,
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
                         }
                     }
                 }
