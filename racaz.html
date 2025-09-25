@@ -414,8 +414,11 @@
                     <button id="showDetailsBtn" class="btn btn-primary">
                         📋 קבל פירוט בתי ספר
                     </button>
-                    <button id="showChartsBtn" class="btn btn-info">
-                        📊 הצג גרפים השוואתיים
+                    <button id="showInspectorChartBtn" class="btn btn-info">
+                        👨‍💼 גרף מפקחים
+                    </button>
+                    <button id="showCityChartBtn" class="btn btn-warning">
+                        🏙️ גרף ערים
                     </button>
                 </div>
                 
@@ -472,7 +475,8 @@
         let filteredData = [];
         let inspectorChart, cityChart;
         let showingDetails = false;
-        let showingCharts = false;
+        let showingInspectorChart = false;
+        let showingCityChart = false;
         let lastRefreshTime = null;
         let currentAnalysisMode = 'general';
         
@@ -534,7 +538,8 @@
             // Add event listeners for buttons
             document.getElementById('showDetailsBtn').addEventListener('click', toggleDetails);
             document.getElementById('refreshBtn').addEventListener('click', manualRefresh);
-            document.getElementById('showChartsBtn').addEventListener('click', toggleCharts);
+            document.getElementById('showInspectorChartBtn').addEventListener('click', toggleInspectorChart);
+            document.getElementById('showCityChartBtn').addEventListener('click', toggleCityChart);
             
             // Add event listeners for analysis buttons
             document.getElementById('generalAnalysisBtn').addEventListener('click', () => switchAnalysisMode('general'));
@@ -803,16 +808,24 @@
             document.getElementById('showDetailsBtn').innerHTML = '📋 קבל פירוט בתי ספר';
         }
         
-        function toggleCharts() {
-            if (showingCharts) {
-                hideCharts();
+        function toggleInspectorChart() {
+            if (showingInspectorChart) {
+                hideInspectorChart();
             } else {
-                showComparisonCharts();
+                showInspectorChart();
             }
         }
         
-        function showComparisonCharts() {
-            showingCharts = true;
+        function toggleCityChart() {
+            if (showingCityChart) {
+                hideCityChart();
+            } else {
+                showCityChart();
+            }
+        }
+        
+        function showInspectorChart() {
+            showingInspectorChart = true;
             
             // Reset to general mode if needed
             if (currentAnalysisMode !== 'general') {
@@ -822,26 +835,69 @@
                 document.getElementById('advancedAnalysisSection').style.display = 'none';
             }
             
-            // Show comparison charts
-            const chartsSection = document.getElementById('chartsSection');
-            chartsSection.style.display = 'grid';
-            chartsSection.style.gridTemplateColumns = '1fr 1fr';
-            
-            // Show both charts
-            document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'block';
-            document.querySelector('#cityChart').closest('.chart-container').style.display = 'block';
-            
-            // Create both charts
+            updateChartsLayout();
             createInspectorChart();
-            createCityChart();
             
-            document.getElementById('showChartsBtn').innerHTML = '📊 הסתר גרפים';
+            document.getElementById('showInspectorChartBtn').innerHTML = '👨‍💼 הסתר מפקחים';
         }
         
-        function hideCharts() {
-            showingCharts = false;
-            document.getElementById('chartsSection').style.display = 'none';
-            document.getElementById('showChartsBtn').innerHTML = '📊 הצג גרפים השוואתיים';
+        function hideInspectorChart() {
+            showingInspectorChart = false;
+            document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'none';
+            updateChartsLayout();
+            document.getElementById('showInspectorChartBtn').innerHTML = '👨‍💼 גרף מפקחים';
+        }
+        
+        function showCityChart() {
+            showingCityChart = true;
+            
+            // Reset to general mode if needed
+            if (currentAnalysisMode !== 'general') {
+                currentAnalysisMode = 'general';
+                document.querySelectorAll('.analysis-buttons .btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('generalAnalysisBtn').classList.add('active');
+                document.getElementById('advancedAnalysisSection').style.display = 'none';
+            }
+            
+            updateChartsLayout();
+            createCityChart();
+            
+            document.getElementById('showCityChartBtn').innerHTML = '🏙️ הסתר ערים';
+        }
+        
+        function hideCityChart() {
+            showingCityChart = false;
+            document.querySelector('#cityChart').closest('.chart-container').style.display = 'none';
+            updateChartsLayout();
+            document.getElementById('showCityChartBtn').innerHTML = '🏙️ גרף ערים';
+        }
+        
+        function updateChartsLayout() {
+            const chartsSection = document.getElementById('chartsSection');
+            const inspectorContainer = document.querySelector('#inspectorChart').closest('.chart-container');
+            const cityContainer = document.querySelector('#cityChart').closest('.chart-container');
+            
+            // Hide charts section if no charts are showing
+            if (!showingInspectorChart && !showingCityChart) {
+                chartsSection.style.display = 'none';
+                return;
+            }
+            
+            // Show charts section
+            chartsSection.style.display = 'grid';
+            
+            // Update layout based on what's showing
+            if (showingInspectorChart && showingCityChart) {
+                // Both charts - side by side
+                chartsSection.style.gridTemplateColumns = '1fr 1fr';
+                inspectorContainer.style.display = 'block';
+                cityContainer.style.display = 'block';
+            } else if (showingInspectorChart || showingCityChart) {
+                // Single chart - full width
+                chartsSection.style.gridTemplateColumns = '1fr';
+                inspectorContainer.style.display = showingInspectorChart ? 'block' : 'none';
+                cityContainer.style.display = showingCityChart ? 'block' : 'none';
+            }
         }
         
         function manualRefresh() {
@@ -867,8 +923,9 @@
             document.getElementById(mode + 'AnalysisBtn').classList.add('active');
             
             // Hide comparison charts when switching to analysis mode
-            if (mode !== 'general' && showingCharts) {
-                hideCharts();
+            if (mode !== 'general') {
+                if (showingInspectorChart) hideInspectorChart();
+                if (showingCityChart) hideCityChart();
             }
             
             // Hide all sections initially
