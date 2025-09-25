@@ -136,6 +136,14 @@
             flex-wrap: wrap;
         }
         
+        .analysis-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
         .btn {
             padding: 12px 25px;
             border: none;
@@ -148,6 +156,11 @@
             align-items: center;
             gap: 8px;
             text-decoration: none;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.95rem;
         }
         
         .btn-primary {
@@ -170,6 +183,33 @@
         .btn-secondary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+        
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.6);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.6);
+        }
+        
+        .btn.active {
+            transform: scale(0.95);
+            box-shadow: inset 0 3px 10px rgba(0,0,0,0.3);
         }
         
         .filter-group label {
@@ -244,6 +284,11 @@
         .no-kodesh {
             background: #f8d7da;
             color: #721c24;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
         }
         
         .loading {
@@ -365,6 +410,29 @@
                         📋 קבל פירוט בתי ספר
                     </button>
                 </div>
+                
+                <div class="analysis-buttons">
+                    <button id="generalAnalysisBtn" class="btn btn-info btn-small active">
+                        📊 ניתוח כללי
+                    </button>
+                    <button id="inspectorAnalysisBtn" class="btn btn-info btn-small">
+                        👨‍💼 ניתוח לפי מפקח
+                    </button>
+                    <button id="cityAnalysisBtn" class="btn btn-warning btn-small">
+                        🏙️ ניתוח לפי עיר
+                    </button>
+                    <button id="combinedAnalysisBtn" class="btn btn-warning btn-small">
+                        🔗 ניתוח משולב
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Advanced Analysis Section -->
+            <div id="advancedAnalysisSection" class="table-container" style="display: none;">
+                <h3 id="analysisTitle">📊 ניתוח מתקדם</h3>
+                <div id="analysisContent">
+                    <!-- Dynamic analysis content will be inserted here -->
+                </div>
             </div>
             
             <!-- Data Table -->
@@ -397,6 +465,7 @@
         let inspectorChart, cityChart;
         let showingDetails = false;
         let lastRefreshTime = null;
+        let currentAnalysisMode = 'general';
         
         // Google Sheets CSV URL
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTteZr2-EValrUQwGb_PcbYeubTQHYx0WvpTDnZJ77KWwxw4F1OHlcJiAO09CNh7OrUr7JjV4jamKM7/pub?gid=2097889355&single=true&output=csv';
@@ -457,6 +526,12 @@
             // Add event listeners for buttons
             document.getElementById('showDetailsBtn').addEventListener('click', toggleDetails);
             document.getElementById('refreshBtn').addEventListener('click', manualRefresh);
+            
+            // Add event listeners for analysis buttons
+            document.getElementById('generalAnalysisBtn').addEventListener('click', () => switchAnalysisMode('general'));
+            document.getElementById('inspectorAnalysisBtn').addEventListener('click', () => switchAnalysisMode('inspector'));
+            document.getElementById('cityAnalysisBtn').addEventListener('click', () => switchAnalysisMode('city'));
+            document.getElementById('combinedAnalysisBtn').addEventListener('click', () => switchAnalysisMode('combined'));
         }
         
         function updateSummaryStats() {
@@ -680,6 +755,11 @@
             if (showingDetails) {
                 updateTable();
             }
+            
+            // Update advanced analysis if it's currently showing
+            if (currentAnalysisMode !== 'general') {
+                switchAnalysisMode(currentAnalysisMode);
+            }
         }
         
         function handleSearchInput() {
@@ -727,6 +807,189 @@
                 document.getElementById('refreshBtn').innerHTML = `🔄 רענן נתונים (${diffMinutes}ד')`;
                 document.getElementById('refreshBtn').disabled = false;
             }
+        }
+        
+        function switchAnalysisMode(mode) {
+            currentAnalysisMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.analysis-buttons .btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(mode + 'AnalysisBtn').classList.add('active');
+            
+            // Show analysis section
+            document.getElementById('advancedAnalysisSection').style.display = 'block';
+            
+            // Generate analysis based on mode
+            switch(mode) {
+                case 'general':
+                    hideAdvancedAnalysis();
+                    break;
+                case 'inspector':
+                    generateInspectorAnalysis();
+                    break;
+                case 'city':
+                    generateCityAnalysis();
+                    break;
+                case 'combined':
+                    generateCombinedAnalysis();
+                    break;
+            }
+        }
+        
+        function hideAdvancedAnalysis() {
+            document.getElementById('advancedAnalysisSection').style.display = 'none';
+        }
+        
+        function generateInspectorAnalysis() {
+            document.getElementById('analysisTitle').innerHTML = '👨‍💼 ניתוח מפורט לפי מפקח';
+            
+            const inspectorData = {};
+            
+            filteredData.forEach(row => {
+                const inspector = row['שם מפקח'] || 'לא ידוע';
+                if (!inspectorData[inspector]) {
+                    inspectorData[inspector] = { 
+                        total: 0, 
+                        withKodesh: 0, 
+                        cities: new Set(),
+                        schools: []
+                    };
+                }
+                inspectorData[inspector].total++;
+                inspectorData[inspector].cities.add(row['עיר ביס']);
+                inspectorData[inspector].schools.push(row);
+                if (row.hasKodesh) {
+                    inspectorData[inspector].withKodesh++;
+                }
+            });
+            
+            let html = '<table class="data-table"><thead><tr>';
+            html += '<th>מפקח</th><th>סה"כ בתי ספר</th><th>עם רכז קודש</th><th>אחוז הצלחה</th><th>ערים מטופלות</th><th>ממוצע בתי ספר לעיר</th>';
+            html += '</tr></thead><tbody>';
+            
+            Object.entries(inspectorData)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .forEach(([inspector, data]) => {
+                    const percentage = Math.round((data.withKodesh / data.total) * 100);
+                    const avgSchoolsPerCity = (data.total / data.cities.size).toFixed(1);
+                    const statusClass = percentage >= 80 ? 'has-kodesh' : percentage >= 50 ? 'warning' : 'no-kodesh';
+                    
+                    html += `<tr>
+                        <td><strong>${inspector}</strong></td>
+                        <td>${data.total}</td>
+                        <td>${data.withKodesh}</td>
+                        <td><span class="status-indicator ${statusClass}">${percentage}%</span></td>
+                        <td>${data.cities.size}</td>
+                        <td>${avgSchoolsPerCity}</td>
+                    </tr>`;
+                });
+            
+            html += '</tbody></table>';
+            document.getElementById('analysisContent').innerHTML = html;
+        }
+        
+        function generateCityAnalysis() {
+            document.getElementById('analysisTitle').innerHTML = '🏙️ ניתוח מפורט לפי עיר';
+            
+            const cityData = {};
+            
+            filteredData.forEach(row => {
+                const city = row['עיר ביס'] || 'לא ידוע';
+                if (!cityData[city]) {
+                    cityData[city] = { 
+                        total: 0, 
+                        withKodesh: 0, 
+                        inspectors: new Set(),
+                        schoolTypes: new Set()
+                    };
+                }
+                cityData[city].total++;
+                cityData[city].inspectors.add(row['שם מפקח']);
+                cityData[city].schoolTypes.add(row['סוג ביס']);
+                if (row.hasKodesh) {
+                    cityData[city].withKodesh++;
+                }
+            });
+            
+            let html = '<table class="data-table"><thead><tr>';
+            html += '<th>עיר</th><th>סה"כ בתי ספר</th><th>עם רכז קודש</th><th>אחוז הצלחה</th><th>מפקחים</th><th>סוגי בתי ספר</th>';
+            html += '</tr></thead><tbody>';
+            
+            Object.entries(cityData)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .forEach(([city, data]) => {
+                    const percentage = Math.round((data.withKodesh / data.total) * 100);
+                    const statusClass = percentage >= 80 ? 'has-kodesh' : percentage >= 50 ? 'warning' : 'no-kodesh';
+                    
+                    html += `<tr>
+                        <td><strong>${city}</strong></td>
+                        <td>${data.total}</td>
+                        <td>${data.withKodesh}</td>
+                        <td><span class="status-indicator ${statusClass}">${percentage}%</span></td>
+                        <td>${data.inspectors.size}</td>
+                        <td>${Array.from(data.schoolTypes).join(', ')}</td>
+                    </tr>`;
+                });
+            
+            html += '</tbody></table>';
+            document.getElementById('analysisContent').innerHTML = html;
+        }
+        
+        function generateCombinedAnalysis() {
+            document.getElementById('analysisTitle').innerHTML = '🔗 ניתוח משולב - מפקח לפי עיר';
+            
+            const combinedData = {};
+            
+            filteredData.forEach(row => {
+                const inspector = row['שם מפקח'] || 'לא ידוע';
+                const city = row['עיר ביס'] || 'לא ידוע';
+                const key = `${inspector}|${city}`;
+                
+                if (!combinedData[key]) {
+                    combinedData[key] = { 
+                        inspector, 
+                        city, 
+                        total: 0, 
+                        withKodesh: 0 
+                    };
+                }
+                combinedData[key].total++;
+                if (row.hasKodesh) {
+                    combinedData[key].withKodesh++;
+                }
+            });
+            
+            let html = '<table class="data-table"><thead><tr>';
+            html += '<th>מפקח</th><th>עיר</th><th>סה"כ בתי ספר</th><th>עם רכז קודש</th><th>אחוז הצלחה</th><th>סטטוס</th>';
+            html += '</tr></thead><tbody>';
+            
+            Object.values(combinedData)
+                .sort((a, b) => b.total - a.total)
+                .forEach(data => {
+                    const percentage = Math.round((data.withKodesh / data.total) * 100);
+                    let status = 'מעולה';
+                    let statusClass = 'has-kodesh';
+                    
+                    if (percentage < 50) {
+                        status = 'דורש טיפול';
+                        statusClass = 'no-kodesh';
+                    } else if (percentage < 80) {
+                        status = 'בהשבחה';
+                        statusClass = 'warning';
+                    }
+                    
+                    html += `<tr>
+                        <td>${data.inspector}</td>
+                        <td>${data.city}</td>
+                        <td>${data.total}</td>
+                        <td>${data.withKodesh}</td>
+                        <td>${percentage}%</td>
+                        <td><span class="status-indicator ${statusClass}">${status}</span></td>
+                    </tr>`;
+                });
+            
+            html += '</tbody></table>';
+            document.getElementById('analysisContent').innerHTML = html;
         }
         
         function updateTable() {
