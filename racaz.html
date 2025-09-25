@@ -414,6 +414,9 @@
                     <button id="showDetailsBtn" class="btn btn-primary">
                         📋 קבל פירוט בתי ספר
                     </button>
+                    <button id="showChartsBtn" class="btn btn-info">
+                        📊 הצג גרפים השוואתיים
+                    </button>
                 </div>
                 
                 <div class="analysis-buttons">
@@ -469,6 +472,7 @@
         let filteredData = [];
         let inspectorChart, cityChart;
         let showingDetails = false;
+        let showingCharts = false;
         let lastRefreshTime = null;
         let currentAnalysisMode = 'general';
         
@@ -530,6 +534,7 @@
             // Add event listeners for buttons
             document.getElementById('showDetailsBtn').addEventListener('click', toggleDetails);
             document.getElementById('refreshBtn').addEventListener('click', manualRefresh);
+            document.getElementById('showChartsBtn').addEventListener('click', toggleCharts);
             
             // Add event listeners for analysis buttons
             document.getElementById('generalAnalysisBtn').addEventListener('click', () => switchAnalysisMode('general'));
@@ -798,6 +803,47 @@
             document.getElementById('showDetailsBtn').innerHTML = '📋 קבל פירוט בתי ספר';
         }
         
+        function toggleCharts() {
+            if (showingCharts) {
+                hideCharts();
+            } else {
+                showComparisonCharts();
+            }
+        }
+        
+        function showComparisonCharts() {
+            showingCharts = true;
+            
+            // Reset to general mode if needed
+            if (currentAnalysisMode !== 'general') {
+                currentAnalysisMode = 'general';
+                document.querySelectorAll('.analysis-buttons .btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('generalAnalysisBtn').classList.add('active');
+                document.getElementById('advancedAnalysisSection').style.display = 'none';
+            }
+            
+            // Show comparison charts
+            const chartsSection = document.getElementById('chartsSection');
+            chartsSection.style.display = 'grid';
+            chartsSection.style.gridTemplateColumns = '1fr 1fr';
+            
+            // Show both charts
+            document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'block';
+            document.querySelector('#cityChart').closest('.chart-container').style.display = 'block';
+            
+            // Create both charts
+            createInspectorChart();
+            createCityChart();
+            
+            document.getElementById('showChartsBtn').innerHTML = '📊 הסתר גרפים';
+        }
+        
+        function hideCharts() {
+            showingCharts = false;
+            document.getElementById('chartsSection').style.display = 'none';
+            document.getElementById('showChartsBtn').innerHTML = '📊 הצג גרפים השוואתיים';
+        }
+        
         function manualRefresh() {
             document.getElementById('refreshBtn').innerHTML = '🔄 מרענן...';
             document.getElementById('refreshBtn').disabled = true;
@@ -819,6 +865,11 @@
             // Update button states
             document.querySelectorAll('.analysis-buttons .btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(mode + 'AnalysisBtn').classList.add('active');
+            
+            // Hide comparison charts when switching to analysis mode
+            if (mode !== 'general' && showingCharts) {
+                hideCharts();
+            }
             
             // Hide all sections initially
             document.getElementById('chartsSection').style.display = 'none';
