@@ -105,6 +105,16 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
+        .chart-container.city-chart {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-bottom: 10px;
+        }
+        
+        .city-chart-wrapper {
+            min-height: 400px;
+        }
+        
         .chart-title {
             font-size: 1.5rem;
             font-weight: bold;
@@ -307,7 +317,7 @@
             text-align: center;
         }
         
-                    @media (max-width: 768px) {
+        @media (max-width: 768px) {
             .charts-grid {
                 grid-template-columns: 1fr !important;
             }
@@ -323,6 +333,10 @@
             .analysis-buttons {
                 flex-direction: column;
                 align-items: center;
+            }
+            
+            .chart-container.city-chart {
+                max-height: 400px;
             }
         }
     </style>
@@ -371,9 +385,11 @@
                     <div class="chart-title">ניתוח לפי מפקח</div>
                     <canvas id="inspectorChart"></canvas>
                 </div>
-                <div class="chart-container">
-                    <div class="chart-title">ניתוח לפי עיר</div>
-                    <canvas id="cityChart"></canvas>
+                <div class="chart-container city-chart">
+                    <div class="chart-title">ניתוח לפי עיר (גלול לראות את כל הערים)</div>
+                    <div class="city-chart-wrapper">
+                        <canvas id="cityChart"></canvas>
+                    </div>
                 </div>
             </div>
             
@@ -566,11 +582,6 @@
             document.getElementById('withoutKodeshPercent').textContent = withoutPercent + '%';
         }
         
-        function createCharts() {
-            createInspectorChart();
-            createCityChart();
-        }
-        
         function createInspectorChart() {
             const inspectorData = {};
             
@@ -651,7 +662,7 @@
                 }
             });
             
-            // Sort by total schools (show all cities, not just top 10)
+            // Sort by total schools (show all cities)
             const sortedCities = Object.entries(cityData)
                 .sort(([,a], [,b]) => b.total - a.total);
             
@@ -659,7 +670,16 @@
             const kodeshData = sortedCities.map(([,data]) => data.withKodesh);
             const withoutKodeshData = sortedCities.map(([,data]) => data.total - data.withKodesh);
             
-            const ctx = document.getElementById('cityChart').getContext('2d');
+            // Calculate dynamic height based on number of cities - minimum 25px per city
+            const minHeight = Math.max(400, labels.length * 30);
+            const canvas = document.getElementById('cityChart');
+            const wrapper = canvas.parentElement;
+            
+            // Set canvas height
+            canvas.height = minHeight;
+            wrapper.style.height = minHeight + 'px';
+            
+            const ctx = canvas.getContext('2d');
             
             if (cityChart) {
                 cityChart.destroy();
@@ -678,7 +698,7 @@
                             borderWidth: 1
                         },
                         {
-                            label: 'ללא רכז קודש',
+                            label: 'ללא רכز קודש',
                             data: withoutKodeshData,
                             backgroundColor: '#dc3545',
                             borderColor: '#c82333',
@@ -688,6 +708,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'top',
@@ -701,8 +722,11 @@
                         x: {
                             stacked: true,
                             ticks: {
-                                maxRotation: 45,
-                                minRotation: 0
+                                maxRotation: 0,
+                                minRotation: 0,
+                                font: {
+                                    size: 12
+                                }
                             }
                         },
                         y: {
@@ -711,6 +735,12 @@
                             ticks: {
                                 stepSize: 1
                             }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 10,
+                            bottom: 10
                         }
                     }
                 }
@@ -775,13 +805,23 @@
             });
             
             updateSummaryStats();
-            createCharts();
             if (showingDetails) {
                 updateTable();
             }
             
-            // Update advanced analysis if it's currently showing
+            // Update individual comparison charts if they're showing
+            if (currentAnalysisMode === 'general') {
+                if (showingInspectorChart) {
+                    createInspectorChart();
+                }
+                if (showingCityChart) {
+                    createCityChart();
+                }
+            }
+            
+            // Update charts only if not in general mode
             if (currentAnalysisMode !== 'general') {
+                // Update advanced analysis if it's currently showing
                 switchAnalysisMode(currentAnalysisMode);
             }
         }
@@ -997,7 +1037,7 @@
             document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'block';
             document.querySelector('#cityChart').closest('.chart-container').style.display = 'block';
             
-            // Recreate both charts
+            // Recreate both charts - city chart will auto-adjust height
             createInspectorChart();
             createCityChart();
         }
