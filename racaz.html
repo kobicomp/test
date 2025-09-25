@@ -307,9 +307,9 @@
             text-align: center;
         }
         
-        @media (max-width: 768px) {
+                    @media (max-width: 768px) {
             .charts-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
             
             .filters-grid {
@@ -318,6 +318,11 @@
             
             .header h1 {
                 font-size: 2rem;
+            }
+            
+            .analysis-buttons {
+                flex-direction: column;
+                align-items: center;
             }
         }
     </style>
@@ -361,7 +366,7 @@
             </div>
             
             <!-- Charts -->
-            <div class="charts-grid">
+            <div id="chartsSection" class="charts-grid" style="display: none;">
                 <div class="chart-container">
                     <div class="chart-title">ניתוח לפי מפקח</div>
                     <canvas id="inspectorChart"></canvas>
@@ -514,7 +519,6 @@
             filteredData = [...allData];
             
             updateSummaryStats();
-            createCharts();
             populateFilters();
             
             // Add event listeners for filters
@@ -816,31 +820,73 @@
             document.querySelectorAll('.analysis-buttons .btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(mode + 'AnalysisBtn').classList.add('active');
             
-            // Show analysis section
-            document.getElementById('advancedAnalysisSection').style.display = 'block';
+            // Hide all sections initially
+            document.getElementById('chartsSection').style.display = 'none';
+            document.getElementById('advancedAnalysisSection').style.display = 'none';
             
             // Generate analysis based on mode
             switch(mode) {
                 case 'general':
-                    hideAdvancedAnalysis();
+                    // Show only summary stats, hide everything else
                     break;
                 case 'inspector':
+                    showInspectorChartOnly();
                     generateInspectorAnalysis();
                     break;
                 case 'city':
+                    showCityChartOnly();
                     generateCityAnalysis();
                     break;
                 case 'combined':
+                    showBothCharts();
                     generateCombinedAnalysis();
                     break;
             }
         }
         
-        function hideAdvancedAnalysis() {
-            document.getElementById('advancedAnalysisSection').style.display = 'none';
+        function showInspectorChartOnly() {
+            const chartsSection = document.getElementById('chartsSection');
+            chartsSection.style.display = 'grid';
+            chartsSection.style.gridTemplateColumns = '1fr';
+            
+            // Hide city chart, show inspector chart
+            document.querySelector('#cityChart').closest('.chart-container').style.display = 'none';
+            document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'block';
+            
+            // Recreate inspector chart to ensure proper sizing
+            createInspectorChart();
+        }
+        
+        function showCityChartOnly() {
+            const chartsSection = document.getElementById('chartsSection');
+            chartsSection.style.display = 'grid';
+            chartsSection.style.gridTemplateColumns = '1fr';
+            
+            // Hide inspector chart, show city chart
+            document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'none';
+            document.querySelector('#cityChart').closest('.chart-container').style.display = 'block';
+            
+            // Recreate city chart to ensure proper sizing
+            createCityChart();
+        }
+        
+        function showBothCharts() {
+            const chartsSection = document.getElementById('chartsSection');
+            chartsSection.style.display = 'grid';
+            chartsSection.style.gridTemplateColumns = '1fr 1fr';
+            
+            // Show both charts
+            document.querySelector('#inspectorChart').closest('.chart-container').style.display = 'block';
+            document.querySelector('#cityChart').closest('.chart-container').style.display = 'block';
+            
+            // Recreate both charts
+            createInspectorChart();
+            createCityChart();
         }
         
         function generateInspectorAnalysis() {
+            // Show advanced analysis section
+            document.getElementById('advancedAnalysisSection').style.display = 'block';
             document.getElementById('analysisTitle').innerHTML = '👨‍💼 ניתוח מפורט לפי מפקח';
             
             const inspectorData = {};
@@ -889,6 +935,8 @@
         }
         
         function generateCityAnalysis() {
+            // Show advanced analysis section
+            document.getElementById('advancedAnalysisSection').style.display = 'block';
             document.getElementById('analysisTitle').innerHTML = '🏙️ ניתוח מפורט לפי עיר';
             
             const cityData = {};
@@ -936,6 +984,8 @@
         }
         
         function generateCombinedAnalysis() {
+            // Show advanced analysis section
+            document.getElementById('advancedAnalysisSection').style.display = 'block';
             document.getElementById('analysisTitle').innerHTML = '🔗 ניתוח משולב - מפקח לפי עיר';
             
             const combinedData = {};
