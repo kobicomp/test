@@ -128,6 +128,50 @@
             align-items: end;
         }
         
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6);
+        }
+        
         .filter-group label {
             display: block;
             font-weight: bold;
@@ -312,11 +356,20 @@
                         </select>
                     </div>
                 </div>
+                
+                <div class="action-buttons">
+                    <button id="refreshBtn" class="btn btn-secondary">
+                        🔄 רענן נתונים
+                    </button>
+                    <button id="showDetailsBtn" class="btn btn-primary">
+                        📋 קבל פירוט בתי ספר
+                    </button>
+                </div>
             </div>
             
             <!-- Data Table -->
-            <div class="table-container">
-                <h3>📋 פירוט בתי הספר</h3>
+            <div id="tableSection" class="table-container" style="display: none;">
+                <h3>📋 פירוט בתי הספר (<span id="filteredCount">0</span> בתי ספר)</h3>
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -342,6 +395,8 @@
         let allData = [];
         let filteredData = [];
         let inspectorChart, cityChart;
+        let showingDetails = false;
+        let lastRefreshTime = null;
         
         // Google Sheets CSV URL
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTteZr2-EValrUQwGb_PcbYeubTQHYx0WvpTDnZJ77KWwxw4F1OHlcJiAO09CNh7OrUr7JjV4jamKM7/pub?gid=2097889355&single=true&output=csv';
@@ -384,18 +439,24 @@
             document.getElementById('loading').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             
+            lastRefreshTime = new Date();
+            updateRefreshButton();
+            
             filteredData = [...allData];
             
             updateSummaryStats();
             createCharts();
             populateFilters();
-            updateTable();
             
             // Add event listeners for filters
             document.getElementById('inspectorFilter').addEventListener('change', applyFilters);
             document.getElementById('cityFilter').addEventListener('change', applyFilters);
-            document.getElementById('searchFilter').addEventListener('input', applyFilters);
+            document.getElementById('searchFilter').addEventListener('input', handleSearchInput);
             document.getElementById('kodeshStatusFilter').addEventListener('change', applyFilters);
+            
+            // Add event listeners for buttons
+            document.getElementById('showDetailsBtn').addEventListener('click', toggleDetails);
+            document.getElementById('refreshBtn').addEventListener('click', manualRefresh);
         }
         
         function updateSummaryStats() {
@@ -616,12 +677,64 @@
             
             updateSummaryStats();
             createCharts();
+            if (showingDetails) {
+                updateTable();
+            }
+        }
+        
+        function handleSearchInput() {
+            const searchValue = document.getElementById('searchFilter').value.trim();
+            
+            // If user starts typing, automatically show details
+            if (searchValue && !showingDetails) {
+                showDetails();
+            }
+            
+            applyFilters();
+        }
+        
+        function toggleDetails() {
+            if (showingDetails) {
+                hideDetails();
+            } else {
+                showDetails();
+            }
+        }
+        
+        function showDetails() {
+            showingDetails = true;
+            document.getElementById('tableSection').style.display = 'block';
+            document.getElementById('showDetailsBtn').innerHTML = '📋 הסתר פירוט';
             updateTable();
+        }
+        
+        function hideDetails() {
+            showingDetails = false;
+            document.getElementById('tableSection').style.display = 'none';
+            document.getElementById('showDetailsBtn').innerHTML = '📋 קבל פירוט בתי ספר';
+        }
+        
+        function manualRefresh() {
+            document.getElementById('refreshBtn').innerHTML = '🔄 מרענן...';
+            document.getElementById('refreshBtn').disabled = true;
+            loadData();
+        }
+        
+        function updateRefreshButton() {
+            if (lastRefreshTime) {
+                const now = new Date();
+                const diffMinutes = Math.floor((now - lastRefreshTime) / 60000);
+                document.getElementById('refreshBtn').innerHTML = `🔄 רענן נתונים (${diffMinutes}ד')`;
+                document.getElementById('refreshBtn').disabled = false;
+            }
         }
         
         function updateTable() {
             const tbody = document.getElementById('dataTableBody');
+            const filteredCountElement = document.getElementById('filteredCount');
+            
             tbody.innerHTML = '';
+            filteredCountElement.textContent = filteredData.length;
             
             filteredData.forEach(row => {
                 const tr = document.createElement('tr');
@@ -649,8 +762,11 @@
         // Initialize the dashboard
         loadData();
         
-        // Auto-refresh every 5 minutes
-        setInterval(loadData, 300000);
+        // Auto-refresh every minute
+        setInterval(loadData, 60000);
+        
+        // Update refresh button time every 10 seconds
+        setInterval(updateRefreshButton, 10000);
     </script>
 </body>
 </html>
