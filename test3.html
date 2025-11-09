@@ -80,38 +80,78 @@
                 return;
             }
             
-            resultDiv.innerHTML = '<div>טוען...</div>';
+            resultDiv.innerHTML = '<div>מנתח קישור...</div>';
             
-            // המרת קישור לCSV
-            let csvUrl = url;
-            
-            // אם זה קישור Google Sheets רגיל
-            if (url.includes('/edit')) {
-                const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-                if (match) {
-                    const id = match[1];
-                    csvUrl = `https://docs.google.com/spreadsheets/d/e/${id}/pub?output=csv`;
-                }
+            // בדיקה שזה קישור Google Sheets
+            if (!url.includes('docs.google.com/spreadsheets')) {
+                resultDiv.innerHTML = '<div class="error">זה לא קישור Google Sheets תקין</div>';
+                return;
             }
             
-            console.log('מנסה לטעון:', csvUrl);
+            // חילוץ מזהה הגיליון
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            if (!match) {
+                resultDiv.innerHTML = '<div class="error">לא ניתן לחלץ מזהה גיליון מהקישור</div>';
+                return;
+            }
             
-            // טעינת הנתונים
-            fetch(csvUrl)
+            const spreadsheetId = match[1];
+            
+            // נסיון מספר 1: פורמט pub
+            const csvUrl1 = `https://docs.google.com/spreadsheets/d/e/${spreadsheetId}/pub?output=csv`;
+            
+            console.log('מנסה אפשרות 1:', csvUrl1);
+            resultDiv.innerHTML = '<div>מנסה לטעון (אפשרות 1)...</div>';
+            
+            fetch(csvUrl1)
                 .then(response => {
-                    console.log('תגובה:', response.status);
-                    if (!response.ok) {
-                        throw new Error('שגיאה בטעינה: ' + response.status);
+                    console.log('תגובה אפשרות 1:', response.status);
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('אפשרות 1 נכשלה');
                     }
-                    return response.text();
                 })
                 .then(data => {
-                    console.log('נתונים נטענו:', data.length, 'תווים');
+                    console.log('הצלחה באפשרות 1!');
                     displayData(data);
                 })
                 .catch(error => {
-                    console.error('שגיאה:', error);
-                    resultDiv.innerHTML = '<div class="error">שגיאה: ' + error.message + '</div>';
+                    console.log('אפשרות 1 נכשלה, מנסה אפשרות 2');
+                    tryOption2(spreadsheetId, resultDiv);
+                });
+        }
+        
+        function tryOption2(spreadsheetId, resultDiv) {
+            // נסיון מספר 2: פורמט export
+            const csvUrl2 = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
+            
+            console.log('מנסה אפשרות 2:', csvUrl2);
+            resultDiv.innerHTML = '<div>מנסה לטעון (אפשרות 2)...</div>';
+            
+            fetch(csvUrl2)
+                .then(response => {
+                    console.log('תגובה אפשרות 2:', response.status);
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('אפשרות 2 נכשלה');
+                    }
+                })
+                .then(data => {
+                    console.log('הצלחה באפשרות 2!');
+                    displayData(data);
+                })
+                .catch(error => {
+                    console.log('גם אפשרות 2 נכשלה');
+                    resultDiv.innerHTML = '<div class="error">' +
+                        'לא ניתן לטעון את הקובץ.<br><br>' +
+                        '<strong>נסה:</strong><br>' +
+                        '1. ודא שהקובץ פתוח לצפיה ציבורית<br>' +
+                        '2. לחץ על "שתף" בGoogle Sheets<br>' +
+                        '3. בחר "כל אחד עם הקישור יכול לצפות"<br>' +
+                        '4. או נסה לפרסם: קובץ ← שתף ← פרסם באינטרנט ← CSV' +
+                        '</div>';
                 });
         }
         
