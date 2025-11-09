@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קורא Google Sheets פשוט</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .error {
+            color: red;
+            background: #ffe6e6;
+        }
+        
+        .success {
+            color: green;
+            background: #e6ffe6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>קורא Google Sheets</h1>
+        
+        <p>הכנס קישור לGoogle Sheets:</p>
+        
+        <input type="text" id="urlInput" placeholder="הדבק כאן קישור...">
+        <button onclick="loadData()">טען נתונים</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function loadData() {
+            const url = document.getElementById('urlInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!url) {
+                resultDiv.innerHTML = '<div class="error">אנא הכנס קישור</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div>טוען...</div>';
+            
+            // המרת קישור לCSV
+            let csvUrl = url;
+            
+            // אם זה קישור Google Sheets רגיל
+            if (url.includes('/edit')) {
+                const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                if (match) {
+                    const id = match[1];
+                    csvUrl = `https://docs.google.com/spreadsheets/d/e/${id}/pub?output=csv`;
+                }
+            }
+            
+            console.log('מנסה לטעון:', csvUrl);
+            
+            // טעינת הנתונים
+            fetch(csvUrl)
+                .then(response => {
+                    console.log('תגובה:', response.status);
+                    if (!response.ok) {
+                        throw new Error('שגיאה בטעינה: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    console.log('נתונים נטענו:', data.length, 'תווים');
+                    displayData(data);
+                })
+                .catch(error => {
+                    console.error('שגיאה:', error);
+                    resultDiv.innerHTML = '<div class="error">שגיאה: ' + error.message + '</div>';
+                });
+        }
+        
+        function displayData(csvData) {
+            const resultDiv = document.getElementById('result');
+            
+            // הצגה פשוטה של הנתונים
+            resultDiv.innerHTML = '<div class="success">נתונים נטענו בהצלחה!</div>' +
+                                  '<pre>' + csvData.substring(0, 1000) + '...</pre>';
+        }
+    </script>
+</body>
+</html>
